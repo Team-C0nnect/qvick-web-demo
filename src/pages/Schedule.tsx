@@ -17,8 +17,8 @@ interface CalendarDay {
 }
 
 export default function Schedule() {
-  const [currentYear, setCurrentYear] = useState(2024);
-  const [currentMonth, setCurrentMonth] = useState(3);
+  const [currentYear] = useState(2024);
+  const [currentMonth] = useState(3);
   const [selectedDate, setSelectedDate] = useState(19);
   const [schedulerVariant, setSchedulerVariant] = useState<'default' | 'no-schedule' | 'active'>('active');
   
@@ -36,15 +36,6 @@ export default function Schedule() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['schedules'] });
       setSchedulerVariant('active');
-    },
-  });
-
-  // Update schedule mutation
-  const updateScheduleMutation = useMutation({
-    mutationFn: ({ date, data }: { date: string; data: { startTime?: string; endTime?: string } }) =>
-      scheduleService.updateSchedule(date, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['schedules'] });
     },
   });
 

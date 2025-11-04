@@ -16,7 +16,7 @@ interface NoticeItem {
 
 export default function Notice() {
   const [filter, setFilter] = useState('이번 달');
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Fetch announcements

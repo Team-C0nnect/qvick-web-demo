@@ -96,7 +96,7 @@ export default function Check() {
           overnight: attendance?.status === 'SLEEPOVER',
           name: student.name,
           status: attendance ? statusMap[attendance.status] : '미출석',
-          gender: student.grade && student.classroom ? '여' : '남', // Default mapping
+          gender: student.gender === 'MALE' ? '남' : '여',
           studentId: `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`,
           time: attendance?.checkedAt
             ? new Date(attendance.checkedAt).toLocaleTimeString('ko-KR', {

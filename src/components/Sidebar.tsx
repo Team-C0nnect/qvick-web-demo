@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import '../styles/Sidebar.css';
-import { DashboardIcon, DocumentIcon, NoticeIcon, CalendarIcon } from './Icons';
+import { DashboardIcon, DocumentIcon, NoticeIcon, CalendarIcon, RoomIcon } from './Icons';
 
 export default function Sidebar() {
   const menuItems = [
@@ -8,6 +8,7 @@ export default function Sidebar() {
     { path: '/check', label: '인원 확인', icon: 'check' },
     { path: '/notice', label: '공지사항', icon: 'notice' },
     { path: '/schedule', label: '일정 관리', icon: 'schedule' },
+    { path: '/room', label: '방 관리', icon: 'room' },
   ];
 
   const getIcon = (iconType: string) => {
@@ -20,6 +21,8 @@ export default function Sidebar() {
         return <NoticeIcon className="menu-icon" />;
       case 'schedule':
         return <CalendarIcon className="menu-icon" />;
+      case 'room':
+        return <RoomIcon className="menu-icon" />;
       default:
         return <div className="menu-icon"></div>;
     }

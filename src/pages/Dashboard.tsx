@@ -53,6 +53,12 @@ export default function Dashboard() {
           <h3 className="card-title">일정 관리</h3>
           <p className="card-description">기숙사 일정을 등록하고 관리합니다</p>
         </Link>
+
+        <Link to="/room" className="quick-link-card">
+          <div className="card-icon room"></div>
+          <h3 className="card-title">방 관리</h3>
+          <p className="card-description">기숙사 방을 등록하고 관리합니다</p>
+        </Link>
       </div>
 
       <div className="stats-overview">

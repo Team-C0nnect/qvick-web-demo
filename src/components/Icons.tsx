@@ -149,3 +149,34 @@ export function ExcelIcon({ className = '', style }: IconProps) {
     </svg>
   );
 }
+
+export function RoomIcon({ className = '', style }: IconProps) {
+  return (
+    <svg 
+      width="23" 
+      height="23" 
+      viewBox="0 0 23 23" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      className={`icon ${className}`}
+      style={style}
+    >
+      <path 
+        d="M2 9L11.5 3L21 9V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H4C3.46957 21 2.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V9Z" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path 
+        d="M8 21V11H15V21" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}

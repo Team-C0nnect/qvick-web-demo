@@ -55,6 +55,7 @@ export interface StudentResponse {
   number: number;
   room: string;
   name: string;
+  gender: Gender;
 }
 
 export interface TeacherUpdateStudentRequest {

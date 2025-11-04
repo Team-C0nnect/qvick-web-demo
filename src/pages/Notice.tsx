@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
 import NoticeCreateModal from '../components/NoticeCreateModal';
+import NoticeEditModal from '../components/NoticeEditModal';
 import '../styles/Notice.css';
 
 interface NoticeItem {
@@ -15,15 +17,111 @@ interface NoticeItem {
 }
 
 export default function Notice() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState('이번 달');
   const [currentPage] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingNoticeId, setEditingNoticeId] = useState<number | null>(null);
+  const [selectedNotices, setSelectedNotices] = useState<number[]>([]);
 
   // Fetch announcements
   const { data: announcementsData, isLoading } = useQuery({
     queryKey: ['announcements', currentPage],
     queryFn: () => announcementService.getAnnouncements({ page: currentPage, size: 12 }),
   });
+
+  // 삭제 mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (noticeIds: number[]) => {
+      await Promise.all(noticeIds.map(id => announcementService.deleteAnnouncement(id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      setSelectedNotices([]);
+    },
+    onError: (error: Error) => {
+      console.error('Delete error:', error);
+      alert('공지사항 삭제에 실패했습니다.');
+    },
+  });
+
+  // 고정/고정 해제 mutation
+  const pinMutation = useMutation({
+    mutationFn: async ({ noticeIds, pin }: { noticeIds: number[], pin: boolean }) => {
+      await Promise.all(
+        noticeIds.map(id => 
+          pin ? announcementService.pinAnnouncement(id) : announcementService.unpinAnnouncement(id)
+        )
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      setSelectedNotices([]);
+    },
+    onError: (error: Error) => {
+      console.error('Pin error:', error);
+      alert('공지사항 고정 변경에 실패했습니다.');
+    },
+  });
+
+  const handleToggleNotice = (noticeId: number, e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedNotices(prev => 
+      prev.includes(noticeId) 
+        ? prev.filter(id => id !== noticeId)
+        : [...prev, noticeId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedNotices.length === notices.length) {
+      setSelectedNotices([]);
+    } else {
+      setSelectedNotices(notices.map(n => n.id));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedNotices.length === 0) {
+      alert('삭제할 공지사항을 선택해주세요.');
+      return;
+    }
+    
+    if (window.confirm(`선택한 ${selectedNotices.length}개의 공지사항을 삭제하시겠습니까?`)) {
+      deleteMutation.mutate(selectedNotices);
+    }
+  };
+
+  const handlePinSelected = () => {
+    if (selectedNotices.length === 0) {
+      alert('고정할 공지사항을 선택해주세요.');
+      return;
+    }
+    
+    pinMutation.mutate({ noticeIds: selectedNotices, pin: true });
+  };
+
+  const handleUnpinSelected = () => {
+    if (selectedNotices.length === 0) {
+      alert('고정 해제할 공지사항을 선택해주세요.');
+      return;
+    }
+    
+    pinMutation.mutate({ noticeIds: selectedNotices, pin: false });
+  };
+
+  const handleDeleteSingle = (noticeId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('이 공지사항을 삭제하시겠습니까?')) {
+      deleteMutation.mutate([noticeId]);
+    }
+  };
+
+  const handleEditNotice = (noticeId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingNoticeId(noticeId);
+  };
 
   const filters = ['어제', '오늘', '이번 주', '이번 달', '올해'];
 
@@ -81,8 +179,26 @@ export default function Notice() {
       </div>
 
       <div className="action-section">
-        <div className="count-badge">
-          전체 <span className="count">{announcementsData?.totalElements || 0}</span>
+        <div className="left-actions">
+          <div className="count-badge">
+            전체 <span className="count">{announcementsData?.totalElements || 0}</span>
+          </div>
+          {selectedNotices.length > 0 && (
+            <>
+              <button className="action-button select-all" onClick={handleSelectAll}>
+                {selectedNotices.length === notices.length ? '전체 해제' : '전체 선택'}
+              </button>
+              <button className="action-button pin" onClick={handlePinSelected}>
+                고정 ({selectedNotices.length})
+              </button>
+              <button className="action-button unpin" onClick={handleUnpinSelected}>
+                고정 해제 ({selectedNotices.length})
+              </button>
+              <button className="action-button delete" onClick={handleDeleteSelected}>
+                삭제 ({selectedNotices.length})
+              </button>
+            </>
+          )}
         </div>
         <button className="create-button" onClick={() => setIsCreateModalOpen(true)}>
           공지사항 작성
@@ -91,11 +207,21 @@ export default function Notice() {
 
       <div className="notice-grid">
         {notices.map((notice) => (
-          <div key={notice.id} className="notice-card">
+          <div 
+            key={notice.id} 
+            className={`notice-card ${selectedNotices.includes(notice.id) ? 'selected' : ''}`}
+            onClick={() => navigate(`/notice/${notice.id}`)}
+          >
             <div className="notice-header">
               <span className="notice-category">{notice.category}</span>
               {notice.isPinned && <span className="pinned-badge">고정됨</span>}
-              <div className={`checkbox ${notice.checked ? 'checked' : ''}`}></div>
+              <input
+                type="checkbox"
+                className="notice-checkbox"
+                checked={selectedNotices.includes(notice.id)}
+                onChange={(e) => handleToggleNotice(notice.id, e)}
+                onClick={(e) => e.stopPropagation()}
+              />
             </div>
             <h3 className="notice-title">{notice.title}</h3>
             <p className="notice-author">{notice.author}</p>
@@ -108,6 +234,14 @@ export default function Notice() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
+
+      {editingNoticeId && (
+        <NoticeEditModal
+          isOpen={true}
+          noticeId={editingNoticeId}
+          onClose={() => setEditingNoticeId(null)}
+        />
+      )}
     </div>
   );
 }

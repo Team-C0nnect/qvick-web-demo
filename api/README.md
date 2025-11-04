@@ -1,4 +1,4 @@
-# Qvick API - Azure Functions
+ㅇ# Qvick API - Azure Functions
 
 이 디렉토리는 Qvick 웹 애플리케이션의 Azure Functions API를 포함합니다.
 

@@ -115,6 +115,12 @@
   margin-bottom: 30px;
 }
 
+.left-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .count-badge {
   background: #eff0f1;
   padding: 6px 12px;
@@ -127,6 +133,52 @@
 .count-badge .count {
   color: #6d23ed;
   font-weight: 700;
+}
+
+.action-button {
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.action-button.select-all {
+  background: #eff0f1;
+  color: #5d5f60;
+}
+
+.action-button.select-all:hover {
+  background: #e0e1e2;
+}
+
+.action-button.pin {
+  background: #6d23ed;
+  color: white;
+}
+
+.action-button.pin:hover {
+  background: #5919c7;
+}
+
+.action-button.unpin {
+  background: #9e9e9f;
+  color: white;
+}
+
+.action-button.unpin:hover {
+  background: #7d7e7f;
+}
+
+.action-button.delete {
+  background: #ff4242;
+  color: white;
+}
+
+.action-button.delete:hover {
+  background: #e63939;
 }
 
 .create-button {
@@ -157,7 +209,13 @@
   border-radius: 5px;
   padding: 20px 30px;
   transition: all 0.2s;
+  position: relative;
   cursor: pointer;
+}
+
+.notice-card.selected {
+  background: #f9f7ff;
+  border-color: #6d23ed;
 }
 
 .notice-card:hover {
@@ -178,36 +236,19 @@
   color: #b3b3b3;
 }
 
-.checkbox {
-  width: 24px;
-  height: 24px;
-  border: 2px solid #c4c5c6;
-  border-radius: 4px;
-  background: #ffffff;
-  position: relative;
-}
-
-.checkbox.checked {
-  background: #6d23ed;
-  border-color: #6d23ed;
-}
-
-.checkbox.checked::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
+.notice-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #6d23ed;
 }
 
 .notice-title {
   font-size: 15px;
   font-weight: 700;
-  color: #000000;
-  margin: 0 0 3px 0;
+  color: #0f0f10;
+  margin: 0 0 6px 0;
+  line-height: 1.4;
 }
 
 .notice-author {

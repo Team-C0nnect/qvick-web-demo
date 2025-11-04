@@ -23,7 +23,7 @@
 
 .quick-links {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
   margin-bottom: 40px;
 }
@@ -61,6 +61,10 @@
 
 .card-icon.schedule {
   background: linear-gradient(135deg, #1492fc 0%, #0f7dd9 100%);
+}
+
+.card-icon.room {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
 }
 
 .card-title {

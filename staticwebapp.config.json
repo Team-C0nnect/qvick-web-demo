@@ -5,8 +5,10 @@
   },
   "routes": [
     {
-      "route": "/login",
-      "rewrite": "/index.html"
+      "route": "/assets/*",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
     },
     {
       "route": "/*",
@@ -20,8 +22,8 @@
     }
   },
   "mimeTypes": {
-    ".js": "text/javascript",
-    ".mjs": "text/javascript",
+    ".js": "application/javascript",
+    ".mjs": "application/javascript",
     ".json": "application/json",
     ".css": "text/css",
     ".svg": "image/svg+xml",
@@ -33,10 +35,13 @@
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
     ".gif": "image/gif",
-    ".ico": "image/x-icon"
+    ".ico": "image/x-icon",
+    ".html": "text/html"
   },
   "globalHeaders": {
-    "content-security-policy": "default-src 'self' https://devapi.qvick.xyz; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://devapi.qvick.xyz"
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block"
   },
   "platform": {
     "apiRuntime": "node:18"

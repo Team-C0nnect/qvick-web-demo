@@ -32,6 +32,12 @@ export default function Check() {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<'전체' | '출석' | '미출석'>('전체');
+  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('전체');
+  const [overnightFilter, setOvernightFilter] = useState<'전체' | '외박' | '비외박'>('전체');
+  const [dormitoryFilter, setDormitoryFilter] = useState<'전체' | '남기숙사' | '여기숙사'>('전체');
+  
   const queryClient = useQueryClient();
 
   // Fetch students and attendances
@@ -162,6 +168,38 @@ export default function Check() {
 
   const sortedStudents = getSortedStudents();
 
+  // Apply filters
+  const getFilteredStudents = () => {
+    return sortedStudents.filter((student) => {
+      // Status filter
+      if (statusFilter !== '전체' && student.status !== statusFilter) {
+        return false;
+      }
+      
+      // Gender filter
+      if (genderFilter !== '전체' && student.gender !== genderFilter) {
+        return false;
+      }
+      
+      // Overnight filter
+      if (overnightFilter === '외박' && !student.overnight) {
+        return false;
+      }
+      if (overnightFilter === '비외박' && student.overnight) {
+        return false;
+      }
+      
+      // Dormitory filter
+      if (dormitoryFilter !== '전체' && student.dormitory !== dormitoryFilter) {
+        return false;
+      }
+      
+      return true;
+    });
+  };
+
+  const filteredStudents = getFilteredStudents();
+
   const handleEditClick = (student: Student) => {
     setSelectedStudent(student);
     setIsModalOpen(true);
@@ -186,9 +224,9 @@ export default function Check() {
   };
 
   const stats = {
-    total: students.length,
-    present: students.filter((s) => s.status === '출석').length,
-    absent: students.filter((s) => s.status === '미출석').length,
+    total: filteredStudents.length,
+    present: filteredStudents.filter((s) => s.status === '출석').length,
+    absent: filteredStudents.filter((s) => s.status === '미출석').length,
   };
 
   if (studentsLoading || attendancesLoading) {
@@ -229,6 +267,104 @@ export default function Check() {
             </div>
           </div>
 
+          <div className="filter-section">
+            <div className="filter-group">
+              <label className="filter-label">출석 상태:</label>
+              <div className="filter-buttons">
+                <button 
+                  className={`filter-btn ${statusFilter === '전체' ? 'active' : ''}`}
+                  onClick={() => setStatusFilter('전체')}
+                >
+                  전체
+                </button>
+                <button 
+                  className={`filter-btn ${statusFilter === '출석' ? 'active' : ''}`}
+                  onClick={() => setStatusFilter('출석')}
+                >
+                  출석
+                </button>
+                <button 
+                  className={`filter-btn ${statusFilter === '미출석' ? 'active' : ''}`}
+                  onClick={() => setStatusFilter('미출석')}
+                >
+                  미출석
+                </button>
+              </div>
+            </div>
+
+            <div className="filter-group">
+              <label className="filter-label">성별:</label>
+              <div className="filter-buttons">
+                <button 
+                  className={`filter-btn ${genderFilter === '전체' ? 'active' : ''}`}
+                  onClick={() => setGenderFilter('전체')}
+                >
+                  전체
+                </button>
+                <button 
+                  className={`filter-btn ${genderFilter === '남' ? 'active' : ''}`}
+                  onClick={() => setGenderFilter('남')}
+                >
+                  남
+                </button>
+                <button 
+                  className={`filter-btn ${genderFilter === '여' ? 'active' : ''}`}
+                  onClick={() => setGenderFilter('여')}
+                >
+                  여
+                </button>
+              </div>
+            </div>
+
+            <div className="filter-group">
+              <label className="filter-label">외박:</label>
+              <div className="filter-buttons">
+                <button 
+                  className={`filter-btn ${overnightFilter === '전체' ? 'active' : ''}`}
+                  onClick={() => setOvernightFilter('전체')}
+                >
+                  전체
+                </button>
+                <button 
+                  className={`filter-btn ${overnightFilter === '외박' ? 'active' : ''}`}
+                  onClick={() => setOvernightFilter('외박')}
+                >
+                  외박
+                </button>
+                <button 
+                  className={`filter-btn ${overnightFilter === '비외박' ? 'active' : ''}`}
+                  onClick={() => setOvernightFilter('비외박')}
+                >
+                  비외박
+                </button>
+              </div>
+            </div>
+
+            <div className="filter-group">
+              <label className="filter-label">기숙사:</label>
+              <div className="filter-buttons">
+                <button 
+                  className={`filter-btn ${dormitoryFilter === '전체' ? 'active' : ''}`}
+                  onClick={() => setDormitoryFilter('전체')}
+                >
+                  전체
+                </button>
+                <button 
+                  className={`filter-btn ${dormitoryFilter === '남기숙사' ? 'active' : ''}`}
+                  onClick={() => setDormitoryFilter('남기숙사')}
+                >
+                  남기숙사
+                </button>
+                <button 
+                  className={`filter-btn ${dormitoryFilter === '여기숙사' ? 'active' : ''}`}
+                  onClick={() => setDormitoryFilter('여기숙사')}
+                >
+                  여기숙사
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="table-container">
             <table className="student-table">
               <thead>
@@ -237,7 +373,7 @@ export default function Check() {
                     호실
                     {sortKey === 'room' && (
                       <span className="sort-indicator">
-                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                        {sortDirection === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </th>
@@ -246,7 +382,7 @@ export default function Check() {
                     이름
                     {sortKey === 'name' && (
                       <span className="sort-indicator">
-                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                        {sortDirection === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </th>
@@ -254,7 +390,7 @@ export default function Check() {
                     상태
                     {sortKey === 'status' && (
                       <span className="sort-indicator">
-                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                        {sortDirection === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </th>
@@ -262,7 +398,7 @@ export default function Check() {
                     성별
                     {sortKey === 'gender' && (
                       <span className="sort-indicator">
-                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                        {sortDirection === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </th>
@@ -270,7 +406,7 @@ export default function Check() {
                     학번
                     {sortKey === 'studentId' && (
                       <span className="sort-indicator">
-                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                        {sortDirection === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </th>
@@ -278,7 +414,7 @@ export default function Check() {
                     출석 시간
                     {sortKey === 'time' && (
                       <span className="sort-indicator">
-                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                        {sortDirection === 'asc' ? '▲' : '▼'}
                       </span>
                     )}
                   </th>
@@ -288,7 +424,7 @@ export default function Check() {
                 </tr>
               </thead>
               <tbody>
-                {sortedStudents.map((student, index) => (
+                {filteredStudents.map((student, index) => (
                   <tr key={index}>
                     <td className="room-cell">{student.room}</td>
                     <td>

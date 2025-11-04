@@ -23,7 +23,9 @@ export const announcementService = {
   },
 
   createAnnouncement: async (data: CreateAnnouncementRequest): Promise<void> => {
-    await apiClient.post('/teacher/announcements', data);
+    await apiClient.post('/teacher/announcements', null, {
+      params: data,
+    });
   },
 
   updateAnnouncement: async (

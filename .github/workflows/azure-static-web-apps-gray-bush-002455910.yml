@@ -31,6 +31,12 @@ jobs:
       
       - name: Build
         run: npm run build
+      
+      - name: Install API dependencies
+        run: cd api && npm ci
+      
+      - name: Build API
+        run: cd api && npm run build
         
       - name: Build And Deploy
         id: builddeploy
@@ -42,7 +48,7 @@ jobs:
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
           app_location: "dist" # Pre-built app directory
-          api_location: "" # Api source code path - optional
+          api_location: "api" # Api source code path
           output_location: "" # No additional build needed
           skip_app_build: true # We're building manually above
           ###### End of Repository/Build Configurations ######

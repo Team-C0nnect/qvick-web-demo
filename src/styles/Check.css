@@ -111,6 +111,27 @@
   text-align: center;
 }
 
+.student-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.student-table thead th.sortable:hover {
+  background: #f5f5f5;
+}
+
+.student-table thead th.sortable:active {
+  background: #eeeeee;
+}
+
+.sort-indicator {
+  font-size: 12px;
+  color: #6d23ed;
+  margin-left: 4px;
+}
+
 .student-table tbody td {
   padding: 12px 8px;
   border-bottom: 1px solid #c4c5c6;

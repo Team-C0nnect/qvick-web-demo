@@ -1,7 +1,7 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{css,js,mjs,png,jpg,jpeg,gif,svg,ico,woff,woff2,ttf,eot}"]
+    "exclude": ["/assets/*", "/images/*", "/*.{css,js,mjs,png,jpg,jpeg,gif,svg,ico,woff,woff2,ttf,eot,json,txt}"]
   },
   "routes": [
     {
@@ -9,10 +9,6 @@
       "headers": {
         "cache-control": "public, max-age=31536000, immutable"
       }
-    },
-    {
-      "route": "/*",
-      "rewrite": "/index.html"
     }
   ],
   "responseOverrides": {

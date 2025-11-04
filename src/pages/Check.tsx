@@ -21,11 +21,16 @@ interface Student {
   dormitory: string;
 }
 
+type SortKey = 'room' | 'name' | 'status' | 'gender' | 'studentId' | 'time';
+type SortDirection = 'asc' | 'desc' | null;
+
 export default function Check() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [currentDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   
   const queryClient = useQueryClient();
 
@@ -102,6 +107,61 @@ export default function Check() {
     }
   }, [studentsData, attendancesData]);
 
+  // Sort function
+  const handleSort = (key: SortKey) => {
+    let direction: SortDirection = 'asc';
+    
+    if (sortKey === key) {
+      if (sortDirection === 'asc') {
+        direction = 'desc';
+      } else if (sortDirection === 'desc') {
+        direction = null;
+        setSortKey(null);
+        setSortDirection(null);
+        return;
+      }
+    }
+    
+    setSortKey(key);
+    setSortDirection(direction);
+  };
+
+  // Get sorted students
+  const getSortedStudents = () => {
+    if (!sortKey || !sortDirection) {
+      return students;
+    }
+
+    return [...students].sort((a, b) => {
+      let aValue: string | number = a[sortKey];
+      let bValue: string | number = b[sortKey];
+
+      // Handle time sorting
+      if (sortKey === 'time') {
+        if (aValue === '-') return 1;
+        if (bValue === '-') return -1;
+      }
+
+      // Handle room number sorting
+      if (sortKey === 'room') {
+        const aNum = parseInt(aValue.replace(/\D/g, '')) || 0;
+        const bNum = parseInt(bValue.replace(/\D/g, '')) || 0;
+        aValue = aNum;
+        bValue = bNum;
+      }
+
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
+  const sortedStudents = getSortedStudents();
+
   const handleEditClick = (student: Student) => {
     setSelectedStudent(student);
     setIsModalOpen(true);
@@ -173,20 +233,62 @@ export default function Check() {
             <table className="student-table">
               <thead>
                 <tr>
-                  <th>호실</th>
+                  <th onClick={() => handleSort('room')} className="sortable">
+                    호실
+                    {sortKey === 'room' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                      </span>
+                    )}
+                  </th>
                   <th>외박</th>
-                  <th>이름</th>
-                  <th>상태</th>
-                  <th>성별</th>
-                  <th>학번</th>
-                  <th>출석 시간</th>
+                  <th onClick={() => handleSort('name')} className="sortable">
+                    이름
+                    {sortKey === 'name' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                      </span>
+                    )}
+                  </th>
+                  <th onClick={() => handleSort('status')} className="sortable">
+                    상태
+                    {sortKey === 'status' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                      </span>
+                    )}
+                  </th>
+                  <th onClick={() => handleSort('gender')} className="sortable">
+                    성별
+                    {sortKey === 'gender' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                      </span>
+                    )}
+                  </th>
+                  <th onClick={() => handleSort('studentId')} className="sortable">
+                    학번
+                    {sortKey === 'studentId' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                      </span>
+                    )}
+                  </th>
+                  <th onClick={() => handleSort('time')} className="sortable">
+                    출석 시간
+                    {sortKey === 'time' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ▲' : ' ▼'}
+                      </span>
+                    )}
+                  </th>
                   <th>연락처</th>
                   <th></th>
                   <th>정보 수정</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((student, index) => (
+                {sortedStudents.map((student, index) => (
                   <tr key={index}>
                     <td className="room-cell">{student.room}</td>
                     <td>

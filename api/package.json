@@ -2,11 +2,13 @@
   "name": "qvick-api",
   "version": "1.0.0",
   "description": "Azure Functions for Qvick",
+  "main": "dist/functions/*.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
     "prestart": "npm run build",
-    "start": "func start"
+    "start": "func start",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",

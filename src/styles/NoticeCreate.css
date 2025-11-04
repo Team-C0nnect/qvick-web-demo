@@ -1,0 +1,231 @@
+/* Notice Create Page Styles */
+.notice-create-page {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.notice-create-header {
+  margin-bottom: 32px;
+}
+
+.notice-create-form {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-bottom: 40px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.form-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f0f10;
+  letter-spacing: -0.15px;
+}
+
+.required {
+  color: #ff4242;
+  margin-left: 2px;
+}
+
+.form-input {
+  background: #ffffff;
+  border: 1px solid #e6e6e7;
+  border-radius: 12px;
+  height: 48px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f0f10;
+  letter-spacing: 0.28px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  border-color: #6d23ed;
+  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9e9e9f;
+}
+
+.form-textarea {
+  background: #ffffff;
+  border: 1px solid #e6e6e7;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f0f10;
+  letter-spacing: 0.28px;
+  line-height: 1.6;
+  outline: none;
+  transition: all 0.2s;
+  resize: vertical;
+  min-height: 300px;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+.form-textarea:focus {
+  border-color: #6d23ed;
+  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
+}
+
+.form-textarea::placeholder {
+  color: #9e9e9f;
+}
+
+.char-count {
+  font-size: 12px;
+  color: #9e9e9f;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.checkbox-group {
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.checkbox-input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #6d23ed;
+}
+
+.checkbox-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f0f10;
+}
+
+.checkbox-description {
+  font-size: 13px;
+  color: #5d5f60;
+  margin-top: 8px;
+  margin-left: 32px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid #e6e6e7;
+}
+
+.cancel-button,
+.submit-button {
+  height: 48px;
+  padding: 0 32px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.cancel-button {
+  background: #ffffff;
+  color: #5d5f60;
+  border: 1px solid #e6e6e7;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background: #fafafa;
+  border-color: #9e9e9f;
+}
+
+.submit-button {
+  background: #6d23ed;
+  color: #ffffff;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #5919c7;
+}
+
+.submit-button:active:not(:disabled) {
+  background: #4a14a5;
+}
+
+.cancel-button:disabled,
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #c00;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .notice-create-page {
+    padding: 20px;
+  }
+
+  .notice-create-form {
+    padding: 24px;
+  }
+
+  .form-textarea {
+    min-height: 200px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .cancel-button,
+  .submit-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .notice-create-page {
+    padding: 16px;
+  }
+
+  .notice-create-form {
+    padding: 20px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+}

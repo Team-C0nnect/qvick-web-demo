@@ -1,0 +1,165 @@
+/* Dashboard Page Styles */
+.dashboard-page {
+  padding: 40px;
+}
+
+.welcome-section {
+  margin-bottom: 40px;
+}
+
+.dashboard-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f0f10;
+  margin: 0 0 8px 0;
+}
+
+.dashboard-subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #5d5f60;
+  margin: 0;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.quick-link-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 32px;
+  text-decoration: none;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+.quick-link-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(109, 35, 237, 0.2);
+  border: 2px solid #6d23ed;
+}
+
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.card-icon.check {
+  background: linear-gradient(135deg, #00bf40 0%, #00a036 100%);
+}
+
+.card-icon.notice {
+  background: linear-gradient(135deg, #6d23ed 0%, #5919c7 100%);
+}
+
+.card-icon.schedule {
+  background: linear-gradient(135deg, #1492fc 0%, #0f7dd9 100%);
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f0f10;
+  margin: 0 0 8px 0;
+}
+
+.card-description {
+  font-size: 14px;
+  font-weight: 400;
+  color: #5d5f60;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.stat-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #5d5f60;
+  margin: 0 0 12px 0;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f0f10;
+  margin: 0;
+}
+
+.stat-value.positive {
+  color: #00bf40;
+}
+
+.stat-value.negative {
+  color: #ff4242;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .quick-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stats-overview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-page {
+    padding: 24px 20px;
+  }
+
+  .quick-links {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-title {
+    font-size: 24px;
+  }
+
+  .quick-link-card {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-title {
+    font-size: 20px;
+  }
+
+  .dashboard-subtitle {
+    font-size: 14px;
+  }
+
+  .card-title {
+    font-size: 18px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+}

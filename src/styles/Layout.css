@@ -1,0 +1,24 @@
+/* Layout Component Styles */
+.app-layout {
+  min-height: 100vh;
+  background-color: #fafafa;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+.content-wrapper {
+  display: flex;
+  margin-top: 60px;
+}
+
+.main-content {
+  margin-left: 144px;
+  flex: 1;
+  min-height: calc(100vh - 60px);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 60px;
+  }
+}

@@ -1,0 +1,197 @@
+/* Check Page Styles */
+.check-page {
+  padding: 32px 40px;
+}
+
+.controls-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 24px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 4px 12px;
+  width: 240px;
+}
+
+.search-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #5d5f60;
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  color: #5d5f60;
+  outline: none;
+  flex: 1;
+}
+
+.search-box input::placeholder {
+  color: #5d5f60;
+}
+
+.stats-section {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.stat-box {
+  background: #ffffff;
+  padding: 7px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.stat-box .positive {
+  color: #00bf40;
+}
+
+.stat-box .negative {
+  color: #e1322e;
+}
+
+.excel-button {
+  background: #164e8d;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.excel-button:hover {
+  background: #1a5aa1;
+}
+
+.excel-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #ffffff;
+}
+
+.table-container {
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.student-table thead th {
+  background: #ffffff;
+  border-bottom: 1px solid #c4c5c6;
+  padding: 13.5px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f0f10;
+  text-align: center;
+}
+
+.student-table tbody td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #c4c5c6;
+  font-size: 16px;
+  text-align: center;
+  color: #0f0f10;
+}
+
+.student-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.room-cell {
+  font-weight: 500;
+}
+
+.status-present {
+  color: #00bf40;
+  font-weight: 600;
+}
+
+.status-absent {
+  color: #ff4242;
+  font-weight: 600;
+}
+
+.edit-button {
+  border: 1px solid #164e8d;
+  background: transparent;
+  color: #164e8d;
+  padding: 4.5px 12px;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-button:hover {
+  background: #164e8d;
+  color: #ffffff;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+  .check-page {
+    padding: 24px 20px;
+  }
+
+  .controls-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .stats-section {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .student-table {
+    font-size: 14px;
+  }
+
+  .student-table thead th,
+  .student-table tbody td {
+    padding: 8px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-box {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+
+  .excel-button {
+    font-size: 16px;
+    padding: 5px 10px;
+  }
+}

@@ -1,0 +1,281 @@
+/* Notice Page Styles */
+.notice-page {
+  padding: 40px 204px;
+}
+
+.page-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: #0f0f10;
+  margin-bottom: 30px;
+}
+
+.filter-section {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.filter-button {
+  border: 1px solid #c4c5c6;
+  background: #ffffff;
+  color: #5d5f60;
+  padding: 8px 13px;
+  border-radius: 5px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-button.active {
+  background: rgba(109, 35, 237, 0.2);
+  border-color: rgba(109, 35, 237, 0.2);
+  color: #6d23ed;
+}
+
+.filter-button:hover {
+  border-color: #6d23ed;
+}
+
+.date-range-button {
+  border: 1px solid #c4c5c6;
+  background: #ffffff;
+  color: #5d5f60;
+  padding: 8px 13px;
+  border-radius: 5px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.date-range-button:hover {
+  border-color: #6d23ed;
+}
+
+.calendar-icon {
+  width: 18px;
+  height: 21px;
+  background: #5d5f60;
+  border-radius: 3px;
+}
+
+.dropdown-icon {
+  width: 12px;
+  height: 6px;
+  background: #5d5f60;
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+}
+
+.tabs-section {
+  display: flex;
+  gap: 34px;
+  border-bottom: 2px solid #e6e6e7;
+  margin-bottom: 20px;
+}
+
+.tab {
+  font-size: 18px;
+  font-weight: 600;
+  color: #5d5f60;
+  padding: 8px 0;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.tab:hover {
+  color: #6d23ed;
+}
+
+.tab.active {
+  color: #6d23ed;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #6d23ed;
+  border-radius: 50px 50px 0 0;
+}
+
+.action-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.count-badge {
+  background: #eff0f1;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5d5f60;
+}
+
+.count-badge .count {
+  color: #6d23ed;
+  font-weight: 700;
+}
+
+.create-button {
+  background: #6d23ed;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.create-button:hover {
+  background: #5919c7;
+}
+
+.notice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 10px;
+}
+
+.notice-card {
+  background: #ffffff;
+  border: 1px solid #e6e6e7;
+  border-radius: 5px;
+  padding: 20px 30px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.notice-card:hover {
+  border-color: #6d23ed;
+  box-shadow: 0 2px 8px rgba(109, 35, 237, 0.15);
+}
+
+.notice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 3px;
+}
+
+.notice-category {
+  font-size: 10px;
+  font-weight: 500;
+  color: #b3b3b3;
+}
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #c4c5c6;
+  border-radius: 4px;
+  background: #ffffff;
+  position: relative;
+}
+
+.checkbox.checked {
+  background: #6d23ed;
+  border-color: #6d23ed;
+}
+
+.checkbox.checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.notice-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #000000;
+  margin: 0 0 3px 0;
+}
+
+.notice-author {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5d5f60;
+  margin: 0 0 3px 0;
+}
+
+.notice-date {
+  font-size: 10px;
+  font-weight: 500;
+  color: #b3b3b3;
+  text-align: right;
+  margin: 0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1400px) {
+  .notice-page {
+    padding: 40px 100px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .notice-page {
+    padding: 40px 40px;
+  }
+
+  .notice-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .notice-page {
+    padding: 30px 20px;
+  }
+
+  .notice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-section {
+    flex-wrap: wrap;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 20px;
+  }
+
+  .tabs-section {
+    gap: 15px;
+  }
+
+  .tab {
+    font-size: 14px;
+  }
+
+  .action-section {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+}

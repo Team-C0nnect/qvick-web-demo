@@ -111,18 +111,6 @@ export default function Notice() {
     pinMutation.mutate({ noticeIds: selectedNotices, pin: false });
   };
 
-  const handleDeleteSingle = (noticeId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (window.confirm('이 공지사항을 삭제하시겠습니까?')) {
-      deleteMutation.mutate([noticeId]);
-    }
-  };
-
-  const handleEditNotice = (noticeId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingNoticeId(noticeId);
-  };
-
   const filters = ['어제', '오늘', '이번 주', '이번 달', '올해'];
 
   // Transform API data to NoticeItem format

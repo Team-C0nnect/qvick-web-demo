@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
+import { CheckTableSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
 import { SearchIcon, ExcelIcon } from '../components/Icons';
 import EditStudentModal from '../components/EditStudentModal';
@@ -230,7 +231,7 @@ export default function Check() {
   if (attendancesLoading) {
     return (
       <div className="check-page">
-        <div className="loading">데이터를 불러오는 중...</div>
+        <CheckTableSkeleton />
       </div>
     );
   }  return (

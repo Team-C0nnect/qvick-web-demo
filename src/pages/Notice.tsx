@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
+import { NoticeGridSkeleton } from '../components/Skeleton';
 import NoticeCreateModal from '../components/NoticeCreateModal';
 import NoticeEditModal from '../components/NoticeEditModal';
 import '../styles/Notice.css';
@@ -134,7 +135,7 @@ export default function Notice() {
   if (isLoading) {
     return (
       <div className="notice-page">
-        <div className="loading">공지사항을 불러오는 중...</div>
+        <NoticeGridSkeleton />
       </div>
     );
   }

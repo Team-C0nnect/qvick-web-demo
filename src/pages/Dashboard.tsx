@@ -3,31 +3,43 @@ import { useQuery } from '@tanstack/react-query';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
 import { announcementService } from '../services/announcement.service';
+import { DashboardSkeleton } from '../components/Skeleton';
 import '../styles/Dashboard.css';
 
 export default function Dashboard() {
   const today = new Date().toISOString().split('T')[0];
 
   // Fetch dashboard data
-  const { data: studentsData } = useQuery({
+  const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['students', 'all'],
     queryFn: () => studentService.getStudents({ page: 0, size: 1000 }),
   });
 
-  const { data: attendancesData } = useQuery({
+  const { data: attendancesData, isLoading: attendancesLoading } = useQuery({
     queryKey: ['attendances', today],
     queryFn: () => attendanceService.getAttendances(today),
   });
 
-  const { data: announcementsData } = useQuery({
+  const { data: announcementsData, isLoading: announcementsLoading } = useQuery({
     queryKey: ['announcements', 'unread'],
     queryFn: () => announcementService.getAnnouncements({ page: 0, size: 100 }),
   });
+
+  const isLoading = studentsLoading || attendancesLoading || announcementsLoading;
 
   const totalStudents = studentsData?.totalElements || 0;
   const presentCount = attendancesData?.filter((a) => a.status === 'PRESENT').length || 0;
   const absentCount = attendancesData?.filter((a) => a.status === 'ABSENT').length || 0;
   const unreadAnnouncements = announcementsData?.totalElements || 0;
+
+  if (isLoading) {
+    return (
+      <div className="dashboard-page">
+        <DashboardSkeleton />
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-page">
       <div className="welcome-section">

@@ -207,12 +207,15 @@ export default function Check() {
         const isOvernight = att.status === 'SLEEPOVER';
         
         // 출석 시간 (신버전 우선, 없으면 구버전)
+        // 신버전 서버는 UTC 시간 반환 → KST(+9시간) 변환 필요
         let checkedTime = '-';
         if (att.checkedAt) {
-          checkedTime = new Date(att.checkedAt).toLocaleTimeString('ko-KR', {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
+          const date = new Date(att.checkedAt);
+          // UTC → KST 변환 (+9시간)
+          const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+          const hours = kstDate.getUTCHours().toString().padStart(2, '0');
+          const minutes = kstDate.getUTCMinutes().toString().padStart(2, '0');
+          checkedTime = `${hours}:${minutes}`;
         } else if (legacyUser?.checked && legacyUser?.checkedDate) {
           checkedTime = legacyUser.checkedDate.substring(11, 16);
         }

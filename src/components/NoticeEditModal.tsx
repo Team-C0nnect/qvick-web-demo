@@ -188,7 +188,7 @@ export default function NoticeEditModal({
                   onClick={handleRefine}
                   disabled={!content.trim() || refineMutation.isPending}
                 >
-                  {refineMutation.isPending ? "다듬는 중..." : "✨ 글 다듬기"}
+                  {refineMutation.isPending ? "다듬는 중..." : "글 다듬기"}
                 </button>
                 <button
                   type="button"

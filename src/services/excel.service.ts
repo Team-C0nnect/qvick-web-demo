@@ -140,6 +140,28 @@ function definePageGroups(roomOrder: string[]): PageGroup[] {
 }
 
 /**
+ * 시간이 22:15 이후인지 확인
+ */
+function isLateAttendance(timeStr: string): boolean {
+  if (!timeStr || timeStr === '출석' || timeStr === '미출석' || timeStr === '외박') {
+    return false;
+  }
+  
+  // HH:MM 형식 파싱
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return false;
+  
+  const hour = parseInt(match[1], 10);
+  const minute = parseInt(match[2], 10);
+  
+  // 22:15 이후면 지각
+  if (hour > 22) return true;
+  if (hour === 22 && minute > 15) return true;
+  
+  return false;
+}
+
+/**
  * 워크시트 생성
  */
 function createWorksheet(
@@ -204,6 +226,14 @@ function createWorksheet(
         for (const col of ['B', 'C', 'D', 'E']) {
           cellStyles[`${col}${rowIndex + 1}`] = { fill: FILL_COLOR_GRAY };
         }
+      }
+      
+      // 22:15 이후 출석(지각)은 빨간색 폰트
+      if (member && member.checked && !member.isSleepover && isLateAttendance(attendance)) {
+        cellStyles[`D${rowIndex + 1}`] = {
+          ...cellStyles[`D${rowIndex + 1}`],
+          font: { color: { rgb: 'FF0000' }, bold: true }
+        };
       }
       
       rowIndex++;

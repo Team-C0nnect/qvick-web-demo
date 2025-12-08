@@ -3,6 +3,7 @@ import type {
   AttendanceScheduleResponse,
   TeacherCreateAttendanceScheduleRequest,
   TeacherUpdateAttendanceScheduleRequest,
+  Gender,
 } from '../types/api';
 
 export const scheduleService = {
@@ -16,11 +17,11 @@ export const scheduleService = {
     return response.data;
   },
 
-  getScheduleByDate: async (date: string): Promise<AttendanceScheduleResponse> => {
+  getScheduleByDate: async (date: string, gender?: Gender): Promise<AttendanceScheduleResponse> => {
     const response = await apiClient.get<AttendanceScheduleResponse>(
       '/teacher/attendance/schedules/date',
       {
-        params: { date },
+        params: { date, gender },
       }
     );
     return response.data;
@@ -52,16 +53,17 @@ export const scheduleService = {
 
   updateSchedule: async (
     date: string,
+    gender: Gender,
     data: TeacherUpdateAttendanceScheduleRequest
   ): Promise<void> => {
     await apiClient.patch('/teacher/attendance/schedules/date', data, {
-      params: { date },
+      params: { date, gender },
     });
   },
 
-  deleteSchedule: async (date: string): Promise<void> => {
+  deleteSchedule: async (date: string, gender: Gender): Promise<void> => {
     await apiClient.delete('/teacher/attendance/schedules', {
-      params: { date },
+      params: { date, gender },
     });
   },
 };

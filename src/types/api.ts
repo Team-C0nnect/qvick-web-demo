@@ -110,12 +110,14 @@ export interface MyAttendanceResponse {
 export interface AttendanceScheduleResponse {
   id: number;
   date: string; // format: date
+  gender: Gender; // 남/여 기숙사 구분
   startTime: string;
   endTime: string;
 }
 
 export interface TeacherCreateAttendanceScheduleRequest {
   date: string; // format: date
+  gender: Gender; // 남/여 기숙사 구분
   startTime: string;
   endTime: string;
 }

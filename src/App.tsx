@@ -8,6 +8,8 @@ import NoticeDetail from './pages/NoticeDetail';
 import Schedule from './pages/Schedule';
 import Room from './pages/Room';
 import Login from './pages/Login';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import './App.css';
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route
           path="/"
           element={

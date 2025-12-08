@@ -41,12 +41,6 @@ export default function Check() {
   const queryClient = useQueryClient();
 
   // Fetch students and attendances
-  const { data: studentsData, isLoading: studentsLoading } = useStudents({ 
-    page: 0, 
-    size: 100,
-    name: searchQuery || undefined 
-  });
-  
   const { data: attendancesData, isLoading: attendancesLoading } = useAttendances(currentDate);
 
   const [students, setStudents] = useState<Student[]>([]);
@@ -56,7 +50,7 @@ export default function Check() {
     mutationFn: ({ id, data }: { id: number; data: { gender: Gender; room?: string } }) =>
       studentService.updateStudent(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['students'] });
+      queryClient.invalidateQueries({ queryKey: ['attendances'] });
     },
   });
 
@@ -77,13 +71,9 @@ export default function Check() {
 
   // Combine students with attendance data
   useEffect(() => {
-    if (studentsData && attendancesData) {
-      const attendanceMap = new Map(
-        attendancesData.map((att) => [att.student.name, att])
-      );
-
-      const combinedStudents: Student[] = studentsData.content.map((student) => {
-        const attendance = attendanceMap.get(student.name);
+    if (attendancesData) {
+      const mappedStudents: Student[] = attendancesData.map((att) => {
+        const student = att.student;
         const statusMap: Record<AttendanceStatus, '출석' | '미출석'> = {
           PRESENT: '출석',
           ABSENT: '미출석',
@@ -93,13 +83,13 @@ export default function Check() {
         return {
           id: student.id,
           room: student.room,
-          overnight: attendance?.status === 'SLEEPOVER',
+          overnight: att.status === 'SLEEPOVER',
           name: student.name,
-          status: attendance ? statusMap[attendance.status] : '미출석',
+          status: statusMap[att.status],
           gender: student.gender === 'MALE' ? '남' : '여',
           studentId: `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`,
-          time: attendance?.checkedAt
-            ? new Date(attendance.checkedAt).toLocaleTimeString('ko-KR', {
+          time: att.checkedAt
+            ? new Date(att.checkedAt).toLocaleTimeString('ko-KR', {
                 hour: '2-digit',
                 minute: '2-digit',
               })
@@ -109,9 +99,9 @@ export default function Check() {
         };
       });
 
-      setStudents(combinedStudents);
+      setStudents(mappedStudents);
     }
-  }, [studentsData, attendancesData]);
+  }, [attendancesData]);
 
   // Sort function
   const handleSort = (key: SortKey) => {
@@ -171,6 +161,14 @@ export default function Check() {
   // Apply filters
   const getFilteredStudents = () => {
     return sortedStudents.filter((student) => {
+      // Search query filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        if (!student.name.toLowerCase().includes(query) && !student.room.toLowerCase().includes(query)) {
+          return false;
+        }
+      }
+
       // Status filter
       if (statusFilter !== '전체' && student.status !== statusFilter) {
         return false;
@@ -229,7 +227,7 @@ export default function Check() {
     absent: filteredStudents.filter((s) => s.status === '미출석').length,
   };
 
-  if (studentsLoading || attendancesLoading) {
+  if (attendancesLoading) {
     return (
       <div className="check-page">
         <div className="loading">데이터를 불러오는 중...</div>

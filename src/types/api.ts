@@ -41,11 +41,13 @@ export interface UpdateMyUserPasswordRequest {
 
 // Student Types
 export interface Student {
+  id: number;
   name: string;
   grade: number;
   classroom: number;
   number: number;
   room: string;
+  gender: Gender;
 }
 
 export interface StudentResponse {

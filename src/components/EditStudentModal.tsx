@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import '../styles/EditStudentModal.css';
 
 interface Student {
-  id: number;
+  id: number | null;
+  index: number;
   room: string;
   overnight: boolean;
   name: string;
   status: '출석' | '미출석';
   gender: '남' | '여';
   studentId: string;
+  grade: number;
+  classroom: number;
+  number: number;
   time: string;
   phone: string;
   dormitory: string;
@@ -23,13 +27,17 @@ interface EditStudentModalProps {
 
 const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, student, onSave }) => {
   const [formData, setFormData] = useState<Student>({
-    id: 0,
+    id: null,
+    index: 0,
     room: '',
     overnight: false,
     name: '',
     status: '출석',
     gender: '남',
     studentId: '',
+    grade: 0,
+    classroom: 0,
+    number: 0,
     time: '',
     phone: '',
     dormitory: '',

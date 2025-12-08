@@ -1,52 +1,87 @@
-import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
+import { legacyAttendanceService, type LegacyUserResponse } from '../services/legacy-attendance.service';
+import { exportMergedAttendanceToExcel, type MergedAttendanceMember } from '../services/excel.service';
 import { CheckTableSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
 import { SearchIcon, ExcelIcon } from '../components/Icons';
 import EditStudentModal from '../components/EditStudentModal';
-import type { Gender, AttendanceStatus } from '../types/api';
+import type { Gender, AttendanceStatus, UpdateAttendancesRequest } from '../types/api';
 
 interface Student {
-  id: number;
+  id: number | null;
+  index: number;
   room: string;
   overnight: boolean;
   name: string;
   status: '출석' | '미출석';
   gender: '남' | '여';
   studentId: string;
+  grade: number;
+  classroom: number;
+  number: number;
   time: string;
   phone: string;
   dormitory: string;
+  // 병합용 추가 필드
+  legacyChecked?: boolean;
+  newChecked?: boolean;
 }
 
 type SortKey = 'room' | 'name' | 'status' | 'gender' | 'studentId' | 'time';
 type SortDirection = 'asc' | 'desc' | null;
+
+// 자동 새로고침 간격 (30초)
+const REFRESH_INTERVAL = 30 * 1000;
 
 export default function Check() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [currentDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [sortKey, setSortKey] = useState<SortKey | null>('room');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [isExporting, setIsExporting] = useState(false);
   
   // Filter states
   const [statusFilter, setStatusFilter] = useState<'전체' | '출석' | '미출석'>('전체');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('전체');
   const [overnightFilter, setOvernightFilter] = useState<'전체' | '외박' | '비외박'>('전체');
-  const [dormitoryFilter, setDormitoryFilter] = useState<'전체' | '남기숙사' | '여기숙사'>('전체');
   
   const queryClient = useQueryClient();
 
-  // Fetch students and attendances
+  // 신버전 출석 데이터 (자동 새로고침)
   const { data: attendancesData, isLoading: attendancesLoading } = useAttendances(currentDate);
+  
+  // 구버전 출석 데이터
+  const { data: legacyData } = useQuery({
+    queryKey: ['legacy-attendances'],
+    queryFn: legacyAttendanceService.getUserList,
+    staleTime: 30 * 1000,
+    refetchInterval: REFRESH_INTERVAL,
+  });
+  
+  // 학생 목록 (ID 매핑용)
+  const { data: studentsData } = useQuery({
+    queryKey: ['students-all'],
+    queryFn: () => studentService.getStudents({ page: 0, size: 1000 }),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const [students, setStudents] = useState<Student[]>([]);
 
-  // Update student mutation
+  // 외박 상태 업데이트 mutation
+  const updateAttendancesMutation = useMutation({
+    mutationFn: (data: UpdateAttendancesRequest) => attendanceService.updateAttendances(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendances'] });
+    },
+  });
+
+  // 학생 정보 수정 mutation
   const updateStudentMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: { gender: Gender; room?: string } }) =>
       studentService.updateStudent(id, data),
@@ -55,54 +90,204 @@ export default function Check() {
     },
   });
 
-  // Export excel mutation
-  const exportMutation = useMutation({
-    mutationFn: () => attendanceService.exportAttendances(currentDate),
-    onSuccess: (blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `출석부_${currentDate}.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    },
-  });
-
-  // Combine students with attendance data
+  // 자동 새로고침 설정
   useEffect(() => {
-    if (attendancesData) {
-      const mappedStudents: Student[] = attendancesData.map((att) => {
-        const student = att.student;
-        const statusMap: Record<AttendanceStatus, '출석' | '미출석'> = {
-          PRESENT: '출석',
-          ABSENT: '미출석',
-          SLEEPOVER: '출석',
-        };
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ['attendances'] });
+      queryClient.invalidateQueries({ queryKey: ['legacy-attendances'] });
+    }, REFRESH_INTERVAL);
+    
+    return () => clearInterval(interval);
+  }, [queryClient]);
 
-        return {
-          id: student.id,
-          room: student.room,
-          overnight: att.status === 'SLEEPOVER',
-          name: student.name,
-          status: statusMap[att.status],
-          gender: student.gender === 'MALE' ? '남' : '여',
-          studentId: `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`,
-          time: att.checkedAt
-            ? new Date(att.checkedAt).toLocaleTimeString('ko-KR', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-            : '-',
-          phone: '010-0000-0000', // Not available in API
-          dormitory: student.room.includes('남') ? '남기숙사' : '여기숙사',
-        };
-      });
+  // 기존 서버 엑셀 export (주석처리)
+  // const exportMutation = useMutation({
+  //   mutationFn: () => attendanceService.exportAttendances(currentDate),
+  //   onSuccess: (blob) => {
+  //     const url = window.URL.createObjectURL(blob);
+  //     const a = document.createElement('a');
+  //     a.href = url;
+  //     a.download = `출석부_${currentDate}.xlsx`;
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     document.body.removeChild(a);
+  //     window.URL.revokeObjectURL(url);
+  //   },
+  // });
 
-      setStudents(mappedStudents);
+  // 외박 상태 토글 핸들러
+  const handleOvernightToggle = useCallback((student: Student) => {
+    if (!student.id) {
+      console.error('학생 ID를 찾을 수 없습니다.');
+      return;
     }
-  }, [attendancesData]);
+    
+    const newStatus: AttendanceStatus = student.overnight ? 'PRESENT' : 'SLEEPOVER';
+    
+    updateAttendancesMutation.mutate({
+      date: currentDate,
+      attendances: [{ studentId: student.id, status: newStatus }],
+    });
+    
+    // 로컬 상태 즉시 업데이트
+    setStudents(prev => prev.map(s => 
+      s.studentId === student.studentId 
+        ? { ...s, overnight: !s.overnight }
+        : s
+    ));
+  }, [currentDate, updateAttendancesMutation]);
+
+  // 엑셀 내보내기 (병합된 데이터 사용)
+  const handleExportExcel = useCallback(() => {
+    setIsExporting(true);
+    
+    try {
+      // 병합된 데이터를 excel.ts 형식으로 변환
+      const mergedData: MergedAttendanceMember[] = students.map(s => ({
+        room: s.room,
+        stdId: s.studentId,
+        name: s.name,
+        checked: s.status === '출석',
+        checkedDate: s.time !== '-' ? s.time : '',
+        isSleepover: s.overnight,
+      }));
+      
+      exportMergedAttendanceToExcel(mergedData);
+    } catch (error) {
+      console.error('엑셀 내보내기 실패:', error);
+      alert('엑셀 내보내기에 실패했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [students]);
+
+  // 구버전과 신버전 출석 데이터 병합
+  useEffect(() => {
+    // 학번 → ID 매핑
+    const studentIdMap = new Map<string, number>();
+    if (studentsData?.content) {
+      studentsData.content.forEach((s) => {
+        const studentIdStr = `${s.grade}${s.classroom}${String(s.number).padStart(2, '0')}`;
+        studentIdMap.set(studentIdStr, s.id);
+      });
+    }
+    
+    // 구버전 데이터를 학번 기준으로 맵핑
+    const legacyMap = new Map<string, LegacyUserResponse>();
+    if (legacyData) {
+      legacyData.forEach((user) => {
+        if (user.stdId && user.stdId !== '0000' && user.stdId !== '') {
+          legacyMap.set(user.stdId, user);
+        }
+      });
+    }
+    
+    // 신버전 학생 학번 Set (중복 체크용)
+    const newStudentIds = new Set<string>();
+    
+    // 신버전 학생 목록 먼저 처리
+    const mappedStudents: Student[] = [];
+    
+    if (attendancesData) {
+      attendancesData.forEach((att, index) => {
+        const student = att.student;
+        const studentIdStr = `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
+        newStudentIds.add(studentIdStr);
+        const actualId = studentIdMap.get(studentIdStr) || null;
+        
+        // 구버전 데이터 조회
+        const legacyUser = legacyMap.get(studentIdStr);
+        const legacyChecked = legacyUser?.checked ?? false;
+        
+        // 신버전 출석 여부
+        const newChecked = att.status === 'PRESENT' || att.status === 'SLEEPOVER';
+        
+        // 둘 중 하나라도 출석이면 출석으로 처리
+        const isChecked = newChecked || legacyChecked;
+        const isOvernight = att.status === 'SLEEPOVER';
+        
+        // 출석 시간 (신버전 우선, 없으면 구버전)
+        let checkedTime = '-';
+        if (att.checkedAt) {
+          checkedTime = new Date(att.checkedAt).toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+        } else if (legacyUser?.checked && legacyUser?.checkedDate) {
+          checkedTime = legacyUser.checkedDate.substring(11, 16);
+        }
+
+        mappedStudents.push({
+          id: actualId,
+          index: index,
+          room: student.room,
+          overnight: isOvernight,
+          name: student.name,
+          status: isChecked ? '출석' : '미출석',
+          gender: student.gender === 'MALE' ? '남' : '여',
+          studentId: studentIdStr,
+          grade: student.grade,
+          classroom: student.classroom,
+          number: student.number,
+          time: checkedTime,
+          phone: legacyUser?.phoneNum || '010-0000-0000',
+          dormitory: student.room.startsWith('2') ? '여기숙사' : '남기숙사',
+          legacyChecked,
+          newChecked,
+        });
+      });
+    }
+    
+    // 구버전에만 있는 학생 추가
+    if (legacyData) {
+      legacyData.forEach((legacyUser, index) => {
+        // 이미 신버전에 있는 학생은 스킵
+        if (newStudentIds.has(legacyUser.stdId)) return;
+        // TEACHER, ADMIN 제외
+        if (legacyUser.userRole !== 'USER') return;
+        // 유효하지 않은 학번 제외
+        if (!legacyUser.stdId || legacyUser.stdId === '0000' || legacyUser.stdId === '') return;
+        
+        const studentIdStr = legacyUser.stdId;
+        const actualId = studentIdMap.get(studentIdStr) || null;
+        
+        // 학번에서 학년, 반, 번호 파싱 (예: "3417" -> 3학년 4반 17번)
+        const grade = parseInt(studentIdStr.charAt(0)) || 0;
+        const classroom = parseInt(studentIdStr.charAt(1)) || 0;
+        const number = parseInt(studentIdStr.substring(2)) || 0;
+        
+        // 구버전 출석 여부
+        const isChecked = legacyUser.checked ?? false;
+        
+        // 출석 시간
+        let checkedTime = '-';
+        if (isChecked && legacyUser.checkedDate) {
+          checkedTime = legacyUser.checkedDate.substring(11, 16);
+        }
+
+        mappedStudents.push({
+          id: actualId,
+          index: mappedStudents.length + index,
+          room: legacyUser.room || '',
+          overnight: false, // 구버전에서는 외박 정보 없음
+          name: legacyUser.name,
+          status: isChecked ? '출석' : '미출석',
+          gender: legacyUser.gender === 'MALE' ? '남' : '여',
+          studentId: studentIdStr,
+          grade,
+          classroom,
+          number,
+          time: checkedTime,
+          phone: legacyUser.phoneNum || '010-0000-0000',
+          dormitory: legacyUser.room?.startsWith('2') ? '여기숙사' : '남기숙사',
+          legacyChecked: isChecked,
+          newChecked: false,
+        });
+      });
+    }
+
+    setStudents(mappedStudents);
+  }, [attendancesData, studentsData, legacyData]);
 
   // Sort function
   const handleSort = (key: SortKey) => {
@@ -188,11 +373,6 @@ export default function Check() {
         return false;
       }
       
-      // Dormitory filter
-      if (dormitoryFilter !== '전체' && student.dormitory !== dormitoryFilter) {
-        return false;
-      }
-      
       return true;
     });
   };
@@ -205,6 +385,11 @@ export default function Check() {
   };
 
   const handleSaveStudent = (updatedStudent: Student) => {
+    if (!updatedStudent.id) {
+      console.error('학생 ID를 찾을 수 없습니다.');
+      return;
+    }
+    
     const gender: Gender = updatedStudent.gender === '남' ? 'MALE' : 'FEMALE';
     
     updateStudentMutation.mutate({
@@ -215,12 +400,10 @@ export default function Check() {
       },
     });
     
-    setStudents(students.map((s) => (s.id === updatedStudent.id ? updatedStudent : s)));
+    setStudents(students.map((s) => (s.studentId === updatedStudent.studentId ? updatedStudent : s)));
   };
 
-  const handleExportExcel = () => {
-    exportMutation.mutate();
-  };
+  // 기존 handleExportExcel은 위에서 useCallback으로 정의됨
 
   const stats = {
     total: filteredStudents.length,
@@ -258,10 +441,10 @@ export default function Check() {
               <button 
                 className="excel-button" 
                 onClick={handleExportExcel}
-                disabled={exportMutation.isPending}
+                disabled={isExporting}
               >
                 <ExcelIcon className="excel-icon" />
-                {exportMutation.isPending ? '다운로드 중...' : 'Excel'}
+                {isExporting ? '다운로드 중...' : 'Excel'}
               </button>
             </div>
           </div>
@@ -339,29 +522,6 @@ export default function Check() {
               </div>
             </div>
 
-            <div className="filter-group">
-              <label className="filter-label">기숙사:</label>
-              <div className="filter-buttons">
-                <button 
-                  className={`filter-btn ${dormitoryFilter === '전체' ? 'active' : ''}`}
-                  onClick={() => setDormitoryFilter('전체')}
-                >
-                  전체
-                </button>
-                <button 
-                  className={`filter-btn ${dormitoryFilter === '남기숙사' ? 'active' : ''}`}
-                  onClick={() => setDormitoryFilter('남기숙사')}
-                >
-                  남기숙사
-                </button>
-                <button 
-                  className={`filter-btn ${dormitoryFilter === '여기숙사' ? 'active' : ''}`}
-                  onClick={() => setDormitoryFilter('여기숙사')}
-                >
-                  여기숙사
-                </button>
-              </div>
-            </div>
           </div>
 
           <div className="table-container">
@@ -427,7 +587,13 @@ export default function Check() {
                   <tr key={index}>
                     <td className="room-cell">{student.room}</td>
                     <td>
-                      <input type="checkbox" checked={student.overnight} readOnly />
+                      <input 
+                        type="checkbox" 
+                        checked={student.overnight} 
+                        onChange={() => handleOvernightToggle(student)}
+                        disabled={updateAttendancesMutation.isPending}
+                        title={student.overnight ? '외박 해제' : '외박 설정'}
+                      />
                     </td>
                     <td>{student.name}</td>
                     <td>
@@ -441,7 +607,7 @@ export default function Check() {
                     <td>{student.phone}</td>
                     <td></td>
                     <td>
-                      <button className="edit-button" onClick={() => handleEditClick(student)}>
+                      <button className="edit-button" onClick={() => handleEditClick(student)} disabled>
                         수정
                       </button>
                     </td>

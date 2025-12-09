@@ -163,6 +163,16 @@
   border-left: 3px solid #6d23ed;
 }
 
+/* 스켈레톤 아이템 */
+.teacher-patchnote-sidebar .version-item.skeleton-item {
+  cursor: default;
+  pointer-events: none;
+}
+
+.teacher-patchnote-sidebar .version-item.skeleton-item:hover {
+  background: transparent;
+}
+
 .teacher-patchnote-sidebar .version-item-header {
   display: flex;
   align-items: center;

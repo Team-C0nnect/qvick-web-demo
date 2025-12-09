@@ -145,7 +145,45 @@ export default function TeacherPatchNotePage() {
       </div>
 
       <div className="teacher-patchnote-container">
-        {patchNotes.length === 0 ? (
+        {isLoading ? (
+          // 전체 로딩 스켈레톤
+          <div className="teacher-patchnote-layout">
+            <aside className="teacher-patchnote-sidebar">
+              <div className="sidebar-header">
+                <h2>버전 기록</h2>
+                <div className="skeleton" style={{ width: 40, height: 24, borderRadius: 12 }}></div>
+              </div>
+              <nav className="version-list">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="version-item skeleton-item">
+                    <div className="version-item-header">
+                      <div className="version-item-header-left">
+                        <div className="skeleton" style={{ width: 60, height: 20, borderRadius: 4 }}></div>
+                        <div className="skeleton" style={{ width: 12, height: 12, borderRadius: '50%' }}></div>
+                      </div>
+                      <div className="skeleton" style={{ width: 80, height: 14 }}></div>
+                    </div>
+                    <div className="skeleton" style={{ width: '85%', height: 16, marginTop: 8 }}></div>
+                  </div>
+                ))}
+              </nav>
+            </aside>
+            <main className="teacher-patchnote-main">
+              <article className="teacher-patchnote-article">
+                <div className="article-header">
+                  <div className="article-meta">
+                    <div className="skeleton" style={{ width: 80, height: 28, borderRadius: 8 }}></div>
+                    <div className="skeleton" style={{ width: 60, height: 28, borderRadius: 8 }}></div>
+                    <div className="skeleton" style={{ width: 90, height: 28, borderRadius: 8 }}></div>
+                  </div>
+                  <div className="skeleton" style={{ width: '70%', height: 36, marginBottom: 16 }}></div>
+                  <div className="skeleton" style={{ width: 200, height: 16 }}></div>
+                </div>
+                <ContentSkeleton />
+              </article>
+            </main>
+          </div>
+        ) : patchNotes.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📋</div>
             <h3>Teacher 전용 패치노트가 없습니다</h3>
@@ -184,20 +222,7 @@ export default function TeacherPatchNotePage() {
 
             {/* 메인 컨텐츠 */}
             <main className="teacher-patchnote-main">
-              {isLoading ? (
-                <article className="teacher-patchnote-article">
-                  <div className="article-header">
-                    <div className="article-meta">
-                      <div className="skeleton" style={{ width: 80, height: 28, borderRadius: 8 }}></div>
-                      <div className="skeleton" style={{ width: 60, height: 28, borderRadius: 8 }}></div>
-                      <div className="skeleton" style={{ width: 90, height: 28, borderRadius: 8 }}></div>
-                    </div>
-                    <div className="skeleton" style={{ width: '70%', height: 36, marginBottom: 16 }}></div>
-                    <div className="skeleton" style={{ width: 200, height: 16 }}></div>
-                  </div>
-                  <ContentSkeleton />
-                </article>
-              ) : selectedNote ? (
+              {selectedNote ? (
                 <article className="teacher-patchnote-article">
                   <div className="article-header">
                     <div className="article-meta">

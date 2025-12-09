@@ -116,16 +116,28 @@ export default function PublicPatchNotePage() {
     
     html = processedLines.join('\n');
     
+    // 헤더와 외부 이미지를 먼저 처리
     html = html
       .replace(/^### (.*$)/gim, '<h3>$1</h3>')
       .replace(/^## (.*$)/gim, '<h2>$1</h2>')
       .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code>$1</code>')
-      // External images
-      .replace(/!\[(.*?)\]\((https?:\/\/[^)]+)\)/g, '<img src="$2" alt="$1" class="patchnote-image" />')
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      .replace(/!\[(.*?)\]\((https?:\/\/[^)]+)\)/g, '<img src="$2" alt="$1" class="patchnote-image" />');
+    
+    // 리스트가 아닌 부분의 마크다운 처리 (라인별로)
+    const finalLines = html.split('\n').map(line => {
+      // ul, li, /ul 태그가 있는 라인은 이미 처리됨
+      if (line.includes('<ul>') || line.includes('</ul>') || line.includes('<li>')) {
+        return line;
+      }
+      // 나머지 라인 처리
+      return line
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    });
+    
+    html = finalLines.join('\n');
     
     // 빈 줄을 단락으로 변환 (ul 태그 안에서는 제외)
     html = html

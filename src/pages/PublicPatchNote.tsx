@@ -136,16 +136,21 @@ export default function PublicPatchNotePage() {
     return `<div>${html}</div>`;
   };
 
-  if (isLoading) {
-    return (
-      <div className="patchnote-page">
-        <div className="patchnote-loading">
-          <div className="loading-spinner"></div>
-          <p>패치노트를 불러오는 중...</p>
-        </div>
-      </div>
-    );
-  }
+  // 스켈레톤 컴포넌트
+  const ContentSkeleton = () => (
+    <div className="article-content article-content-skeleton">
+      <div className="skeleton skeleton-line title"></div>
+      <div className="skeleton skeleton-line long"></div>
+      <div className="skeleton skeleton-line medium"></div>
+      <div className="skeleton skeleton-line long"></div>
+      <div className="skeleton skeleton-line short"></div>
+      <div className="skeleton skeleton-line" style={{ marginTop: 24 }}></div>
+      <div className="skeleton skeleton-line long"></div>
+      <div className="skeleton skeleton-line medium"></div>
+      <div className="skeleton skeleton-line long"></div>
+      <div className="skeleton skeleton-line short"></div>
+    </div>
+  );
 
   return (
     <div className="patchnote-page">
@@ -204,7 +209,19 @@ export default function PublicPatchNotePage() {
 
             {/* 메인 컨텐츠 */}
             <main className="patchnote-main">
-              {selectedNote ? (
+              {isLoading ? (
+                <article className="patchnote-article">
+                  <div className="article-header">
+                    <div className="article-meta">
+                      <div className="skeleton" style={{ width: 80, height: 28, borderRadius: 8 }}></div>
+                      <div className="skeleton" style={{ width: 60, height: 28, borderRadius: 8 }}></div>
+                    </div>
+                    <div className="skeleton" style={{ width: '70%', height: 40, marginBottom: 16 }}></div>
+                    <div className="skeleton" style={{ width: 200, height: 16 }}></div>
+                  </div>
+                  <ContentSkeleton />
+                </article>
+              ) : selectedNote ? (
                 <article className="patchnote-article">
                   <div className="article-header">
                     <div className="article-meta">

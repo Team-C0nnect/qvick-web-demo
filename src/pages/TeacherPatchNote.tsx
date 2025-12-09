@@ -120,16 +120,19 @@ export default function TeacherPatchNotePage() {
     return `<div>${html}</div>`;
   };
 
-  if (isLoading) {
-    return (
-      <div className="teacher-patchnote-page">
-        <div className="teacher-patchnote-loading">
-          <div className="loading-spinner"></div>
-          <p>패치노트를 불러오는 중...</p>
-        </div>
-      </div>
-    );
-  }
+  // 스켈레톤 컴포넌트
+  const ContentSkeleton = () => (
+    <div className="article-content article-content-skeleton">
+      <div className="skeleton skeleton-line title"></div>
+      <div className="skeleton skeleton-line long"></div>
+      <div className="skeleton skeleton-line medium"></div>
+      <div className="skeleton skeleton-line long"></div>
+      <div className="skeleton skeleton-line short"></div>
+      <div className="skeleton skeleton-line" style={{ marginTop: 24 }}></div>
+      <div className="skeleton skeleton-line long"></div>
+      <div className="skeleton skeleton-line medium"></div>
+    </div>
+  );
 
   return (
     <div className="teacher-patchnote-page">
@@ -181,7 +184,20 @@ export default function TeacherPatchNotePage() {
 
             {/* 메인 컨텐츠 */}
             <main className="teacher-patchnote-main">
-              {selectedNote ? (
+              {isLoading ? (
+                <article className="teacher-patchnote-article">
+                  <div className="article-header">
+                    <div className="article-meta">
+                      <div className="skeleton" style={{ width: 80, height: 28, borderRadius: 8 }}></div>
+                      <div className="skeleton" style={{ width: 60, height: 28, borderRadius: 8 }}></div>
+                      <div className="skeleton" style={{ width: 90, height: 28, borderRadius: 8 }}></div>
+                    </div>
+                    <div className="skeleton" style={{ width: '70%', height: 36, marginBottom: 16 }}></div>
+                    <div className="skeleton" style={{ width: 200, height: 16 }}></div>
+                  </div>
+                  <ContentSkeleton />
+                </article>
+              ) : selectedNote ? (
                 <article className="teacher-patchnote-article">
                   <div className="article-header">
                     <div className="article-meta">

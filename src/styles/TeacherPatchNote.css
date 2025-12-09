@@ -24,6 +24,47 @@
   animation: spin 1s linear infinite;
 }
 
+/* 스켈레톤 로딩 */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.article-content-skeleton {
+  padding: 32px;
+}
+
+.skeleton-line {
+  height: 16px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.skeleton-line.title {
+  height: 24px;
+  width: 60%;
+  margin-bottom: 20px;
+}
+
+.skeleton-line.short {
+  width: 40%;
+}
+
+.skeleton-line.medium {
+  width: 70%;
+}
+
+.skeleton-line.long {
+  width: 90%;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -243,21 +284,33 @@
   font-size: 24px;
   font-weight: 700;
   color: #1f2937;
-  margin: 32px 0 16px;
+  margin: 16px 0 12px;
+}
+
+.teacher-patchnote-article .article-content h1:first-child {
+  margin-top: 0;
 }
 
 .teacher-patchnote-article .article-content h2 {
   font-size: 20px;
   font-weight: 600;
   color: #1f2937;
-  margin: 28px 0 12px;
+  margin: 14px 0 10px;
+}
+
+.teacher-patchnote-article .article-content h2:first-child {
+  margin-top: 0;
 }
 
 .teacher-patchnote-article .article-content h3 {
   font-size: 17px;
   font-weight: 600;
   color: #374151;
-  margin: 24px 0 10px;
+  margin: 12px 0 8px;
+}
+
+.teacher-patchnote-article .article-content h3:first-child {
+  margin-top: 0;
 }
 
 .teacher-patchnote-article .article-content ul {

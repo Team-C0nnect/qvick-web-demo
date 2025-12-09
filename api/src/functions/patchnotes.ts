@@ -82,13 +82,19 @@ export async function getPublishedPatchnotes(request: HttpRequest, context: Invo
     const db = getFirestore();
     const visibility = request.query.get('visibility');
     
+    // 모든 패치노트를 가져와서 필터링 (복합 인덱스 불필요)
     const snapshot = await db
       .collection(COLLECTION_NAME)
-      .where('status', '==', 'published')
-      .orderBy('publishedAt', 'desc')
       .get();
     
-    let notes = snapshot.docs.map((doc) => docToPatchNote(doc.id, doc.data()));
+    let notes = snapshot.docs
+      .map((doc) => docToPatchNote(doc.id, doc.data()))
+      .filter((note) => note.status === 'published')
+      .sort((a, b) => {
+        const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+        return dateB - dateA;
+      });
     
     // visibility 필터링
     if (visibility) {

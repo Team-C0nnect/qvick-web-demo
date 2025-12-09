@@ -13,6 +13,8 @@ import Privacy from './pages/Privacy';
 import PublicPatchNote from './pages/PublicPatchNote';
 import TeacherPatchNote from './pages/TeacherPatchNote';
 import PatchNoteAdmin from './pages/PatchNoteAdmin';
+import InquiryForm from './pages/InquiryForm';
+import InquiryAdmin from './pages/InquiryAdmin';
 import './App.css';
 
 function App() {
@@ -25,6 +27,8 @@ function App() {
         {/* 공개 패치노트 페이지 (로그인 불필요) - 외부 링크 공유용 */}
         <Route path="/patchnote/public" element={<PublicPatchNote />} />
         <Route path="/patchnote/public/:id" element={<PublicPatchNote />} />
+        {/* 문의 폼 페이지 (로그인 불필요) */}
+        <Route path="/inquiry" element={<InquiryForm />} />
         <Route
           path="/"
           element={
@@ -42,8 +46,9 @@ function App() {
           {/* Teacher 전용 패치노트 페이지 */}
           <Route path="teacher-patchnote" element={<TeacherPatchNote />} />
           <Route path="teacher-patchnote/:id" element={<TeacherPatchNote />} />
-          {/* Admin 전용 패치노트 관리 페이지 */}
+          {/* Admin 전용 페이지 */}
           <Route path="admin/patchnote" element={<PatchNoteAdmin />} />
+          <Route path="admin/inquiry" element={<InquiryAdmin />} />
         </Route>
       </Routes>
     </Router>

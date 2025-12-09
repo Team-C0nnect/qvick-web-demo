@@ -1,0 +1,326 @@
+/* Teacher 전용 패치노트 페이지 스타일 */
+
+.teacher-patchnote-page {
+  min-height: 100%;
+  background: #f8f9fa;
+}
+
+.teacher-patchnote-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  color: #6b7280;
+}
+
+.teacher-patchnote-loading .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #6d23ed;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 헤더 */
+.teacher-patchnote-header {
+  background: linear-gradient(135deg, #6d23ed 0%, #9747ff 100%);
+  padding: 32px 40px;
+  color: white;
+}
+
+.teacher-patchnote-header .header-info h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.teacher-patchnote-header .header-info p {
+  font-size: 14px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* 컨테이너 */
+.teacher-patchnote-container {
+  padding: 24px;
+}
+
+/* 레이아웃 */
+.teacher-patchnote-layout {
+  display: flex;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* 사이드바 */
+.teacher-patchnote-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.teacher-patchnote-sidebar .sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.teacher-patchnote-sidebar .sidebar-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937;
+}
+
+.teacher-patchnote-sidebar .version-count {
+  font-size: 12px;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.teacher-patchnote-sidebar .version-list {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
+.teacher-patchnote-sidebar .version-item {
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+}
+
+.teacher-patchnote-sidebar .version-item:hover {
+  background: #f9fafb;
+}
+
+.teacher-patchnote-sidebar .version-item.active {
+  background: #f3e8ff;
+  border-left: 3px solid #6d23ed;
+}
+
+.teacher-patchnote-sidebar .version-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.teacher-patchnote-sidebar .version-number {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6d23ed;
+}
+
+.teacher-patchnote-sidebar .category-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.teacher-patchnote-sidebar .version-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teacher-patchnote-sidebar .version-item-date {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* 메인 컨텐츠 */
+.teacher-patchnote-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.teacher-patchnote-article {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.teacher-patchnote-article .article-header {
+  padding: 32px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.teacher-patchnote-article .article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.teacher-patchnote-article .category-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.teacher-patchnote-article .version-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6d23ed;
+  background: #f3e8ff;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.teacher-patchnote-article .visibility-badge {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.teacher-patchnote-article .visibility-badge.teacher {
+  color: #7c3aed;
+  background: #ede9fe;
+}
+
+.teacher-patchnote-article .article-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.teacher-patchnote-article .article-info {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.teacher-patchnote-article .article-content {
+  padding: 32px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #374151;
+}
+
+.teacher-patchnote-article .article-content h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 32px 0 16px;
+}
+
+.teacher-patchnote-article .article-content h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 28px 0 12px;
+}
+
+.teacher-patchnote-article .article-content h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #374151;
+  margin: 24px 0 10px;
+}
+
+.teacher-patchnote-article .article-content ul {
+  padding-left: 24px;
+  margin: 12px 0;
+}
+
+.teacher-patchnote-article .article-content li {
+  margin: 8px 0;
+}
+
+.teacher-patchnote-article .article-content code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+}
+
+.teacher-patchnote-article .article-content a {
+  color: #6d23ed;
+  text-decoration: none;
+}
+
+.teacher-patchnote-article .article-content a:hover {
+  text-decoration: underline;
+}
+
+.teacher-patchnote-article .article-content .patchnote-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Empty & No Selection */
+.teacher-patchnote-container .empty-state,
+.teacher-patchnote-main .no-selection {
+  text-align: center;
+  padding: 80px 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.teacher-patchnote-container .empty-state .empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.teacher-patchnote-container .empty-state h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px;
+}
+
+.teacher-patchnote-container .empty-state p,
+.teacher-patchnote-main .no-selection p {
+  color: #6b7280;
+  margin: 0;
+}
+
+/* 반응형 */
+@media (max-width: 900px) {
+  .teacher-patchnote-layout {
+    flex-direction: column;
+  }
+  
+  .teacher-patchnote-sidebar {
+    width: 100%;
+  }
+  
+  .teacher-patchnote-sidebar .version-list {
+    max-height: 200px;
+  }
+}

@@ -48,19 +48,28 @@ export default function PatchNotePage() {
   const isTeacher = user?.roles?.includes('TEACHER') || user?.roles?.includes('ADMIN');
 
   useEffect(() => {
-    // Teacher면 teacher 전용 패치노트도 표시, 아니면 public만
-    const visibility = isTeacher ? 'teacher' : 'public';
-    const notes = patchNoteService.getPublishedPatchNotes(visibility);
-    setPatchNotes(notes);
+    const loadPatchNotes = async () => {
+      setIsLoading(true);
+      try {
+        // Teacher면 teacher 전용 패치노트도 표시, 아니면 public만
+        const visibility = isTeacher ? 'teacher' : 'public';
+        const notes = await patchNoteService.getPublishedPatchNotes(visibility);
+        setPatchNotes(notes);
+        
+        if (id) {
+          const note = notes.find((n) => n.id === id);
+          setSelectedNote(note || null);
+        } else if (notes.length > 0) {
+          setSelectedNote(notes[0]);
+        }
+      } catch (error) {
+        console.error('패치노트 로드 실패:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    if (id) {
-      const note = notes.find((n) => n.id === id);
-      setSelectedNote(note || null);
-    } else if (notes.length > 0) {
-      setSelectedNote(notes[0]);
-    }
-    
-    setIsLoading(false);
+    loadPatchNotes();
   }, [id, isTeacher]);
 
   const handleSelectNote = (note: PatchNote) => {

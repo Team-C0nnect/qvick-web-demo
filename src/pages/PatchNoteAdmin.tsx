@@ -37,6 +37,9 @@ export default function PatchNoteAdmin() {
   // 저장 상태
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
+  // 통계 상태
+  const [statusCounts, setStatusCounts] = useState<{ draft: number; published: number }>({ draft: 0, published: 0 });
 
   // 현재 사용자 정보
   const { data: user } = useQuery<MyUserResponse>({
@@ -62,9 +65,17 @@ export default function PatchNoteAdmin() {
     loadPatchNotes();
   }, []);
 
-  const loadPatchNotes = () => {
-    const notes = patchNoteService.getAllPatchNotes();
-    setPatchNotes(notes);
+  const loadPatchNotes = async () => {
+    try {
+      const [notes, counts] = await Promise.all([
+        patchNoteService.getAllPatchNotes(),
+        patchNoteService.getStatusCounts(),
+      ]);
+      setPatchNotes(notes);
+      setStatusCounts(counts);
+    } catch (error) {
+      console.error('패치노트 로드 실패:', error);
+    }
   };
 
   // 필터링된 목록
@@ -72,9 +83,6 @@ export default function PatchNoteAdmin() {
     if (filterStatus === 'all') return true;
     return note.status === filterStatus;
   });
-
-  // 통계
-  const statusCounts = patchNoteService.getStatusCounts();
 
   // 폼 초기화
   const resetForm = () => {
@@ -133,7 +141,7 @@ export default function PatchNoteAdmin() {
           visibility,
           images,
         };
-        const newNote = patchNoteService.createPatchNote(request, user?.name || 'Unknown');
+        const newNote = await patchNoteService.createPatchNote(request, user?.name || 'Unknown');
         setSelectedNote(newNote);
         setViewMode('edit');
       } else if (viewMode === 'edit' && selectedNote) {
@@ -145,11 +153,11 @@ export default function PatchNoteAdmin() {
           visibility,
           images,
         };
-        patchNoteService.updatePatchNote(selectedNote.id, request);
+        await patchNoteService.updatePatchNote(selectedNote.id, request);
       }
 
       setLastSaved(new Date());
-      loadPatchNotes();
+      await loadPatchNotes();
     } finally {
       setIsSaving(false);
     }
@@ -228,31 +236,31 @@ export default function PatchNoteAdmin() {
   };
 
   // 발행
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!selectedNote) return;
     
     if (!confirm('패치노트를 발행하시겠습니까? 발행 후에도 수정이 가능합니다.')) return;
 
-    patchNoteService.publishPatchNote(selectedNote.id);
-    loadPatchNotes();
+    await patchNoteService.publishPatchNote(selectedNote.id);
+    await loadPatchNotes();
     setViewMode('list');
     resetForm();
   };
 
   // 발행 취소
-  const handleUnpublish = (note: PatchNote) => {
+  const handleUnpublish = async (note: PatchNote) => {
     if (!confirm('발행을 취소하시겠습니까?')) return;
     
-    patchNoteService.unpublishPatchNote(note.id);
-    loadPatchNotes();
+    await patchNoteService.unpublishPatchNote(note.id);
+    await loadPatchNotes();
   };
 
   // 삭제
-  const handleDelete = (note: PatchNote) => {
+  const handleDelete = async (note: PatchNote) => {
     if (!confirm(`"${note.title}" 패치노트를 삭제하시겠습니까?`)) return;
     
-    patchNoteService.deletePatchNote(note.id);
-    loadPatchNotes();
+    await patchNoteService.deletePatchNote(note.id);
+    await loadPatchNotes();
     
     if (selectedNote?.id === note.id) {
       resetForm();
@@ -689,9 +697,9 @@ export default function PatchNoteAdmin() {
               {selectedNote.status === 'draft' && (
                 <button 
                   className="publish-btn" 
-                  onClick={() => {
-                    patchNoteService.publishPatchNote(selectedNote.id);
-                    loadPatchNotes();
+                  onClick={async () => {
+                    await patchNoteService.publishPatchNote(selectedNote.id);
+                    await loadPatchNotes();
                     setViewMode('list');
                   }}
                 >

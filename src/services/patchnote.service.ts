@@ -1,4 +1,19 @@
-// 패치노트 서비스 (localStorage 기반)
+// 패치노트 서비스 (Firebase Firestore 기반)
+import { 
+  collection, 
+  doc, 
+  getDocs, 
+  getDoc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where, 
+  orderBy,
+  Timestamp,
+  type DocumentData
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import type { 
   PatchNote, 
   CreatePatchNoteRequest, 
@@ -8,11 +23,24 @@ import type {
   PatchNoteImage
 } from '../types/patchnote';
 
-const STORAGE_KEY = 'qvick_patchnotes';
+const COLLECTION_NAME = 'patchnotes';
 
-// UUID 생성
-function generateId(): string {
-  return `pn_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+// Firestore 문서를 PatchNote 객체로 변환
+function docToPatchNote(id: string, data: DocumentData): PatchNote {
+  return {
+    id,
+    title: data.title || '',
+    content: data.content || '',
+    version: data.version || '',
+    category: data.category || 'feature',
+    status: data.status || 'draft',
+    visibility: data.visibility || 'public',
+    images: data.images || [],
+    createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt || new Date().toISOString(),
+    updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt || new Date().toISOString(),
+    publishedAt: data.publishedAt?.toDate?.()?.toISOString() || data.publishedAt,
+    author: data.author || 'Unknown',
+  };
 }
 
 // 이미지 ID 생성
@@ -20,200 +48,232 @@ export function generateImageId(): string {
   return `img_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
 
-// localStorage에서 패치노트 목록 조회
-function getPatchNotesFromStorage(): PatchNote[] {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) return [];
-  try {
-    const notes = JSON.parse(stored);
-    // 기존 데이터에 visibility, images 필드가 없으면 추가
-    return notes.map((note: PatchNote) => ({
-      ...note,
-      visibility: note.visibility || 'public',
-      images: note.images || [],
-    }));
-  } catch {
-    return [];
-  }
-}
-
-// localStorage에 패치노트 목록 저장
-function savePatchNotesToStorage(patchNotes: PatchNote[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(patchNotes));
-}
-
 export const patchNoteService = {
   // 모든 패치노트 조회 (관리자용)
-  getAllPatchNotes(): PatchNote[] {
-    return getPatchNotesFromStorage().sort(
-      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    );
+  async getAllPatchNotes(): Promise<PatchNote[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        orderBy('updatedAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => docToPatchNote(doc.id, doc.data()));
+    } catch (error) {
+      console.error('패치노트 조회 실패:', error);
+      return [];
+    }
   },
 
   // 발행된 패치노트만 조회 (공개용)
-  getPublishedPatchNotes(visibility?: PatchNoteVisibility): PatchNote[] {
-    return getPatchNotesFromStorage()
-      .filter((note) => {
-        if (note.status !== 'published') return false;
-        if (visibility && note.visibility !== visibility && note.visibility !== 'public') return false;
-        return true;
-      })
-      .sort((a, b) => new Date(b.publishedAt || b.updatedAt).getTime() - new Date(a.publishedAt || a.updatedAt).getTime());
+  async getPublishedPatchNotes(visibility?: PatchNoteVisibility): Promise<PatchNote[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('status', '==', 'published'),
+        orderBy('publishedAt', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      const notes = snapshot.docs.map((doc) => docToPatchNote(doc.id, doc.data()));
+      
+      // visibility 필터링
+      if (visibility) {
+        return notes.filter((note) => 
+          note.visibility === visibility || note.visibility === 'public'
+        );
+      }
+      return notes;
+    } catch (error) {
+      console.error('발행된 패치노트 조회 실패:', error);
+      return [];
+    }
   },
 
   // 단일 패치노트 조회
-  getPatchNoteById(id: string): PatchNote | null {
-    const patchNotes = getPatchNotesFromStorage();
-    return patchNotes.find((note) => note.id === id) || null;
+  async getPatchNoteById(id: string): Promise<PatchNote | null> {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, id);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) return null;
+      return docToPatchNote(docSnap.id, docSnap.data());
+    } catch (error) {
+      console.error('패치노트 조회 실패:', error);
+      return null;
+    }
   },
 
   // 패치노트 생성 (초안으로 생성)
-  createPatchNote(request: CreatePatchNoteRequest, author: string): PatchNote {
-    const now = new Date().toISOString();
-    const newPatchNote: PatchNote = {
-      id: generateId(),
+  async createPatchNote(request: CreatePatchNoteRequest, author: string): Promise<PatchNote> {
+    const now = Timestamp.now();
+    const newPatchNote = {
       title: request.title,
       content: request.content,
       version: request.version,
       category: request.category,
       visibility: request.visibility || 'public',
-      images: [],
-      status: 'draft',
+      images: request.images || [],
+      status: 'draft' as PatchNoteStatus,
       createdAt: now,
       updatedAt: now,
       author,
     };
 
-    const patchNotes = getPatchNotesFromStorage();
-    patchNotes.push(newPatchNote);
-    savePatchNotesToStorage(patchNotes);
-
-    return newPatchNote;
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), newPatchNote);
+    
+    return {
+      id: docRef.id,
+      ...newPatchNote,
+      createdAt: now.toDate().toISOString(),
+      updatedAt: now.toDate().toISOString(),
+    };
   },
 
   // 패치노트 수정
-  updatePatchNote(id: string, request: UpdatePatchNoteRequest): PatchNote | null {
-    const patchNotes = getPatchNotesFromStorage();
-    const index = patchNotes.findIndex((note) => note.id === id);
-    
-    if (index === -1) return null;
+  async updatePatchNote(id: string, request: UpdatePatchNoteRequest): Promise<PatchNote | null> {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, id);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) return null;
 
-    const updatedPatchNote: PatchNote = {
-      ...patchNotes[index],
-      ...request,
-      updatedAt: new Date().toISOString(),
-    };
+      const updateData = {
+        ...request,
+        updatedAt: Timestamp.now(),
+      };
 
-    patchNotes[index] = updatedPatchNote;
-    savePatchNotesToStorage(patchNotes);
-
-    return updatedPatchNote;
+      await updateDoc(docRef, updateData);
+      
+      const updated = await getDoc(docRef);
+      return docToPatchNote(updated.id, updated.data()!);
+    } catch (error) {
+      console.error('패치노트 수정 실패:', error);
+      return null;
+    }
   },
 
   // 패치노트 발행
-  publishPatchNote(id: string): PatchNote | null {
-    const patchNotes = getPatchNotesFromStorage();
-    const index = patchNotes.findIndex((note) => note.id === id);
-    
-    if (index === -1) return null;
+  async publishPatchNote(id: string): Promise<PatchNote | null> {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, id);
+      const now = Timestamp.now();
+      
+      await updateDoc(docRef, {
+        status: 'published',
+        publishedAt: now,
+        updatedAt: now,
+      });
 
-    const now = new Date().toISOString();
-    const publishedPatchNote: PatchNote = {
-      ...patchNotes[index],
-      status: 'published',
-      publishedAt: now,
-      updatedAt: now,
-    };
-
-    patchNotes[index] = publishedPatchNote;
-    savePatchNotesToStorage(patchNotes);
-
-    return publishedPatchNote;
+      const updated = await getDoc(docRef);
+      return docToPatchNote(updated.id, updated.data()!);
+    } catch (error) {
+      console.error('패치노트 발행 실패:', error);
+      return null;
+    }
   },
 
   // 패치노트 발행 취소 (초안으로 변경)
-  unpublishPatchNote(id: string): PatchNote | null {
-    const patchNotes = getPatchNotesFromStorage();
-    const index = patchNotes.findIndex((note) => note.id === id);
-    
-    if (index === -1) return null;
+  async unpublishPatchNote(id: string): Promise<PatchNote | null> {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, id);
+      
+      await updateDoc(docRef, {
+        status: 'draft',
+        publishedAt: null,
+        updatedAt: Timestamp.now(),
+      });
 
-    const unpublishedPatchNote: PatchNote = {
-      ...patchNotes[index],
-      status: 'draft',
-      publishedAt: undefined,
-      updatedAt: new Date().toISOString(),
-    };
-
-    patchNotes[index] = unpublishedPatchNote;
-    savePatchNotesToStorage(patchNotes);
-
-    return unpublishedPatchNote;
+      const updated = await getDoc(docRef);
+      return docToPatchNote(updated.id, updated.data()!);
+    } catch (error) {
+      console.error('패치노트 발행 취소 실패:', error);
+      return null;
+    }
   },
 
   // 패치노트 삭제
-  deletePatchNote(id: string): boolean {
-    const patchNotes = getPatchNotesFromStorage();
-    const index = patchNotes.findIndex((note) => note.id === id);
-    
-    if (index === -1) return false;
-
-    patchNotes.splice(index, 1);
-    savePatchNotesToStorage(patchNotes);
-
-    return true;
+  async deletePatchNote(id: string): Promise<boolean> {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, id);
+      await deleteDoc(docRef);
+      return true;
+    } catch (error) {
+      console.error('패치노트 삭제 실패:', error);
+      return false;
+    }
   },
 
   // 이미지 추가
-  addImage(id: string, image: PatchNoteImage): PatchNote | null {
-    const patchNotes = getPatchNotesFromStorage();
-    const index = patchNotes.findIndex((note) => note.id === id);
-    
-    if (index === -1) return null;
+  async addImage(id: string, image: PatchNoteImage): Promise<PatchNote | null> {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, id);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) return null;
 
-    const updatedPatchNote: PatchNote = {
-      ...patchNotes[index],
-      images: [...(patchNotes[index].images || []), image],
-      updatedAt: new Date().toISOString(),
-    };
+      const currentImages = docSnap.data().images || [];
+      
+      await updateDoc(docRef, {
+        images: [...currentImages, image],
+        updatedAt: Timestamp.now(),
+      });
 
-    patchNotes[index] = updatedPatchNote;
-    savePatchNotesToStorage(patchNotes);
-
-    return updatedPatchNote;
+      const updated = await getDoc(docRef);
+      return docToPatchNote(updated.id, updated.data()!);
+    } catch (error) {
+      console.error('이미지 추가 실패:', error);
+      return null;
+    }
   },
 
   // 이미지 삭제
-  removeImage(id: string, imageId: string): PatchNote | null {
-    const patchNotes = getPatchNotesFromStorage();
-    const index = patchNotes.findIndex((note) => note.id === id);
-    
-    if (index === -1) return null;
+  async removeImage(id: string, imageId: string): Promise<PatchNote | null> {
+    try {
+      const docRef = doc(db, COLLECTION_NAME, id);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) return null;
 
-    const updatedPatchNote: PatchNote = {
-      ...patchNotes[index],
-      images: (patchNotes[index].images || []).filter((img) => img.id !== imageId),
-      updatedAt: new Date().toISOString(),
-    };
+      const currentImages = (docSnap.data().images || []) as PatchNoteImage[];
+      const filteredImages = currentImages.filter((img) => img.id !== imageId);
+      
+      await updateDoc(docRef, {
+        images: filteredImages,
+        updatedAt: Timestamp.now(),
+      });
 
-    patchNotes[index] = updatedPatchNote;
-    savePatchNotesToStorage(patchNotes);
-
-    return updatedPatchNote;
+      const updated = await getDoc(docRef);
+      return docToPatchNote(updated.id, updated.data()!);
+    } catch (error) {
+      console.error('이미지 삭제 실패:', error);
+      return null;
+    }
   },
 
   // 상태별 개수 조회
-  getStatusCounts(): Record<PatchNoteStatus, number> {
-    const patchNotes = getPatchNotesFromStorage();
-    return {
-      draft: patchNotes.filter((note) => note.status === 'draft').length,
-      published: patchNotes.filter((note) => note.status === 'published').length,
-    };
+  async getStatusCounts(): Promise<Record<PatchNoteStatus, number>> {
+    try {
+      const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+      const notes = snapshot.docs.map((doc) => doc.data());
+      
+      return {
+        draft: notes.filter((note) => note.status === 'draft').length,
+        published: notes.filter((note) => note.status === 'published').length,
+      };
+    } catch (error) {
+      console.error('상태 개수 조회 실패:', error);
+      return { draft: 0, published: 0 };
+    }
   },
 
-  // 이미지 업로드 (Base64로 변환)
+  // 이미지 업로드 (Base64로 변환 - Firestore에 직접 저장)
   uploadImage(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
+      // 파일 크기 체크 (1MB 제한 - Firestore 문서 크기 제한 고려)
+      if (file.size > 1024 * 1024) {
+        reject(new Error('이미지 크기는 1MB 이하여야 합니다.'));
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;

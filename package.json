@@ -12,6 +12,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.6",
     "axios": "^1.13.1",
+    "firebase": "^12.6.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-markdown": "^10.1.0",

@@ -82,7 +82,7 @@ function localRefine(
 
   // 이미지 삽입 (내용 끝에 추가)
   if (images.length > 0) {
-    const imageSection = `\n\n---\n\n### 📸 스크린샷\n\n${images.map(img => 
+    const imageSection = `\n\n---\n\n### 스크린샷\n\n${images.map(img => 
       `![${img.alt}](${img.id})${img.caption ? `\n*${img.caption}*` : ''}`
     ).join('\n\n')}`;
     refinedContent += imageSection;

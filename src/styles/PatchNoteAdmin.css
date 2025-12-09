@@ -262,6 +262,28 @@
   border-left-color: #10b981;
 }
 
+/* 스켈레톤 로딩 */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.patchnote-item.skeleton-item {
+  pointer-events: none;
+  cursor: default;
+}
+
+.patchnote-item.skeleton-item:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
 .item-header {
   display: flex;
   flex-direction: column;

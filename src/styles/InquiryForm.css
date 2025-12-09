@@ -1,31 +1,31 @@
-/* 문의 폼 페이지 스타일 */
+/* 심플한 문의 폼 디자인 */
 
 .inquiry-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  padding: 40px 20px;
+  background: #ffffff;
+  padding: 0;
 }
 
 .inquiry-container {
-  max-width: 720px;
+  max-width: 680px;
   margin: 0 auto;
+  padding: 40px 20px;
 }
 
 /* 헤더 */
 .inquiry-header {
-  text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 48px;
 }
 
 .inquiry-header h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
   margin: 0 0 8px;
 }
 
 .inquiry-header p {
-  font-size: 16px;
+  font-size: 15px;
   color: #6b7280;
   margin: 0;
 }
@@ -33,64 +33,53 @@
 .back-button {
   background: none;
   border: none;
-  font-size: 16px;
+  font-size: 14px;
   color: #6b7280;
   cursor: pointer;
-  padding: 8px 16px;
+  padding: 0;
   margin-bottom: 16px;
   transition: color 0.2s;
 }
 
 .back-button:hover {
-  color: #374151;
+  color: #111827;
 }
 
 .type-badge {
   display: inline-block;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-size: 18px;
-  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
 }
 
-/* 타입 선택 그리드 */
+/* 타입 선택 */
 .inquiry-type-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .inquiry-type-card {
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 32px 24px;
-  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s;
+  text-align: left;
 }
 
 .inquiry-type-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-  background: var(--hover-bg);
-}
-
-.type-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  margin: 0 auto 16px;
+  border-color: #6d23ed;
 }
 
 .inquiry-type-card h3 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  margin: 0 0 8px;
+  color: #111827;
+  margin: 0 0 6px;
 }
 
 .inquiry-type-card p {
@@ -100,37 +89,31 @@
   line-height: 1.5;
 }
 
-/* 폼 스타일 */
+/* 폼 */
 .inquiry-form {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+  margin-top: 32px;
 }
 
 .form-section {
-  padding: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 32px;
 }
 
 .form-section:last-of-type {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .form-section h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #1f2937;
+  color: #111827;
   margin: 0 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .form-section h3 .required {
   font-size: 12px;
-  font-weight: 500;
-  color: #dc2626;
+  font-weight: 400;
+  color: #ef4444;
+  margin-left: 4px;
 }
 
 .form-group {
@@ -153,12 +136,14 @@
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 12px;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 15px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  color: #111827;
+  background: #ffffff;
   box-sizing: border-box;
+  transition: border-color 0.2s;
 }
 
 .form-group input:focus,
@@ -166,21 +151,26 @@
 .form-group select:focus {
   outline: none;
   border-color: #6d23ed;
-  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
 }
 
 .form-group textarea {
   resize: vertical;
   min-height: 100px;
+  line-height: 1.5;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #9ca3af;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .form-row {
     grid-template-columns: 1fr;
   }
@@ -188,116 +178,161 @@
 
 /* 기기 정보 알림 */
 .device-info-notice {
-  background: #f3f4f6;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-top: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
 }
 
 .device-info-notice p {
-  font-size: 14px;
+  font-size: 13px;
   color: #374151;
-  margin: 0;
+  margin: 0 0 4px;
+  font-weight: 500;
 }
 
 .device-info-notice small {
   font-size: 12px;
   color: #6b7280;
+  line-height: 1.4;
 }
 
 /* 에러 메시지 */
 .error-message {
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin: 16px 24px 0;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
   color: #dc2626;
   font-size: 14px;
 }
 
-/* 폼 액션 */
+/* 제출 버튼 */
 .form-actions {
-  padding: 24px;
-  background: #f9fafb;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
 }
 
 .btn-submit {
   width: 100%;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, #6d23ed 0%, #9747ff 100%);
+  padding: 12px 24px;
+  background: #111827;
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: background 0.2s;
 }
 
 .btn-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(109, 35, 237, 0.3);
+  background: #1f2937;
 }
 
 .btn-submit:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 /* 성공 화면 */
 .inquiry-success {
-  background: white;
-  border-radius: 16px;
-  padding: 60px 40px;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 60px 20px;
 }
 
 .success-icon {
-  font-size: 64px;
-  margin-bottom: 24px;
+  width: 56px;
+  height: 56px;
+  background: #f0fdf4;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.success-icon svg {
+  width: 28px;
+  height: 28px;
+  color: #22c55e;
 }
 
 .inquiry-success h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px;
 }
 
 .inquiry-success p {
-  font-size: 16px;
+  font-size: 15px;
   color: #6b7280;
   margin: 0 0 32px;
   line-height: 1.6;
 }
 
+.success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
 .btn-primary {
-  display: inline-block;
-  padding: 14px 32px;
-  background: linear-gradient(135deg, #6d23ed 0%, #9747ff 100%);
+  padding: 12px 24px;
+  background: #111827;
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  margin-bottom: 12px;
+  display: block;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: #1f2937;
 }
 
 .btn-secondary {
-  display: block;
-  padding: 14px 32px;
+  padding: 12px 24px;
   background: transparent;
   color: #6b7280;
-  border: none;
-  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 400;
   cursor: pointer;
   text-decoration: none;
+  display: block;
+  text-align: center;
+  transition: all 0.2s;
 }
 
 .btn-secondary:hover {
+  border-color: #9ca3af;
   color: #374151;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 640px) {
+  .inquiry-container {
+    padding: 32px 16px;
+  }
+
+  .inquiry-header {
+    margin-bottom: 40px;
+  }
+
+  .inquiry-header h1 {
+    font-size: 22px;
+  }
 }

@@ -3,6 +3,15 @@ import type { InquiryType, DeviceInfo, CreateInquiryRequest } from '../types/inq
 import { INQUIRY_TYPE_CONFIG } from '../types/inquiry';
 import '../styles/InquiryForm.css';
 
+// 체크 아이콘 컴포넌트
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  );
+}
+
 // 기기 정보 수집
 function getDeviceInfo(): DeviceInfo {
   return {
@@ -137,19 +146,8 @@ export default function InquiryFormPage() {
                 key={type}
                 className="inquiry-type-card"
                 onClick={() => handleTypeSelect(type)}
-                style={{ 
-                  borderColor: INQUIRY_TYPE_CONFIG[type].color,
-                  '--hover-bg': INQUIRY_TYPE_CONFIG[type].bgColor,
-                } as React.CSSProperties}
               >
-                <div className="type-icon" style={{ backgroundColor: INQUIRY_TYPE_CONFIG[type].bgColor }}>
-                  {type === 'bug' && '🐛'}
-                  {type === 'feature' && '💡'}
-                  {type === 'other' && '💬'}
-                </div>
-                <h3 style={{ color: INQUIRY_TYPE_CONFIG[type].color }}>
-                  {INQUIRY_TYPE_CONFIG[type].label}
-                </h3>
+                <h3>{INQUIRY_TYPE_CONFIG[type].label}</h3>
                 <p>
                   {type === 'bug' && '서비스 이용 중 발생한 오류나 버그를 알려주세요.'}
                   {type === 'feature' && '새로운 기능이나 개선사항을 제안해주세요.'}
@@ -169,18 +167,22 @@ export default function InquiryFormPage() {
       <div className="inquiry-page">
         <div className="inquiry-container">
           <div className="inquiry-success">
-            <div className="success-icon">✅</div>
+            <div className="success-icon">
+              <CheckIcon />
+            </div>
             <h2>문의가 접수되었습니다</h2>
             <p>
               소중한 의견 감사합니다.<br />
               확인 후 빠르게 처리하겠습니다.
             </p>
-            <button className="btn-primary" onClick={handleReset}>
-              새 문의하기
-            </button>
-            <a href="https://qvick.kr" className="btn-secondary">
-              Qvick으로 돌아가기
-            </a>
+            <div className="success-actions">
+              <button className="btn-primary" onClick={handleReset}>
+                새 문의하기
+              </button>
+              <a href="https://qvick.kr" className="btn-secondary">
+                Qvick으로 돌아가기
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -359,8 +361,8 @@ export default function InquiryFormPage() {
               </div>
 
               <div className="device-info-notice">
-                <p>💻 기기 정보가 자동으로 수집됩니다 (문제 해결에 활용)</p>
-                <small>브라우저, 화면 크기, 운영체제 등</small>
+                <p>기기 정보 자동 수집</p>
+                <small>문제 해결을 위해 브라우저, 화면 크기, 운영체제 정보가 자동으로 수집됩니다.</small>
               </div>
             </section>
           )}

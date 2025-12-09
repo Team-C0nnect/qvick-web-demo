@@ -18,6 +18,7 @@ export default function PatchNoteAdmin() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [selectedNote, setSelectedNote] = useState<PatchNote | null>(null);
   const [patchNotes, setPatchNotes] = useState<PatchNote[]>([]);
+  const [isLoadingNotes, setIsLoadingNotes] = useState(true);
   
   // 폼 상태
   const [title, setTitle] = useState('');
@@ -66,6 +67,7 @@ export default function PatchNoteAdmin() {
   }, []);
 
   const loadPatchNotes = async () => {
+    setIsLoadingNotes(true);
     try {
       const [notes, counts] = await Promise.all([
         patchNoteService.getAllPatchNotes(),
@@ -75,6 +77,8 @@ export default function PatchNoteAdmin() {
       setStatusCounts(counts);
     } catch (error) {
       console.error('패치노트 로드 실패:', error);
+    } finally {
+      setIsLoadingNotes(false);
     }
   };
 
@@ -425,7 +429,24 @@ export default function PatchNoteAdmin() {
           </div>
 
           {/* 목록 */}
-          {filteredNotes.length === 0 ? (
+          {isLoadingNotes ? (
+            <div className="patchnote-list">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="patchnote-item skeleton-item">
+                  <div className="item-header">
+                    <div className="skeleton" style={{ width: 80, height: 24, borderRadius: 6 }}></div>
+                    <div className="skeleton" style={{ width: 60, height: 24, borderRadius: 6 }}></div>
+                    <div className="skeleton" style={{ width: 70, height: 24, borderRadius: 6 }}></div>
+                  </div>
+                  <div className="item-content">
+                    <div className="skeleton" style={{ width: '70%', height: 24, marginBottom: 8 }}></div>
+                    <div className="skeleton" style={{ width: '90%', height: 16, marginBottom: 12 }}></div>
+                    <div className="skeleton" style={{ width: 120, height: 14 }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredNotes.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📝</div>
               <h3>패치노트가 없습니다</h3>

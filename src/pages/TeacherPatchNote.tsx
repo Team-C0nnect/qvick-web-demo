@@ -99,7 +99,7 @@ export default function TeacherPatchNotePage() {
       {/* 페이지 헤더 */}
       <div className="teacher-patchnote-header">
         <div className="header-info">
-          <h1>🔒 Teacher 전용 패치노트</h1>
+          <h1>Teacher Web Page 패치노트</h1>
           <p>Teacher 계정에서만 확인할 수 있는 업데이트 내역입니다.</p>
         </div>
       </div>
@@ -127,14 +127,16 @@ export default function TeacherPatchNotePage() {
                     onClick={() => handleSelectNote(note)}
                   >
                     <div className="version-item-header">
-                      <span className="version-number">v{note.version}</span>
-                      <span 
-                        className="category-dot"
-                        style={{ backgroundColor: CATEGORY_CONFIG[note.category].color }}
-                      ></span>
+                      <div className="version-item-header-left">
+                        <span className="version-number">v{note.version}</span>
+                        <span 
+                          className="category-dot"
+                          style={{ backgroundColor: CATEGORY_CONFIG[note.category].color }}
+                        ></span>
+                      </div>
+                      <span className="version-item-date">{formatDate(note.publishedAt || note.updatedAt)}</span>
                     </div>
                     <p className="version-item-title">{note.title}</p>
-                    <span className="version-item-date">{formatDate(note.publishedAt || note.updatedAt)}</span>
                   </button>
                 ))}
               </nav>
@@ -156,7 +158,7 @@ export default function TeacherPatchNotePage() {
                         {CATEGORY_CONFIG[selectedNote.category].label}
                       </span>
                       <span className="version-badge">v{selectedNote.version}</span>
-                      <span className="visibility-badge teacher">🔒 Teacher 전용</span>
+                      <span className="visibility-badge teacher">Teacher 전용</span>
                     </div>
                     <h1 className="article-title">{selectedNote.title}</h1>
                     <div className="article-info">

@@ -101,14 +101,16 @@
 }
 
 .teacher-patchnote-sidebar .version-item {
+  display: block;
   width: 100%;
-  padding: 16px 20px;
+  padding: 14px 16px;
   border: none;
   background: none;
   text-align: left;
   cursor: pointer;
   border-bottom: 1px solid #f3f4f6;
   transition: background 0.15s;
+  box-sizing: border-box;
 }
 
 .teacher-patchnote-sidebar .version-item:hover {
@@ -123,8 +125,14 @@
 .teacher-patchnote-sidebar .version-item-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.teacher-patchnote-sidebar .version-item-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .teacher-patchnote-sidebar .version-number {
@@ -140,18 +148,21 @@
 }
 
 .teacher-patchnote-sidebar .version-item-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: #1f2937;
-  margin: 0 0 4px 0;
-  white-space: nowrap;
+  color: #374151;
+  margin: 8px 0 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.4;
 }
 
 .teacher-patchnote-sidebar .version-item-date {
-  font-size: 12px;
+  font-size: 11px;
   color: #9ca3af;
+  white-space: nowrap;
 }
 
 /* 메인 컨텐츠 */
@@ -251,11 +262,13 @@
 
 .teacher-patchnote-article .article-content ul {
   padding-left: 24px;
-  margin: 12px 0;
+  margin: 8px 0;
+  list-style-type: disc;
 }
 
 .teacher-patchnote-article .article-content li {
-  margin: 8px 0;
+  margin: 2px 0;
+  line-height: 1.5;
 }
 
 .teacher-patchnote-article .article-content code {

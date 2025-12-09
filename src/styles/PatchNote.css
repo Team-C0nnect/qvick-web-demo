@@ -389,16 +389,16 @@
 }
 
 .article-content p {
-  margin: 16px 0;
+  margin: 12px 0;
 }
 
 .article-content ul {
   padding-left: 24px;
-  margin: 16px 0;
+  margin: 8px 0;
 }
 
 .article-content li {
-  margin: 10px 0;
+  margin: 4px 0;
   position: relative;
 }
 

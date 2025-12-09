@@ -29,7 +29,7 @@ export default function PatchNoteAdmin() {
   
   // AI 다듬기 상태
   const [isRefining, setIsRefining] = useState(false);
-  const [refineSuggestions, setRefineSuggestions] = useState<string[]>([]);
+  const [, setRefineSuggestions] = useState<string[]>([]);
   
   // 이미지 업로드 ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -581,16 +581,6 @@ export default function PatchNoteAdmin() {
                   </>
                 )}
               </button>
-              {refineSuggestions.length > 0 && (
-                <div className="ai-suggestions">
-                  <h5>💡 AI 제안</h5>
-                  <ul>
-                    {refineSuggestions.map((suggestion, idx) => (
-                      <li key={idx}>{suggestion}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
 
             {viewMode === 'edit' && selectedNote && (

@@ -220,6 +220,5 @@ export async function refinePatchnote(request: HttpRequest, context: InvocationC
 app.http('refinePatchnote', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'ai/refine',
   handler: refinePatchnote
 });

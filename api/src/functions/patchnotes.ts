@@ -1,4 +1,5 @@
 // 패치노트 CRUD API 엔드포인트
+// Azure Static Web Apps managed functions - 함수 이름으로 접근, 쿼리 파라미터 사용
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { getFirestore, admin } from "../lib/firebase-admin";
 import type { PatchNote, CreatePatchNoteRequest, UpdatePatchNoteRequest } from "../types/patchnote";
@@ -9,7 +10,7 @@ const COLLECTION_NAME = 'patchnotes';
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
@@ -31,7 +32,7 @@ function docToPatchNote(id: string, data: FirebaseFirestore.DocumentData): Patch
   };
 }
 
-// GET /api/patchnotes - 모든 패치노트 조회
+// GET /api/getPatchnotes - 모든 패치노트 조회
 export async function getPatchnotes(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('getPatchnotes function processed a request.');
 
@@ -66,11 +67,10 @@ export async function getPatchnotes(request: HttpRequest, context: InvocationCon
 app.http('getPatchnotes', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'patchnotes',
   handler: getPatchnotes
 });
 
-// GET /api/patchnotes/published - 발행된 패치노트 조회
+// GET /api/getPublishedPatchnotes - 발행된 패치노트 조회
 export async function getPublishedPatchnotes(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('getPublishedPatchnotes function processed a request.');
 
@@ -115,11 +115,10 @@ export async function getPublishedPatchnotes(request: HttpRequest, context: Invo
 app.http('getPublishedPatchnotes', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'patchnotes/published',
   handler: getPublishedPatchnotes
 });
 
-// GET /api/patchnotes/{id} - 단일 패치노트 조회
+// GET /api/getPatchnoteById?id=xxx - 단일 패치노트 조회
 export async function getPatchnoteById(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('getPatchnoteById function processed a request.');
 
@@ -128,7 +127,7 @@ export async function getPatchnoteById(request: HttpRequest, context: Invocation
   }
 
   try {
-    const id = request.params.id;
+    const id = request.query.get('id');
     if (!id) {
       return {
         status: 400,
@@ -167,11 +166,10 @@ export async function getPatchnoteById(request: HttpRequest, context: Invocation
 app.http('getPatchnoteById', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'patchnotes/{id}',
   handler: getPatchnoteById
 });
 
-// POST /api/patchnotes - 패치노트 생성
+// POST /api/createPatchnote - 패치노트 생성
 export async function createPatchnote(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('createPatchnote function processed a request.');
 
@@ -232,11 +230,10 @@ export async function createPatchnote(request: HttpRequest, context: InvocationC
 app.http('createPatchnote', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'patchnotes',
   handler: createPatchnote
 });
 
-// PUT /api/patchnotes/{id} - 패치노트 수정
+// POST /api/updatePatchnote?id=xxx - 패치노트 수정
 export async function updatePatchnote(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('updatePatchnote function processed a request.');
 
@@ -245,7 +242,7 @@ export async function updatePatchnote(request: HttpRequest, context: InvocationC
   }
 
   try {
-    const id = request.params.id;
+    const id = request.query.get('id');
     if (!id) {
       return {
         status: 400,
@@ -291,13 +288,12 @@ export async function updatePatchnote(request: HttpRequest, context: InvocationC
 }
 
 app.http('updatePatchnote', {
-  methods: ['PUT', 'OPTIONS'],
+  methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'patchnotes/{id}',
   handler: updatePatchnote
 });
 
-// DELETE /api/patchnotes/{id} - 패치노트 삭제
+// POST /api/deletePatchnote?id=xxx - 패치노트 삭제
 export async function deletePatchnote(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('deletePatchnote function processed a request.');
 
@@ -306,7 +302,7 @@ export async function deletePatchnote(request: HttpRequest, context: InvocationC
   }
 
   try {
-    const id = request.params.id;
+    const id = request.query.get('id');
     if (!id) {
       return {
         status: 400,
@@ -345,13 +341,12 @@ export async function deletePatchnote(request: HttpRequest, context: InvocationC
 }
 
 app.http('deletePatchnote', {
-  methods: ['DELETE', 'OPTIONS'],
+  methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'patchnotes/{id}',
   handler: deletePatchnote
 });
 
-// POST /api/patchnotes/{id}/publish - 패치노트 발행
+// POST /api/publishPatchnote?id=xxx - 패치노트 발행
 export async function publishPatchnote(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('publishPatchnote function processed a request.');
 
@@ -360,7 +355,7 @@ export async function publishPatchnote(request: HttpRequest, context: Invocation
   }
 
   try {
-    const id = request.params.id;
+    const id = request.query.get('id');
     if (!id) {
       return {
         status: 400,
@@ -407,11 +402,10 @@ export async function publishPatchnote(request: HttpRequest, context: Invocation
 app.http('publishPatchnote', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'patchnotes/{id}/publish',
   handler: publishPatchnote
 });
 
-// POST /api/patchnotes/{id}/unpublish - 패치노트 발행 취소
+// POST /api/unpublishPatchnote?id=xxx - 패치노트 발행 취소
 export async function unpublishPatchnote(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('unpublishPatchnote function processed a request.');
 
@@ -420,7 +414,7 @@ export async function unpublishPatchnote(request: HttpRequest, context: Invocati
   }
 
   try {
-    const id = request.params.id;
+    const id = request.query.get('id');
     if (!id) {
       return {
         status: 400,
@@ -466,6 +460,5 @@ export async function unpublishPatchnote(request: HttpRequest, context: Invocati
 app.http('unpublishPatchnote', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'patchnotes/{id}/unpublish',
   handler: unpublishPatchnote
 });

@@ -42,7 +42,7 @@ export async function refinePatchNote(
       })),
     };
 
-    const response = await fetch(`${API_BASE_URL}/ai/refine`, {
+    const response = await fetch(`${API_BASE_URL}/refinePatchnote`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

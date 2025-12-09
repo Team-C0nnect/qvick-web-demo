@@ -301,31 +301,66 @@ export default function PatchNoteAdmin() {
       html = html.replace(imgRegex, `<img src="${img.url}" alt="$1" class="markdown-image" />`);
     });
     
+    // 연속된 리스트 항목을 먼저 처리
+    const lines = html.split('\n');
+    const processedLines: string[] = [];
+    let inList = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const isListItem = /^- (.*)$/.test(line.trim());
+      
+      if (isListItem) {
+        if (!inList) {
+          processedLines.push('<ul>');
+          inList = true;
+        }
+        let content = line.trim().replace(/^- (.*)$/, '$1');
+        // 리스트 내부의 링크와 강조 처리
+        content = content
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/`(.*?)`/g, '<code>$1</code>')
+          .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        processedLines.push(`<li>${content}</li>`);
+      } else {
+        if (inList) {
+          processedLines.push('</ul>');
+          inList = false;
+        }
+        processedLines.push(line);
+      }
+    }
+    if (inList) {
+      processedLines.push('</ul>');
+    }
+    
+    html = processedLines.join('\n');
+    
     html = html
-      // Headers
       .replace(/^### (.*$)/gim, '<h3>$1</h3>')
       .replace(/^## (.*$)/gim, '<h2>$1</h2>')
       .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-      // Bold
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      // Italic
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      // Code
       .replace(/`(.*?)`/g, '<code>$1</code>')
-      // Lists
-      .replace(/^- (.*$)/gim, '<li>$1</li>')
       // External images
       .replace(/!\[(.*?)\]\((https?:\/\/[^)]+)\)/g, '<img src="$2" alt="$1" class="markdown-image" />')
-      // Links
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-      // Line breaks
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br/>');
+      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     
-    // Wrap lists
-    html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+    // 빈 줄을 단락으로 변환
+    html = html
+      .replace(/\n\n+/g, '</p><p>')
+      .replace(/(?<!<\/li>)\n(?!<)/g, '<br/>');
     
-    return `<p>${html}</p>`;
+    // ul 태그 주변의 불필요한 br 제거
+    html = html
+      .replace(/<br\/?>\s*<ul>/g, '<ul>')
+      .replace(/<\/ul>\s*<br\/?>/g, '</ul>')
+      .replace(/<br\/?>\s*<\/ul>/g, '</ul>')
+      .replace(/<ul>\s*<br\/?>/g, '<ul>');
+    
+    return `<div>${html}</div>`;
   };
 
   if (!isAdmin) {

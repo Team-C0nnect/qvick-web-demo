@@ -78,7 +78,13 @@ export default function TeacherPatchNotePage() {
           processedLines.push('<ul>');
           inList = true;
         }
-        const content = line.trim().replace(/^- (.*)$/, '$1');
+        let content = line.trim().replace(/^- (.*)$/, '$1');
+        // 리스트 내부의 링크와 강조 처리
+        content = content
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/`(.*?)`/g, '<code>$1</code>')
+          .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         processedLines.push(`<li>${content}</li>`);
       } else {
         if (inList) {

@@ -1,5 +1,6 @@
 // 패치노트 타입 정의
-export type PatchNoteCategory = 'feature' | 'improvement' | 'bugfix' | 'security' | 'maintenance';
+
+export type PatchNoteCategory = 'feature' | 'improvement' | 'bugfix' | 'notice';
 export type PatchNoteStatus = 'draft' | 'published';
 export type PatchNoteVisibility = 'public' | 'teacher';
 

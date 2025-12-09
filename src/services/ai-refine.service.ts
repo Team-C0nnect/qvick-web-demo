@@ -1,8 +1,8 @@
 // 패치노트 AI 다듬기 서비스 (Azure Functions API 호출)
 import type { PatchNoteImage } from '../types/patchnote';
 
-// Azure Functions API 기본 URL
-const API_BASE_URL = import.meta.env.VITE_PATCHNOTE_API_URL || 'https://qvick-patchnote-api.azurewebsites.net/api';
+// Azure Static Web Apps는 /api를 Functions로 자동 라우팅
+const API_BASE_URL = '/api';
 
 interface RefineResult {
   title: string;

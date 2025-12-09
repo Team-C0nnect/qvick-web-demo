@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",
+    "firebase-admin": "^13.6.0",
     "openai": "^4.77.0"
   },
   "devDependencies": {

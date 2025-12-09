@@ -6,8 +6,8 @@ import type {
   PatchNoteVisibility
 } from '../types/patchnote';
 
-// Azure Functions API 기본 URL (환경변수로 설정)
-const API_BASE_URL = import.meta.env.VITE_PATCHNOTE_API_URL || 'https://qvick-patchnote-api.azurewebsites.net/api';
+// Azure Static Web Apps는 /api를 Functions로 자동 라우팅
+const API_BASE_URL = '/api';
 
 // 이미지 ID 생성
 export function generateImageId(): string {

@@ -157,9 +157,9 @@ export default function PublicPatchNotePage() {
       {/* 헤더 */}
       <header className="patchnote-header">
         <div className="header-content">
-          <div className="header-brand" onClick={() => window.location.href = 'https://qvick.kr'}>
+          <div className="header-brand">
             <QvickLogoIcon />
-            <span className="brand-text">Qvick 패치노트</span>
+            <span className="brand-text">Qvick</span>
           </div>
           <h1 className="header-title">패치노트</h1>
           <p className="header-subtitle">Qvick의 새로운 업데이트 소식을 확인하세요</p>
@@ -172,7 +172,42 @@ export default function PublicPatchNotePage() {
       </header>
 
       <div className="patchnote-container">
-        {patchNotes.length === 0 ? (
+        {isLoading ? (
+          // 전체 로딩 스켈레톤
+          <div className="patchnote-layout">
+            <aside className="patchnote-sidebar">
+              <div className="sidebar-header">
+                <h2>버전 기록</h2>
+                <div className="skeleton" style={{ width: 40, height: 24, borderRadius: 12 }}></div>
+              </div>
+              <nav className="version-list">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="version-item skeleton-item">
+                    <div className="version-item-header">
+                      <div className="skeleton" style={{ width: 60, height: 20, borderRadius: 4 }}></div>
+                      <div className="skeleton" style={{ width: 12, height: 12, borderRadius: '50%' }}></div>
+                    </div>
+                    <div className="skeleton" style={{ width: '80%', height: 16, marginTop: 8 }}></div>
+                    <div className="skeleton" style={{ width: 100, height: 14, marginTop: 8 }}></div>
+                  </div>
+                ))}
+              </nav>
+            </aside>
+            <main className="patchnote-main">
+              <article className="patchnote-article">
+                <div className="article-header">
+                  <div className="article-meta">
+                    <div className="skeleton" style={{ width: 80, height: 28, borderRadius: 8 }}></div>
+                    <div className="skeleton" style={{ width: 60, height: 28, borderRadius: 8 }}></div>
+                  </div>
+                  <div className="skeleton" style={{ width: '70%', height: 40, marginBottom: 16 }}></div>
+                  <div className="skeleton" style={{ width: 200, height: 16 }}></div>
+                </div>
+                <ContentSkeleton />
+              </article>
+            </main>
+          </div>
+        ) : patchNotes.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📋</div>
             <h3>아직 패치노트가 없습니다</h3>
@@ -209,19 +244,7 @@ export default function PublicPatchNotePage() {
 
             {/* 메인 컨텐츠 */}
             <main className="patchnote-main">
-              {isLoading ? (
-                <article className="patchnote-article">
-                  <div className="article-header">
-                    <div className="article-meta">
-                      <div className="skeleton" style={{ width: 80, height: 28, borderRadius: 8 }}></div>
-                      <div className="skeleton" style={{ width: 60, height: 28, borderRadius: 8 }}></div>
-                    </div>
-                    <div className="skeleton" style={{ width: '70%', height: 40, marginBottom: 16 }}></div>
-                    <div className="skeleton" style={{ width: 200, height: 16 }}></div>
-                  </div>
-                  <ContentSkeleton />
-                </article>
-              ) : selectedNote ? (
+              {selectedNote ? (
                 <article className="patchnote-article">
                   <div className="article-header">
                     <div className="article-meta">
@@ -241,7 +264,7 @@ export default function PublicPatchNotePage() {
                       <span className="article-date">
                         {formatDate(selectedNote.publishedAt || selectedNote.updatedAt)}
                       </span>
-                      <span className="article-author">by {selectedNote.author}</span>
+                      <span className="article-author">{selectedNote.author}</span>
                     </div>
                   </div>
                   <div 

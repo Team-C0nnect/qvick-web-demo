@@ -7,7 +7,7 @@ interface Student {
   room: string;
   overnight: boolean;
   name: string;
-  status: '출석' | '미출석';
+  status: '출석' | '미출석' | '외박';
   gender: '남' | '여';
   studentId: string;
   grade: number;

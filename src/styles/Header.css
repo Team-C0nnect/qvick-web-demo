@@ -69,6 +69,32 @@
   color: #6d23ed;
 }
 
+/* Admin 패치노트 관리 버튼 */
+.admin-patchnote-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #6d23ed, #8b5cf6);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(109, 35, 237, 0.25);
+}
+
+.admin-patchnote-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(109, 35, 237, 0.35);
+}
+
+.admin-patchnote-btn svg {
+  flex-shrink: 0;
+}
+
 /* 반응형 */
 @media (max-width: 768px) {
   .user-name {
@@ -78,6 +104,14 @@
   .logout-button {
     padding: 6px 12px;
     font-size: 13px;
+  }
+  
+  .admin-patchnote-btn span {
+    display: none;
+  }
+  
+  .admin-patchnote-btn {
+    padding: 8px;
   }
 }
 

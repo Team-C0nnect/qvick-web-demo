@@ -235,6 +235,11 @@
   font-weight: 600;
 }
 
+.status-sleepover {
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
 .edit-button {
   border: 1px solid #164e8d;
   background: transparent;

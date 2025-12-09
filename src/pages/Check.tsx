@@ -17,7 +17,7 @@ interface Student {
   room: string;
   overnight: boolean;
   name: string;
-  status: '출석' | '미출석';
+  status: '출석' | '미출석' | '외박';
   gender: '남' | '여';
   studentId: string;
   grade: number;
@@ -122,7 +122,8 @@ export default function Check() {
       return;
     }
     
-    const newStatus: AttendanceStatus = student.overnight ? 'PRESENT' : 'SLEEPOVER';
+    // 외박 → 외박 취소 시 미출석(ABSENT)으로, 미출석/출석 → 외박 시 SLEEPOVER로
+    const newStatus: AttendanceStatus = student.overnight ? 'ABSENT' : 'SLEEPOVER';
     
     updateAttendancesMutation.mutate({
       date: currentDate,
@@ -132,7 +133,11 @@ export default function Check() {
     // 로컬 상태 즉시 업데이트
     setStudents(prev => prev.map(s => 
       s.studentId === student.studentId 
-        ? { ...s, overnight: !s.overnight }
+        ? { 
+            ...s, 
+            overnight: !s.overnight,
+            status: newStatus === 'SLEEPOVER' ? '외박' : '미출석'
+          }
         : s
     ));
   }, [currentDate, updateAttendancesMutation]);
@@ -202,9 +207,19 @@ export default function Check() {
         // 신버전 출석 여부
         const newChecked = att.status === 'PRESENT' || att.status === 'SLEEPOVER';
         
-        // 둘 중 하나라도 출석이면 출석으로 처리
-        const isChecked = newChecked || legacyChecked;
+        // 외박 여부
         const isOvernight = att.status === 'SLEEPOVER';
+        
+        // 둘 중 하나라도 출석이면 출석으로 처리 (외박 제외)
+        const isChecked = (att.status === 'PRESENT') || legacyChecked;
+        
+        // 상태 결정: 외박 > 출석 > 미출석
+        let displayStatus: '출석' | '미출석' | '외박' = '미출석';
+        if (isOvernight) {
+          displayStatus = '외박';
+        } else if (isChecked) {
+          displayStatus = '출석';
+        }
         
         // 출석 시간 (신버전 우선, 없으면 구버전)
         let checkedTime = '-';
@@ -223,7 +238,7 @@ export default function Check() {
           room: student.room,
           overnight: isOvernight,
           name: student.name,
-          status: isChecked ? '출석' : '미출석',
+          status: displayStatus,
           gender: student.gender === 'MALE' ? '남' : '여',
           studentId: studentIdStr,
           grade: student.grade,
@@ -597,7 +612,10 @@ export default function Check() {
                     </td>
                     <td>{student.name}</td>
                     <td>
-                      <span className={student.status === '출석' ? 'status-present' : 'status-absent'}>
+                      <span className={
+                        student.status === '출석' ? 'status-present' : 
+                        student.status === '외박' ? 'status-sleepover' : 'status-absent'
+                      }>
                         {student.status}
                       </span>
                     </td>

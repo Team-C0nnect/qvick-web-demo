@@ -11,6 +11,34 @@
   gap: 24px;
 }
 
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.date-picker input {
+  padding: 10px 16px;
+  border: 2px solid #e6e6e7;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #0f0f10;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.date-picker input:hover {
+  border-color: #6d23ed;
+}
+
+.date-picker input:focus {
+  outline: none;
+  border-color: #6d23ed;
+  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
+}
+
 .search-box {
   display: flex;
   align-items: center;
@@ -265,6 +293,15 @@
   .controls-section {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .controls-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-picker input {
+    width: 100%;
   }
 
   .search-box {

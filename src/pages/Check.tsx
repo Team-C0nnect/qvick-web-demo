@@ -41,7 +41,7 @@ export default function Check() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [currentDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [currentDate, setCurrentDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [sortKey, setSortKey] = useState<SortKey | null>('room');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [isExporting, setIsExporting] = useState(false);
@@ -435,14 +435,23 @@ export default function Check() {
   }  return (
     <div className="check-page">
           <div className="controls-section">
-            <div className="search-box">
-              <SearchIcon className="search-icon" />
-              <input
-                type="text"
-                placeholder="호실 / 이름으로 검색..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="controls-left">
+              <div className="date-picker">
+                <input
+                  type="date"
+                  value={currentDate}
+                  onChange={(e) => setCurrentDate(e.target.value)}
+                />
+              </div>
+              <div className="search-box">
+                <SearchIcon className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="호실 / 이름으로 검색..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="stats-section">

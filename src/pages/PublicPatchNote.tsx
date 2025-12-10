@@ -54,6 +54,11 @@ export default function PublicPatchNotePage() {
     loadPatchNotes();
   }, [id]);
 
+  // 페이지 제목 설정
+  useEffect(() => {
+    document.title = 'Qvick - 패치노트';
+  }, []);
+
   const handleSelectNote = (note: PatchNote) => {
     setSelectedNote(note);
     navigate(`/patchnote/public/${note.id}`, { replace: true });

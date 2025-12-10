@@ -179,9 +179,6 @@ export default function InquiryFormPage() {
               <button className="btn-primary" onClick={handleReset}>
                 새 문의하기
               </button>
-              <a href="https://qvick.kr" className="btn-secondary">
-                Qvick으로 돌아가기
-              </a>
             </div>
           </div>
         </div>

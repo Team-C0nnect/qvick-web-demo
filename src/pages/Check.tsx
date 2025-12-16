@@ -47,9 +47,8 @@ export default function Check() {
   const [isExporting, setIsExporting] = useState(false);
   
   // Filter states
-  const [statusFilter, setStatusFilter] = useState<'전체' | '출석' | '미출석'>('전체');
+  const [statusFilter, setStatusFilter] = useState<'전체' | '출석' | '미출석' | '외박'>('전체');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('전체');
-  const [overnightFilter, setOvernightFilter] = useState<'전체' | '외박' | '비외박'>('전체');
   
   const queryClient = useQueryClient();
 
@@ -370,24 +369,16 @@ export default function Check() {
         }
       }
 
-      // Status filter
+      // Status filter (출석, 미출석, 외박)
       if (statusFilter !== '전체' && student.status !== statusFilter) {
         return false;
       }
-      
+
       // Gender filter
       if (genderFilter !== '전체' && student.gender !== genderFilter) {
         return false;
       }
-      
-      // Overnight filter
-      if (overnightFilter === '외박' && !student.overnight) {
-        return false;
-      }
-      if (overnightFilter === '비외박' && student.overnight) {
-        return false;
-      }
-      
+
       return true;
     });
   };
@@ -477,23 +468,29 @@ export default function Check() {
             <div className="filter-group">
               <label className="filter-label">출석 상태:</label>
               <div className="filter-buttons">
-                <button 
+                <button
                   className={`filter-btn ${statusFilter === '전체' ? 'active' : ''}`}
                   onClick={() => setStatusFilter('전체')}
                 >
                   전체
                 </button>
-                <button 
+                <button
                   className={`filter-btn ${statusFilter === '출석' ? 'active' : ''}`}
                   onClick={() => setStatusFilter('출석')}
                 >
                   출석
                 </button>
-                <button 
+                <button
                   className={`filter-btn ${statusFilter === '미출석' ? 'active' : ''}`}
                   onClick={() => setStatusFilter('미출석')}
                 >
                   미출석
+                </button>
+                <button
+                  className={`filter-btn ${statusFilter === '외박' ? 'active' : ''}`}
+                  onClick={() => setStatusFilter('외박')}
+                >
+                  외박
                 </button>
               </div>
             </div>
@@ -501,19 +498,19 @@ export default function Check() {
             <div className="filter-group">
               <label className="filter-label">성별:</label>
               <div className="filter-buttons">
-                <button 
+                <button
                   className={`filter-btn ${genderFilter === '전체' ? 'active' : ''}`}
                   onClick={() => setGenderFilter('전체')}
                 >
                   전체
                 </button>
-                <button 
+                <button
                   className={`filter-btn ${genderFilter === '남' ? 'active' : ''}`}
                   onClick={() => setGenderFilter('남')}
                 >
                   남
                 </button>
-                <button 
+                <button
                   className={`filter-btn ${genderFilter === '여' ? 'active' : ''}`}
                   onClick={() => setGenderFilter('여')}
                 >
@@ -521,31 +518,6 @@ export default function Check() {
                 </button>
               </div>
             </div>
-
-            <div className="filter-group">
-              <label className="filter-label">외박:</label>
-              <div className="filter-buttons">
-                <button 
-                  className={`filter-btn ${overnightFilter === '전체' ? 'active' : ''}`}
-                  onClick={() => setOvernightFilter('전체')}
-                >
-                  전체
-                </button>
-                <button 
-                  className={`filter-btn ${overnightFilter === '외박' ? 'active' : ''}`}
-                  onClick={() => setOvernightFilter('외박')}
-                >
-                  외박
-                </button>
-                <button 
-                  className={`filter-btn ${overnightFilter === '비외박' ? 'active' : ''}`}
-                  onClick={() => setOvernightFilter('비외박')}
-                >
-                  비외박
-                </button>
-              </div>
-            </div>
-
           </div>
 
           <div className="table-container">

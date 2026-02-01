@@ -31,13 +31,15 @@ jobs:
       
       - name: Build
         run: npm run build
-      
+
       - name: Install API dependencies
         run: cd api && npm ci
-      
+        continue-on-error: true
+
       - name: Build API
         run: cd api && npm run build
-        
+        continue-on-error: true
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1

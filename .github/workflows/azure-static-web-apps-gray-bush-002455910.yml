@@ -32,14 +32,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Install API dependencies
-        run: cd api && npm ci
-        continue-on-error: true
-
-      - name: Build API
-        run: cd api && npm run build
-        continue-on-error: true
-
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -50,7 +42,7 @@ jobs:
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
           app_location: "dist" # Pre-built app directory
-          api_location: "api" # Api source code path
+          api_location: "" # No API
           output_location: "" # No additional build needed
           skip_app_build: true # We're building manually above
           ###### End of Repository/Build Configurations ######

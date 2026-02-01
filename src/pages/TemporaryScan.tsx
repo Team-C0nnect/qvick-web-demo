@@ -103,9 +103,8 @@ export default function TemporaryScan() {
         fps: 10,
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0,
-        facingMode: { exact: "environment" },
         videoConstraints: {
-          facingMode: "environment"
+          facingMode: { exact: "environment" }
         }
       },
       false

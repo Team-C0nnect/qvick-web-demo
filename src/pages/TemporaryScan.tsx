@@ -26,7 +26,9 @@ function HeaderLogoIcon() {
 export default function TemporaryScan() {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const [isCompleted, setIsCompleted] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const hasScannedRef = useRef(false);
   const navigate = useNavigate();
 
   // Check authentication
@@ -40,43 +42,68 @@ export default function TemporaryScan() {
   // QR Code attendance mutation
   const attendanceMutation = useMutation({
     mutationFn: async (qrData: string) => {
-      // QR 코드 데이터를 그대로 code로 전송
-      const response = await temporaryAttendanceService.checkAttendance({
-        code: qrData,
-      });
+      try {
+        const response = await temporaryAttendanceService.checkAttendance({
+          code: qrData,
+        });
 
-      if (response.status !== 200) {
-        throw new Error(response.message || '출석 처리에 실패했습니다.');
+        return response;
+      } catch (error: any) {
+        // 409 에러를 별도로 처리
+        if (error.response?.status === 409) {
+          return {
+            status: 409,
+            message: error.response?.data?.message || '이미 출석이 완료되었습니다.',
+          };
+        }
+        throw error;
       }
-
-      return response;
     },
     onSuccess: (response) => {
-      setSuccess(response.message || '출석이 완료되었습니다!');
-      setError('');
+      // 스캐너 정지
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(() => {});
+      }
 
-      // 3초 후 성공 메시지 초기화
-      setTimeout(() => {
-        setSuccess('');
-      }, 3000);
+      if (response.status === 409) {
+        setSuccess('이미 출석이 완료되었습니다.');
+      } else {
+        setSuccess(response.message || '출석이 완료되었습니다!');
+      }
+      setError('');
+      setIsCompleted(true);
     },
-    onError: (err: Error) => {
-      setError(err.message || '출석 처리 중 오류가 발생했습니다.');
+    onError: (err: any) => {
+      // 사용자 친화적인 에러 메시지
+      let errorMessage = '출석 처리 중 오류가 발생했습니다.';
+
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message && !err.message.includes('status code')) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
       setSuccess('');
+
+      // 에러 발생 시 5초 후 스캔 재활성화
+      setTimeout(() => {
+        hasScannedRef.current = false;
+        setError('');
+      }, 5000);
     },
   });
 
   useEffect(() => {
-    // QR Scanner 초기화
+    if (isCompleted) return;
+
     const scanner = new Html5QrcodeScanner(
       'qr-reader',
       {
         fps: 10,
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0,
-        // 후면 카메라 우선 선택
         facingMode: { exact: "environment" },
-        // 대체 설정 (후면 카메라가 없을 경우)
         videoConstraints: {
           facingMode: "environment"
         }
@@ -86,11 +113,14 @@ export default function TemporaryScan() {
 
     scanner.render(
       (decodedText) => {
-        attendanceMutation.mutate(decodedText);
+        // 한 번만 처리
+        if (!hasScannedRef.current && !isCompleted) {
+          hasScannedRef.current = true;
+          attendanceMutation.mutate(decodedText);
+        }
       },
-      (errorMessage) => {
-        // QR 스캔 실패는 무시 (계속 스캔)
-        console.debug('QR scan error:', errorMessage);
+      () => {
+        // QR 스캔 실패는 무시
       }
     );
 
@@ -98,10 +128,10 @@ export default function TemporaryScan() {
 
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.clear().catch(console.error);
+        scannerRef.current.clear().catch(() => {});
       }
     };
-  }, []);
+  }, [isCompleted]);
 
   const handleLogout = () => {
     localStorage.removeItem('tempAccessToken');
@@ -143,14 +173,27 @@ export default function TemporaryScan() {
             </div>
           )}
 
-          <div className="temp-qr-wrapper">
-            <div id="qr-reader" className="temp-qr-reader"></div>
-          </div>
+          {!isCompleted ? (
+            <>
+              <div className="temp-qr-wrapper">
+                <div id="qr-reader" className="temp-qr-reader"></div>
+              </div>
 
-          <div className="temp-scan-instructions">
-            <p>카메라 권한을 허용한 후 QR 코드를 스캔하세요</p>
-            <p className="temp-instruction-detail">출석이 자동으로 처리됩니다</p>
-          </div>
+              <div className="temp-scan-instructions">
+                <p>카메라 권한을 허용한 후 QR 코드를 스캔하세요</p>
+                <p className="temp-instruction-detail">출석이 자동으로 처리됩니다</p>
+              </div>
+            </>
+          ) : (
+            <div className="temp-completed-section">
+              <div className="temp-completed-icon">✓</div>
+              <h3 className="temp-completed-title">출석 완료</h3>
+              <p className="temp-completed-message">출석이 정상적으로 처리되었습니다.</p>
+              <button onClick={handleLogout} className="temp-completed-button">
+                로그아웃
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

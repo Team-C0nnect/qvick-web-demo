@@ -74,6 +74,12 @@ export default function TemporaryScan() {
         fps: 10,
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0,
+        // 후면 카메라 우선 선택
+        facingMode: { exact: "environment" },
+        // 대체 설정 (후면 카메라가 없을 경우)
+        videoConstraints: {
+          facingMode: "environment"
+        }
       },
       false
     );

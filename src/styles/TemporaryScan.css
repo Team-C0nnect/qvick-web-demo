@@ -1,0 +1,398 @@
+/* TemporaryScan Page Styles - Similar to Login Page */
+.temp-scan-page {
+  min-height: 100vh;
+  background-color: #fafafa;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+.temp-scan-header {
+  height: 60px;
+  background: #ffffff;
+  box-shadow: 0px -2px 4px 0px rgba(0, 0, 0, 0.1);
+  padding: 0 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.temp-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.temp-logo-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.temp-logo-text {
+  font-size: 24px;
+  font-weight: 800;
+  color: #6d23ed;
+  letter-spacing: -0.48px;
+  margin: 0;
+}
+
+.temp-logout-button {
+  background: #6d23ed;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.temp-logout-button:hover {
+  background: #5919c7;
+}
+
+.temp-logout-button:active {
+  background: #4a14a5;
+}
+
+.temp-scan-content {
+  margin-top: 60px;
+  min-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px 20px 20px;
+}
+
+.temp-scan-main {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.temp-scan-title-section {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.temp-page-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f0f10;
+  letter-spacing: -0.84px;
+  margin: 0 0 8px 0;
+}
+
+.temp-page-subtitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #5d5f60;
+  letter-spacing: -0.16px;
+  margin: 0;
+}
+
+.temp-success-message {
+  background: #e8f5e9;
+  border: 1px solid #4caf50;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.temp-success-icon {
+  width: 32px;
+  height: 32px;
+  background: #4caf50;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.temp-success-message p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.temp-error-message {
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-align: center;
+  animation: shake 0.3s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.temp-error-message p {
+  margin: 0;
+  color: #c00;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.temp-qr-wrapper {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.temp-qr-reader {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* html5-qrcode 라이브러리 스타일 커스터마이징 */
+#qr-reader {
+  border: none !important;
+}
+
+#qr-reader video {
+  border-radius: 12px;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+#qr-reader__dashboard,
+#qr-reader__dashboard_section {
+  background: transparent !important;
+}
+
+#qr-reader__dashboard_section_swaplink {
+  display: none !important;
+}
+
+#qr-reader select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f0f10;
+  background: #ffffff;
+  margin: 10px 0;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#qr-reader select:focus {
+  border-color: #6d23ed;
+}
+
+#qr-reader button,
+#qr-reader__dashboard_section_csr button {
+  background: #6d23ed !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+  margin: 8px 4px !important;
+}
+
+#qr-reader button:hover,
+#qr-reader__dashboard_section_csr button:hover {
+  background: #5919c7 !important;
+}
+
+.temp-scan-instructions {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.temp-scan-instructions p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f0f10;
+  letter-spacing: -0.15px;
+}
+
+.temp-instruction-detail {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #5d5f60 !important;
+  margin-top: 6px !important;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .temp-scan-content {
+    padding: 30px 16px 16px;
+  }
+
+  .temp-page-title {
+    font-size: 24px;
+  }
+
+  .temp-page-subtitle {
+    font-size: 14px;
+  }
+
+  .temp-qr-wrapper {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .temp-scan-header {
+    padding: 0 15px;
+  }
+
+  .temp-logo-text {
+    font-size: 20px;
+  }
+
+  .temp-logout-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .temp-scan-content {
+    padding: 20px 12px 12px;
+  }
+
+  .temp-page-title {
+    font-size: 22px;
+  }
+
+  .temp-page-subtitle {
+    font-size: 13px;
+  }
+
+  .temp-qr-wrapper {
+    padding: 12px;
+  }
+
+  .temp-success-message,
+  .temp-error-message {
+    padding: 12px 16px;
+  }
+
+  .temp-success-message p {
+    font-size: 14px;
+  }
+
+  .temp-scan-instructions {
+    padding: 16px;
+  }
+
+  .temp-scan-instructions p {
+    font-size: 14px;
+  }
+
+  .temp-instruction-detail {
+    font-size: 12px !important;
+  }
+}
+
+/* 작은 화면 높이 대응 */
+@media (max-height: 700px) {
+  .temp-scan-content {
+    padding: 20px 16px 16px;
+  }
+
+  .temp-scan-title-section {
+    margin-bottom: 8px;
+  }
+
+  .temp-scan-main {
+    gap: 16px;
+  }
+
+  .temp-qr-wrapper {
+    padding: 16px;
+  }
+
+  .temp-scan-instructions {
+    padding: 16px;
+  }
+}
+
+/* 가로 모드 최적화 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .temp-scan-content {
+    padding: 15px 12px 12px;
+  }
+
+  .temp-scan-title-section {
+    margin-bottom: 6px;
+  }
+
+  .temp-page-title {
+    font-size: 20px;
+  }
+
+  .temp-page-subtitle {
+    font-size: 13px;
+  }
+
+  .temp-scan-main {
+    gap: 12px;
+    max-width: 90%;
+  }
+
+  .temp-qr-wrapper {
+    padding: 12px;
+  }
+
+  .temp-scan-instructions {
+    padding: 12px;
+  }
+
+  .temp-success-message,
+  .temp-error-message {
+    padding: 10px 16px;
+  }
+}

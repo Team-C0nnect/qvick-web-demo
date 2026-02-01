@@ -15,6 +15,8 @@ import TeacherPatchNote from './pages/TeacherPatchNote';
 import PatchNoteAdmin from './pages/PatchNoteAdmin';
 import InquiryForm from './pages/InquiryForm';
 import InquiryAdmin from './pages/InquiryAdmin';
+import TemporaryLogin from './pages/TemporaryLogin';
+import TemporaryScan from './pages/TemporaryScan';
 import './App.css';
 
 function App() {
@@ -29,6 +31,9 @@ function App() {
         <Route path="/patchnote/public/:id" element={<PublicPatchNote />} />
         {/* 문의 폼 페이지 (로그인 불필요) */}
         <Route path="/inquiry" element={<InquiryForm />} />
+        {/* 임시 모바일 출석 페이지 (로그인 불필요) */}
+        <Route path="/temporary/login" element={<TemporaryLogin />} />
+        <Route path="/temporary/scan" element={<TemporaryScan />} />
         <Route
           path="/"
           element={

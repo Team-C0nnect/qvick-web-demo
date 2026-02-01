@@ -24,7 +24,6 @@ function HeaderLogoIcon() {
 }
 
 export default function TemporaryScan() {
-  const [scanResult, setScanResult] = useState<string | null>(null);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
@@ -55,7 +54,6 @@ export default function TemporaryScan() {
     onSuccess: (response) => {
       setSuccess(response.message || '출석이 완료되었습니다!');
       setError('');
-      setScanResult(null);
 
       // 3초 후 성공 메시지 초기화
       setTimeout(() => {
@@ -65,7 +63,6 @@ export default function TemporaryScan() {
     onError: (err: Error) => {
       setError(err.message || '출석 처리 중 오류가 발생했습니다.');
       setSuccess('');
-      setScanResult(null);
     },
   });
 
@@ -83,7 +80,6 @@ export default function TemporaryScan() {
 
     scanner.render(
       (decodedText) => {
-        setScanResult(decodedText);
         attendanceMutation.mutate(decodedText);
       },
       (errorMessage) => {

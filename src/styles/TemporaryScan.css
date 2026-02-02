@@ -195,7 +195,13 @@
 
 #qr-reader__dashboard_section_swaplink,
 #qr-reader__dashboard_section_csr span,
-#qr-reader__status_span {
+#qr-reader__status_span,
+#qr-reader__header_message {
+  display: none !important;
+}
+
+/* 에러 메시지 숨기기 */
+#qr-reader div[style*="background-color: rgba(156, 39, 39"] {
   display: none !important;
 }
 

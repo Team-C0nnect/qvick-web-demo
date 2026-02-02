@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useMutation } from '@tanstack/react-query';
 import { temporaryAttendanceService } from '../services/temporary-attendance.service';
 import '../styles/TemporaryScan.css';
@@ -90,68 +90,40 @@ export default function TemporaryScan() {
   useEffect(() => {
     if (isCompleted) return;
 
-    const initializeScanner = async () => {
-      let videoConstraints: MediaTrackConstraints = {
-        facingMode: { exact: "environment" }
-      };
-
-      try {
-        // 사용 가능한 카메라 목록 조회
-        const cameras = await Html5Qrcode.getCameras();
-
-        if (cameras && cameras.length > 0) {
-          // 후면 카메라 중 메인 카메라 찾기 (초광각 제외)
-          const backCameras = cameras.filter(camera => {
-            const label = camera.label.toLowerCase();
-            return (label.includes('back') || label.includes('rear')) &&
-                   !label.includes('ultra') &&
-                   !label.includes('wide');
-          });
-
-          // 메인 후면 카메라가 없으면 모든 후면 카메라 시도
-          const selectedCamera = backCameras[0] ||
-            cameras.find(camera => {
-              const label = camera.label.toLowerCase();
-              return label.includes('back') || label.includes('rear');
-            });
-
-          if (selectedCamera) {
-            videoConstraints = {
-              deviceId: { exact: selectedCamera.id }
-            };
-          }
+    // 스캐너 초기화
+    const scanner = new Html5QrcodeScanner(
+      'qr-reader',
+      {
+        fps: 15,
+        qrbox: function(viewfinderWidth: number, viewfinderHeight: number) {
+          // 화면 크기에 따라 스캔 영역 동적 조절
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+          const size = Math.floor(minEdge * 0.8);
+          return { width: size, height: size };
+        },
+        rememberLastUsedCamera: true,
+        showTorchButtonIfSupported: true,
+        videoConstraints: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         }
-      } catch (error) {
-        console.warn('Failed to enumerate cameras, using fallback', error);
-      }
+      },
+      false
+    );
 
-      // 스캐너 초기화
-      const scanner = new Html5QrcodeScanner(
-        'qr-reader',
-        {
-          fps: 10,
-          qrbox: { width: 280, height: 280 },
-          aspectRatio: 1.0,
-          videoConstraints
-        },
-        false
-      );
+    scanner.render(
+      (decodedText) => {
+        if (!hasScannedRef.current && !isCompleted) {
+          hasScannedRef.current = true;
+          attendanceMutation.mutate(decodedText);
+        }
+      },
+      () => {}
+    );
 
-      scanner.render(
-        (decodedText) => {
-          if (!hasScannedRef.current && !isCompleted) {
-            hasScannedRef.current = true;
-            attendanceMutation.mutate(decodedText);
-          }
-        },
-        () => {}
-      );
-
-      scannerRef.current = scanner;
-      setIsScanning(true);
-    };
-
-    initializeScanner();
+    scannerRef.current = scanner;
+    setIsScanning(true);
 
     return () => {
       if (scannerRef.current) {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { useMutation } from '@tanstack/react-query';
 import { temporaryAttendanceService } from '../services/temporary-attendance.service';
 import '../styles/TemporaryScan.css';
@@ -28,7 +28,8 @@ export default function TemporaryScan() {
   const [success, setSuccess] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const [cameraError, setCameraError] = useState<string>('');
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const hasScannedRef = useRef(false);
   const navigate = useNavigate();
 
@@ -59,8 +60,9 @@ export default function TemporaryScan() {
       }
     },
     onSuccess: (response) => {
+      // 스캐너 정지
       if (scannerRef.current) {
-        scannerRef.current.clear().catch(() => {});
+        scannerRef.current.stop().catch(() => {});
       }
       if (response.status === 409) {
         setSuccess('이미 출석이 완료되었습니다.');
@@ -90,49 +92,50 @@ export default function TemporaryScan() {
   useEffect(() => {
     if (isCompleted) return;
 
-    // 스캐너 초기화
-    const scanner = new Html5QrcodeScanner(
-      'qr-reader',
-      {
-        fps: 15,
-        qrbox: function(viewfinderWidth: number, viewfinderHeight: number) {
-          // 화면 크기에 따라 스캔 영역 동적 조절
-          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-          const size = Math.floor(minEdge * 0.8);
-          return { width: size, height: size };
-        },
-        rememberLastUsedCamera: true,
-        showTorchButtonIfSupported: true,
-        videoConstraints: {
-          facingMode: "environment",
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      },
-      false
-    );
+    const startScanner = async () => {
+      try {
+        const html5Qrcode = new Html5Qrcode('qr-reader');
+        scannerRef.current = html5Qrcode;
 
-    scanner.render(
-      (decodedText) => {
-        if (!hasScannedRef.current && !isCompleted) {
-          hasScannedRef.current = true;
-          attendanceMutation.mutate(decodedText);
-        }
-      },
-      () => {}
-    );
+        // 카메라 시작 - facingMode 사용
+        await html5Qrcode.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+          },
+          (decodedText) => {
+            if (!hasScannedRef.current && !isCompleted) {
+              hasScannedRef.current = true;
+              attendanceMutation.mutate(decodedText);
+            }
+          },
+          () => {
+            // QR 스캔 실패 무시
+          }
+        );
 
-    scannerRef.current = scanner;
-    setIsScanning(true);
+        setIsScanning(true);
+        setCameraError('');
+      } catch (err: any) {
+        console.error('카메라 시작 실패:', err);
+        setCameraError('카메라를 시작할 수 없습니다. 카메라 권한을 허용해주세요.');
+      }
+    };
+
+    startScanner();
 
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.clear().catch(() => {});
+        scannerRef.current.stop().catch(() => {});
       }
     };
   }, [isCompleted]);
 
   const handleLogout = () => {
+    if (scannerRef.current) {
+      scannerRef.current.stop().catch(() => {});
+    }
     localStorage.removeItem('tempAccessToken');
     localStorage.removeItem('tempRefreshToken');
     navigate('/temporary/login');
@@ -190,18 +193,24 @@ export default function TemporaryScan() {
             </div>
           )}
 
+          {cameraError && (
+            <div className="temp-scan-error" role="alert">
+              {cameraError}
+            </div>
+          )}
+
           <div className="temp-qr-container">
             <div id="qr-reader" className="temp-qr-scanner"></div>
-            {!isScanning && (
+            {!isScanning && !cameraError && (
               <div className="temp-qr-loading">
                 <div className="temp-loading-spinner"></div>
-                <p>카메라 준비 중...</p>
+                <p>카메라 시작 중...</p>
               </div>
             )}
           </div>
 
           <p className="temp-scan-hint">
-            카메라 권한을 허용하면 자동으로 스캔됩니다
+            QR 코드가 네모 안에 들어오도록 비춰주세요
           </p>
         </main>
       </div>

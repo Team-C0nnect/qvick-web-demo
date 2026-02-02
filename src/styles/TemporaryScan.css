@@ -145,6 +145,94 @@
   margin: 0;
 }
 
+/* 카메라 권한 요청 UI */
+.temp-permission-request {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 20px;
+  min-height: 280px;
+}
+
+.temp-camera-icon {
+  width: 64px;
+  height: 64px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.temp-camera-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.temp-permission-request p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+.temp-start-button {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d23ed 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.temp-start-button:active {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+}
+
+/* 카메라 에러 UI */
+.temp-camera-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 16px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.temp-camera-error p {
+  color: #fca5a5;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.temp-retry-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.temp-retry-button:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 /* Loading Spinner */
 .temp-loading-spinner {
   width: 40px;

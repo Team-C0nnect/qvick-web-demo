@@ -1,20 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useMutation } from '@tanstack/react-query';
 import { temporaryAttendanceService } from '../services/temporary-attendance.service';
 import '../styles/TemporaryScan.css';
 
-function HeaderLogoIcon() {
+function LogoIcon() {
   return (
     <svg viewBox="0 0 87 87" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
       <path d="M48.59 86.3644C48.5604 77.3388 53.1267 67.8702 60.476 60.5369C67.8247 53.2043 77.3438 48.6201 86.4 48.5904L86.3647 37.7915C73.8271 37.8326 61.7151 44.0464 52.8491 52.8929C43.9837 61.739 37.7513 73.8314 37.7925 86.3998L48.59 86.3644Z" fill="#0F0F10"/>
       <path d="M48.5898 86.382C48.5897 73.8285 42.3675 61.7266 33.5116 52.8706C24.6555 44.0147 12.5536 37.7926 0 37.7926L3.9085e-05 48.5901C9.04186 48.5901 18.5359 53.1652 25.8765 60.5057C33.217 67.8463 37.7922 77.3403 37.7923 86.3821L48.5898 86.382Z" fill="#0F0F10"/>
       <path d="M37.7929 0.000186511C37.7929 8.81036 33.2308 18.311 25.8642 25.7269C18.5021 33.138 9.00902 37.7926 0 37.7926L3.9085e-05 48.5901C12.5865 48.5901 24.6901 42.2307 33.5247 33.3372C42.3545 24.4485 48.5895 12.3533 48.5895 0L37.7929 0.000186511Z" fill="white"/>
       <path d="M37.7929 0.000186511C37.7929 8.81036 33.2308 18.311 25.8642 25.7269C18.5021 33.138 9.00902 37.7926 0 37.7926L3.9085e-05 48.5901C12.5865 48.5901 24.6901 42.2307 33.5247 33.3372C42.3545 24.4485 48.5895 12.3533 48.5895 0L37.7929 0.000186511Z" fill="#0F0F10"/>
-      <path d="M48.5895 0C48.5895 9.04185 53.1652 18.5357 60.5058 25.8763C67.8464 33.2169 77.3403 37.7918 86.3822 37.7918L86.3822 48.5894C73.8286 48.5893 61.7267 42.3674 52.8707 33.5113C44.0147 24.6553 37.7929 12.5538 37.7929 0.000186511L48.5895 0Z" fill="url(#paint0_linear_header)"/>
+      <path d="M48.5895 0C48.5895 9.04185 53.1652 18.5357 60.5058 25.8763C67.8464 33.2169 77.3403 37.7918 86.3822 37.7918L86.3822 48.5894C73.8286 48.5893 61.7267 42.3674 52.8707 33.5113C44.0147 24.6553 37.7929 12.5538 37.7929 0.000186511L48.5895 0Z" fill="url(#paint0_linear_scan)"/>
       <defs>
-        <linearGradient id="paint0_linear_header" x1="39.0554" y1="4.24454" x2="82.8" y2="46.8675" gradientUnits="userSpaceOnUse">
+        <linearGradient id="paint0_linear_scan" x1="39.0554" y1="4.24454" x2="82.8" y2="46.8675" gradientUnits="userSpaceOnUse">
           <stop stopColor="#897EED"/>
           <stop offset="1" stopColor="#6D23ED"/>
         </linearGradient>
@@ -27,11 +27,12 @@ export default function TemporaryScan() {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const hasScannedRef = useRef(false);
   const navigate = useNavigate();
 
-  // Check authentication
+  // 인증 체크
   useEffect(() => {
     const token = localStorage.getItem('tempAccessToken');
     if (!token) {
@@ -39,17 +40,15 @@ export default function TemporaryScan() {
     }
   }, [navigate]);
 
-  // QR Code attendance mutation
+  // QR 출석 mutation
   const attendanceMutation = useMutation({
     mutationFn: async (qrData: string) => {
       try {
         const response = await temporaryAttendanceService.checkAttendance({
           code: qrData,
         });
-
         return response;
       } catch (error: any) {
-        // 409 에러를 별도로 처리
         if (error.response?.status === 409) {
           return {
             status: 409,
@@ -60,11 +59,9 @@ export default function TemporaryScan() {
       }
     },
     onSuccess: (response) => {
-      // 스캐너 정지
       if (scannerRef.current) {
         scannerRef.current.clear().catch(() => {});
       }
-
       if (response.status === 409) {
         setSuccess('이미 출석이 완료되었습니다.');
       } else {
@@ -74,26 +71,22 @@ export default function TemporaryScan() {
       setIsCompleted(true);
     },
     onError: (err: any) => {
-      // 사용자 친화적인 에러 메시지
       let errorMessage = '출석 처리 중 오류가 발생했습니다.';
-
       if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       } else if (err.message && !err.message.includes('status code')) {
         errorMessage = err.message;
       }
-
       setError(errorMessage);
       setSuccess('');
-
-      // 에러 발생 시 5초 후 스캔 재활성화
       setTimeout(() => {
         hasScannedRef.current = false;
         setError('');
-      }, 5000);
+      }, 3000);
     },
   });
 
+  // QR 스캐너 초기화
   useEffect(() => {
     if (isCompleted) return;
 
@@ -101,7 +94,7 @@ export default function TemporaryScan() {
       'qr-reader',
       {
         fps: 10,
-        qrbox: { width: 250, height: 250 },
+        qrbox: { width: 280, height: 280 },
         aspectRatio: 1.0,
         videoConstraints: {
           facingMode: { exact: "environment" }
@@ -112,18 +105,16 @@ export default function TemporaryScan() {
 
     scanner.render(
       (decodedText) => {
-        // 한 번만 처리
         if (!hasScannedRef.current && !isCompleted) {
           hasScannedRef.current = true;
           attendanceMutation.mutate(decodedText);
         }
       },
-      () => {
-        // QR 스캔 실패는 무시
-      }
+      () => {}
     );
 
     scannerRef.current = scanner;
+    setIsScanning(true);
 
     return () => {
       if (scannerRef.current) {
@@ -138,62 +129,72 @@ export default function TemporaryScan() {
     navigate('/temporary/login');
   };
 
+  // 완료 화면
+  if (isCompleted) {
+    return (
+      <div className="temp-scan-page">
+        <div className="temp-scan-fullscreen">
+          <div className="temp-completed-container">
+            <div className="temp-completed-icon">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+              </svg>
+            </div>
+            <h1 className="temp-completed-title">출석 완료</h1>
+            <p className="temp-completed-message">{success}</p>
+            <button onClick={handleLogout} className="temp-action-button">
+              로그아웃
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 스캔 화면
   return (
     <div className="temp-scan-page">
-      <header className="temp-scan-header">
-        <Link to="/" className="temp-logo-container">
-          <div className="temp-logo-icon">
-            <HeaderLogoIcon />
-          </div>
-          <h1 className="temp-logo-text">Qvick</h1>
-        </Link>
-        <button onClick={handleLogout} className="temp-logout-button">
-          로그아웃
-        </button>
-      </header>
-
-      <div className="temp-scan-content">
-        <div className="temp-scan-main">
-          <div className="temp-scan-title-section">
-            <h2 className="temp-page-title">QR 출석 체크</h2>
-            <p className="temp-page-subtitle">QR 코드를 카메라에 비춰주세요</p>
-          </div>
-
-          {success && (
-            <div className="temp-success-message">
-              <div className="temp-success-icon">✓</div>
-              <p>{success}</p>
+      <div className="temp-scan-fullscreen">
+        {/* 상단 로고 및 로그아웃 */}
+        <header className="temp-scan-header">
+          <div className="temp-header-logo">
+            <div className="temp-logo-icon">
+              <LogoIcon />
             </div>
-          )}
+            <span className="temp-logo-text">Qvick</span>
+          </div>
+          <button onClick={handleLogout} className="temp-header-logout">
+            로그아웃
+          </button>
+        </header>
+
+        {/* QR 스캔 영역 */}
+        <main className="temp-scan-main">
+          <div className="temp-scan-title">
+            <h1>QR 코드 스캔</h1>
+            <p>기숙사 QR 코드를 카메라에 비춰주세요</p>
+          </div>
 
           {error && (
-            <div className="temp-error-message">
-              <p>{error}</p>
+            <div className="temp-scan-error" role="alert">
+              {error}
             </div>
           )}
 
-          {!isCompleted ? (
-            <>
-              <div className="temp-qr-wrapper">
-                <div id="qr-reader" className="temp-qr-reader"></div>
+          <div className="temp-qr-container">
+            <div id="qr-reader" className="temp-qr-scanner"></div>
+            {!isScanning && (
+              <div className="temp-qr-loading">
+                <div className="temp-loading-spinner"></div>
+                <p>카메라 준비 중...</p>
               </div>
+            )}
+          </div>
 
-              <div className="temp-scan-instructions">
-                <p>카메라 권한을 허용한 후 QR 코드를 스캔하세요</p>
-                <p className="temp-instruction-detail">출석이 자동으로 처리됩니다</p>
-              </div>
-            </>
-          ) : (
-            <div className="temp-completed-section">
-              <div className="temp-completed-icon">✓</div>
-              <h3 className="temp-completed-title">출석 완료</h3>
-              <p className="temp-completed-message">출석이 정상적으로 처리되었습니다.</p>
-              <button onClick={handleLogout} className="temp-completed-button">
-                로그아웃
-              </button>
-            </div>
-          )}
-        </div>
+          <p className="temp-scan-hint">
+            카메라 권한을 허용하면 자동으로 스캔됩니다
+          </p>
+        </main>
       </div>
     </div>
   );

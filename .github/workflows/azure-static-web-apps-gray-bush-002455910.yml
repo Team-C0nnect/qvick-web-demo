@@ -15,22 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
           lfs: false
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build
-        run: npm run build
 
       - name: Build And Deploy
         id: builddeploy
@@ -41,10 +29,9 @@ jobs:
           action: "upload"
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "dist" # Pre-built app directory
-          api_location: "" # No API
-          output_location: "" # No additional build needed
-          skip_app_build: true # We're building manually above
+          app_location: "/" # Frontend source directory
+          api_location: "api" # Azure Functions source directory
+          output_location: "dist" # Frontend build output directory
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:

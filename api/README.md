@@ -81,9 +81,14 @@ npm start      # Azure Functions 로컬 서버 시작
 Azure Static Web App의 Configuration 섹션에서 다음 환경 변수를 추가하세요:
 
 - `OPENAI_API_KEY`: OpenAI API 키
+- `FIREBASE_PROJECT_ID`: Firebase 프로젝트 ID
+- `FIREBASE_CLIENT_EMAIL`: Firebase 서비스 계정 client_email
+- `FIREBASE_PRIVATE_KEY`: Firebase 서비스 계정 private_key
+
+패치노트 API는 Firestore를 사용하므로 위 Firebase 환경 변수가 없으면 `/api/getPublishedPatchnotes`를 포함한 패치노트 엔드포인트가 500으로 실패합니다.
 
 ### 2. 자동 배포
-GitHub Actions를 통해 main 브랜치에 푸시하면 자동으로 배포됩니다.
+GitHub Actions를 통해 main 브랜치에 푸시하면 프론트엔드와 `api/` Azure Functions가 함께 배포됩니다.
 
 ## 프로젝트 구조
 

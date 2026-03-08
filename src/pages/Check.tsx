@@ -3,7 +3,6 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
-import { legacyAttendanceService, type LegacyUserResponse } from '../services/legacy-attendance.service';
 import { exportMergedAttendanceToExcel, type MergedAttendanceMember } from '../services/excel.service';
 import { CheckTableSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
@@ -26,9 +25,6 @@ interface Student {
   time: string;
   phone: string;
   dormitory: string;
-  // 병합용 추가 필드
-  legacyChecked?: boolean;
-  newChecked?: boolean;
 }
 
 type SortKey = 'room' | 'name' | 'status' | 'gender' | 'studentId' | 'time';
@@ -48,20 +44,13 @@ export default function Check() {
   
   // Filter states
   const [statusFilter, setStatusFilter] = useState<'전체' | '출석' | '미출석' | '외박'>('전체');
-  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('전체');
+  const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
+  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
   
   const queryClient = useQueryClient();
 
   // 신버전 출석 데이터 (자동 새로고침)
   const { data: attendancesData, isLoading: attendancesLoading } = useAttendances(currentDate);
-  
-  // 구버전 출석 데이터
-  const { data: legacyData } = useQuery({
-    queryKey: ['legacy-attendances'],
-    queryFn: legacyAttendanceService.getUserList,
-    staleTime: 30 * 1000,
-    refetchInterval: REFRESH_INTERVAL,
-  });
   
   // 학생 목록 (ID 매핑용)
   const { data: studentsData } = useQuery({
@@ -82,10 +71,11 @@ export default function Check() {
 
   // 학생 정보 수정 mutation
   const updateStudentMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { gender: Gender; room?: string } }) =>
+    mutationFn: ({ id, data }: { id: number; data: import('../types/api').TeacherUpdateStudentRequest }) =>
       studentService.updateStudent(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
+      queryClient.invalidateQueries({ queryKey: ['students-all'] });
     },
   });
 
@@ -93,7 +83,6 @@ export default function Check() {
   useEffect(() => {
     const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
-      queryClient.invalidateQueries({ queryKey: ['legacy-attendances'] });
     }, REFRESH_INTERVAL);
     
     return () => clearInterval(interval);
@@ -114,29 +103,28 @@ export default function Check() {
   //   },
   // });
 
-  // 외박 상태 토글 핸들러
-  const handleOvernightToggle = useCallback((student: Student) => {
+  // 출석 상태 변경 핸들러
+  const handleStatusChange = useCallback((student: Student, newDisplayStatus: '출석' | '미출석' | '외박') => {
     if (!student.id) {
       console.error('학생 ID를 찾을 수 없습니다.');
       return;
     }
-    
-    // 외박 → 외박 취소 시 미출석(ABSENT)으로, 미출석/출석 → 외박 시 SLEEPOVER로
-    const newStatus: AttendanceStatus = student.overnight ? 'ABSENT' : 'SLEEPOVER';
-    
+
+    const statusMap: Record<'출석' | '미출석' | '외박', AttendanceStatus> = {
+      '출석': 'PRESENT',
+      '미출석': 'ABSENT',
+      '외박': 'SLEEPOVER',
+    };
+
     updateAttendancesMutation.mutate({
       date: currentDate,
-      attendances: [{ studentId: student.id, status: newStatus }],
+      attendances: [{ studentId: student.id, status: statusMap[newDisplayStatus] }],
     });
-    
+
     // 로컬 상태 즉시 업데이트
-    setStudents(prev => prev.map(s => 
-      s.studentId === student.studentId 
-        ? { 
-            ...s, 
-            overnight: !s.overnight,
-            status: newStatus === 'SLEEPOVER' ? '외박' : '미출석'
-          }
+    setStudents(prev => prev.map(s =>
+      s.studentId === student.studentId
+        ? { ...s, overnight: newDisplayStatus === '외박', status: newDisplayStatus }
         : s
     ));
   }, [currentDate, updateAttendancesMutation]);
@@ -165,7 +153,7 @@ export default function Check() {
     }
   }, [students]);
 
-  // 구버전과 신버전 출석 데이터 병합
+  // 신버전 출석 데이터 매핑
   useEffect(() => {
     // 학번 → ID 매핑
     const studentIdMap = new Map<string, number>();
@@ -175,65 +163,33 @@ export default function Check() {
         studentIdMap.set(studentIdStr, s.id);
       });
     }
-    
-    // 구버전 데이터를 학번 기준으로 맵핑
-    const legacyMap = new Map<string, LegacyUserResponse>();
-    if (legacyData) {
-      legacyData.forEach((user) => {
-        if (user.stdId && user.stdId !== '0000' && user.stdId !== '') {
-          legacyMap.set(user.stdId, user);
-        }
-      });
-    }
-    
-    // 신버전 학생 학번 Set (중복 체크용)
-    const newStudentIds = new Set<string>();
-    
-    // 신버전 학생 목록 먼저 처리
+
     const mappedStudents: Student[] = [];
-    
+
     if (attendancesData) {
       attendancesData.forEach((att, index) => {
         const student = att.student;
         const studentIdStr = `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
-        newStudentIds.add(studentIdStr);
         const actualId = studentIdMap.get(studentIdStr) || null;
-        
-        // 구버전 데이터 조회
-        const legacyUser = legacyMap.get(studentIdStr);
-        const legacyChecked = legacyUser?.checked ?? false;
-        
-        // 신버전 출석 여부
-        const newChecked = att.status === 'PRESENT' || att.status === 'SLEEPOVER';
-        
-        // 외박 여부
+
         const isOvernight = att.status === 'SLEEPOVER';
-        
-        // 둘 중 하나라도 출석이면 출석으로 처리 (외박 제외)
-        const isChecked = (att.status === 'PRESENT') || legacyChecked;
-        
-        // 상태 결정: 외박 > 출석 > 미출석
+        const isPresent = att.status === 'PRESENT';
+
         let displayStatus: '출석' | '미출석' | '외박' = '미출석';
-        if (isOvernight) {
-          displayStatus = '외박';
-        } else if (isChecked) {
-          displayStatus = '출석';
-        }
-        
-        // 출석 시간 (신버전 우선, 없으면 구버전)
+        if (isOvernight) displayStatus = '외박';
+        else if (isPresent) displayStatus = '출석';
+
         let checkedTime = '-';
         if (att.checkedAt) {
           const date = new Date(att.checkedAt);
           const hours = date.getHours().toString().padStart(2, '0');
           const minutes = date.getMinutes().toString().padStart(2, '0');
           checkedTime = `${hours}:${minutes}`;
-        } else if (legacyUser?.checked && legacyUser?.checkedDate) {
-          checkedTime = legacyUser.checkedDate.substring(11, 16);
         }
 
         mappedStudents.push({
           id: actualId,
-          index: index,
+          index,
           room: student.room,
           overnight: isOvernight,
           name: student.name,
@@ -244,64 +200,14 @@ export default function Check() {
           classroom: student.classroom,
           number: student.number,
           time: checkedTime,
-          phone: legacyUser?.phoneNum || '010-0000-0000',
+          phone: '010-0000-0000',
           dormitory: student.room.startsWith('2') ? '여기숙사' : '남기숙사',
-          legacyChecked,
-          newChecked,
-        });
-      });
-    }
-    
-    // 구버전에만 있는 학생 추가
-    if (legacyData) {
-      legacyData.forEach((legacyUser, index) => {
-        // 이미 신버전에 있는 학생은 스킵
-        if (newStudentIds.has(legacyUser.stdId)) return;
-        // TEACHER, ADMIN 제외
-        if (legacyUser.userRole !== 'USER') return;
-        // 유효하지 않은 학번 제외
-        if (!legacyUser.stdId || legacyUser.stdId === '0000' || legacyUser.stdId === '') return;
-        
-        const studentIdStr = legacyUser.stdId;
-        const actualId = studentIdMap.get(studentIdStr) || null;
-        
-        // 학번에서 학년, 반, 번호 파싱 (예: "3417" -> 3학년 4반 17번)
-        const grade = parseInt(studentIdStr.charAt(0)) || 0;
-        const classroom = parseInt(studentIdStr.charAt(1)) || 0;
-        const number = parseInt(studentIdStr.substring(2)) || 0;
-        
-        // 구버전 출석 여부
-        const isChecked = legacyUser.checked ?? false;
-        
-        // 출석 시간
-        let checkedTime = '-';
-        if (isChecked && legacyUser.checkedDate) {
-          checkedTime = legacyUser.checkedDate.substring(11, 16);
-        }
-
-        mappedStudents.push({
-          id: actualId,
-          index: mappedStudents.length + index,
-          room: legacyUser.room || '',
-          overnight: false, // 구버전에서는 외박 정보 없음
-          name: legacyUser.name,
-          status: isChecked ? '출석' : '미출석',
-          gender: legacyUser.gender === 'MALE' ? '남' : '여',
-          studentId: studentIdStr,
-          grade,
-          classroom,
-          number,
-          time: checkedTime,
-          phone: legacyUser.phoneNum || '010-0000-0000',
-          dormitory: legacyUser.room?.startsWith('2') ? '여기숙사' : '남기숙사',
-          legacyChecked: isChecked,
-          newChecked: false,
         });
       });
     }
 
     setStudents(mappedStudents);
-  }, [attendancesData, studentsData, legacyData]);
+  }, [attendancesData, studentsData]);
 
   // Sort function
   const handleSort = (key: SortKey) => {
@@ -374,6 +280,11 @@ export default function Check() {
         return false;
       }
 
+      // Grade filter
+      if (gradeFilter !== '전체' && student.grade !== gradeFilter) {
+        return false;
+      }
+
       // Gender filter
       if (genderFilter !== '전체' && student.gender !== genderFilter) {
         return false;
@@ -401,8 +312,12 @@ export default function Check() {
     updateStudentMutation.mutate({
       id: updatedStudent.id,
       data: {
-        gender,
+        grade: updatedStudent.grade,
+        classroom: updatedStudent.classroom,
+        number: updatedStudent.number,
         room: updatedStudent.room,
+        phoneNumber: updatedStudent.phone,
+        gender,
       },
     });
     
@@ -518,6 +433,36 @@ export default function Check() {
                 </button>
               </div>
             </div>
+
+            <div className="filter-group">
+              <label className="filter-label">학년:</label>
+              <div className="filter-buttons">
+                <button
+                  className={`filter-btn ${gradeFilter === '전체' ? 'active' : ''}`}
+                  onClick={() => setGradeFilter('전체')}
+                >
+                  전체
+                </button>
+                <button
+                  className={`filter-btn ${gradeFilter === 1 ? 'active' : ''}`}
+                  onClick={() => setGradeFilter(1)}
+                >
+                  1학년
+                </button>
+                <button
+                  className={`filter-btn ${gradeFilter === 2 ? 'active' : ''}`}
+                  onClick={() => setGradeFilter(2)}
+                >
+                  2학년
+                </button>
+                <button
+                  className={`filter-btn ${gradeFilter === 3 ? 'active' : ''}`}
+                  onClick={() => setGradeFilter(3)}
+                >
+                  3학년
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="table-container">
@@ -532,7 +477,6 @@ export default function Check() {
                       </span>
                     )}
                   </th>
-                  <th>외박</th>
                   <th onClick={() => handleSort('name')} className="sortable">
                     이름
                     {sortKey === 'name' && (
@@ -582,23 +526,21 @@ export default function Check() {
                 {filteredStudents.map((student, index) => (
                   <tr key={index}>
                     <td className="room-cell">{student.room}</td>
-                    <td>
-                      <input 
-                        type="checkbox" 
-                        checked={student.overnight} 
-                        onChange={() => handleOvernightToggle(student)}
-                        disabled={updateAttendancesMutation.isPending}
-                        title={student.overnight ? '외박 해제' : '외박 설정'}
-                      />
-                    </td>
                     <td>{student.name}</td>
                     <td>
-                      <span className={
-                        student.status === '출석' ? 'status-present' : 
-                        student.status === '외박' ? 'status-sleepover' : 'status-absent'
-                      }>
-                        {student.status}
-                      </span>
+                      <select
+                        value={student.status}
+                        onChange={(e) => handleStatusChange(student, e.target.value as '출석' | '미출석' | '외박')}
+                        disabled={updateAttendancesMutation.isPending}
+                        className={`status-select ${
+                          student.status === '출석' ? 'status-present' :
+                          student.status === '외박' ? 'status-sleepover' : 'status-absent'
+                        }`}
+                      >
+                        <option value="출석">출석</option>
+                        <option value="미출석">미출석</option>
+                        <option value="외박">외박</option>
+                      </select>
                     </td>
                     <td>{student.gender}</td>
                     <td>{student.studentId}</td>
@@ -606,7 +548,7 @@ export default function Check() {
                     <td>{student.phone}</td>
                     <td></td>
                     <td>
-                      <button className="edit-button" onClick={() => handleEditClick(student)} disabled>
+                      <button className="edit-button" onClick={() => handleEditClick(student)}>
                         수정
                       </button>
                     </td>

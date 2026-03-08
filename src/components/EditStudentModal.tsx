@@ -51,6 +51,8 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
 
   if (!isOpen || !student) return null;
 
+  const profileInitial = formData.name.trim().charAt(0) || '?';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
@@ -67,61 +69,183 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ isOpen, onClose, st
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-container">
         <div className="modal-header">
-          <div className="modal-title-row">
-            <h2 className="student-name">{student.name}</h2>
-            <p className="subtitle">학생의 정보 수정</p>
+          <div className="modal-header-copy">
+            <span className="modal-eyebrow">Student Profile</span>
+            <div className="modal-title-row">
+              <h2 className="student-name">{formData.name}</h2>
+              <p className="subtitle">학생 정보 수정</p>
+            </div>
+            <p className="modal-description">출석 관리에 필요한 기본 정보를 이 화면에서 바로 정리할 수 있습니다.</p>
           </div>
+          <button type="button" className="modal-close-button" onClick={onClose} aria-label="모달 닫기">
+            ✕
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
-          <div className="form-field">
-            <label className="field-label">이름</label>
-            <div className="input-wrapper">
-              <input
-                type="text"
-                className="input-field"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
+          <div className="student-summary-card">
+            <div className="student-avatar">{profileInitial}</div>
+            <div className="student-summary-content">
+              <div className="student-summary-top">
+                <strong className="summary-name">{formData.name}</strong>
+                <span className={`summary-status ${formData.status === '출석' ? 'present' : formData.status === '외박' ? 'sleepover' : 'absent'}`}>
+                  {formData.status}
+                </span>
+              </div>
+              <div className="summary-meta-list">
+                <span className="summary-chip">학번 {formData.studentId}</span>
+                <span className="summary-chip">{formData.dormitory || '기숙사 정보 없음'}</span>
+                <span className="summary-chip">호실 {formData.room || '-'}</span>
+              </div>
             </div>
           </div>
 
-          <div className="student-id-row">
-            <div className="form-field flex-grow">
-              <label className="field-label">학번</label>
+          <section className="modal-section">
+            <div className="section-heading">
+              <h3 className="section-title">기본 정보</h3>
+              <p className="section-description">변경되지 않는 학생 식별 정보입니다.</p>
+            </div>
+
+            <div className="readonly-grid">
+              <div className="form-field">
+                <label className="field-label" htmlFor="edit-student-name">이름</label>
+                <div className="input-wrapper readonly">
+                  <input
+                    id="edit-student-name"
+                    type="text"
+                    className="input-field"
+                    value={formData.name}
+                    disabled
+                  />
+                </div>
+              </div>
+              <div className="form-field">
+                <label className="field-label" htmlFor="edit-student-id">학번</label>
+                <div className="input-wrapper readonly">
+                  <input
+                    id="edit-student-id"
+                    type="text"
+                    className="input-field"
+                    value={formData.studentId}
+                    disabled
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="modal-section">
+            <div className="section-heading">
+              <h3 className="section-title">학적 및 생활 정보</h3>
+              <p className="section-description">학년, 반, 번호와 생활 정보를 함께 관리합니다.</p>
+            </div>
+
+            <div className="form-grade-row compact-grid">
+              <div className="form-field">
+                <label className="field-label" htmlFor="edit-student-grade">학년</label>
+                <div className="input-wrapper">
+                  <input
+                    id="edit-student-grade"
+                    type="number"
+                    className="input-field"
+                    value={formData.grade}
+                    min={1}
+                    onChange={(e) => setFormData({ ...formData, grade: Number(e.target.value) })}
+                  />
+                </div>
+              </div>
+              <div className="form-field">
+                <label className="field-label" htmlFor="edit-student-classroom">반</label>
+                <div className="input-wrapper">
+                  <input
+                    id="edit-student-classroom"
+                    type="number"
+                    className="input-field"
+                    value={formData.classroom}
+                    min={1}
+                    onChange={(e) => setFormData({ ...formData, classroom: Number(e.target.value) })}
+                  />
+                </div>
+              </div>
+              <div className="form-field">
+                <label className="field-label" htmlFor="edit-student-number">번호</label>
+                <div className="input-wrapper">
+                  <input
+                    id="edit-student-number"
+                    type="number"
+                    className="input-field"
+                    value={formData.number}
+                    min={1}
+                    onChange={(e) => setFormData({ ...formData, number: Number(e.target.value) })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="form-grid two-column-grid">
+              <div className="form-field">
+                <label className="field-label" htmlFor="edit-student-room">호실</label>
+                <div className="input-wrapper">
+                  <input
+                    id="edit-student-room"
+                    type="text"
+                    className="input-field"
+                    value={formData.room}
+                    onChange={(e) => setFormData({ ...formData, room: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-field">
+                <label className="field-label">성별</label>
+                <div className="gender-switcher" role="group" aria-label="성별 선택">
+                  <button
+                    type="button"
+                    className={`gender-option ${formData.gender === '남' ? 'active male' : ''}`}
+                    onClick={() => setFormData({ ...formData, gender: '남' })}
+                  >
+                    남학생
+                  </button>
+                  <button
+                    type="button"
+                    className={`gender-option ${formData.gender === '여' ? 'active female' : ''}`}
+                    onClick={() => setFormData({ ...formData, gender: '여' })}
+                  >
+                    여학생
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="modal-section">
+            <div className="section-heading">
+              <h3 className="section-title">연락처</h3>
+              <p className="section-description">비상 연락 및 확인용 번호를 최신 상태로 유지합니다.</p>
+            </div>
+
+            <div className="form-field">
+              <label className="field-label" htmlFor="edit-student-phone">연락처</label>
               <div className="input-wrapper">
                 <input
+                  id="edit-student-phone"
                   type="text"
                   className="input-field"
-                  value={formData.studentId}
-                  onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
               </div>
             </div>
-            <button
-              type="button"
-              className={`gender-button ${formData.gender === '남' ? 'male' : 'female'}`}
-              onClick={() => setFormData({ ...formData, gender: formData.gender === '남' ? '여' : '남' })}
-            >
-              {formData.gender}
+          </section>
+
+          <div className="modal-actions">
+            <button type="button" className="cancel-button" onClick={onClose}>
+              취소
+            </button>
+            <button type="submit" className="submit-button">
+              변경 저장
             </button>
           </div>
-
-          <div className="form-field">
-            <label className="field-label">연락처</label>
-            <div className="input-wrapper">
-              <input
-                type="text"
-                className="input-field"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <button type="submit" className="submit-button">
-            수정 완료
-          </button>
         </form>
       </div>
     </div>

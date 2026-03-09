@@ -2,7 +2,7 @@
 
 export type Gender = 'MALE' | 'FEMALE';
 
-export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'SLEEPOVER';
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'SLEEPOVER' | 'LATE';
 
 export type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | 'MANAGER';
 

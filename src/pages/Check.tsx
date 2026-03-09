@@ -16,7 +16,7 @@ interface Student {
   room: string;
   overnight: boolean;
   name: string;
-  status: '출석' | '미출석' | '외박';
+  status: '출석' | '미출석' | '외박' | '지연출석';
   gender: '남' | '여';
   studentId: string;
   grade: number;
@@ -104,16 +104,17 @@ export default function Check() {
   // });
 
   // 출석 상태 변경 핸들러
-  const handleStatusChange = useCallback((student: Student, newDisplayStatus: '출석' | '미출석' | '외박') => {
+  const handleStatusChange = useCallback((student: Student, newDisplayStatus: '출석' | '미출석' | '외박' | '지연출석') => {
     if (!student.id) {
       console.error('학생 ID를 찾을 수 없습니다.');
       return;
     }
 
-    const statusMap: Record<'출석' | '미출석' | '외박', AttendanceStatus> = {
+    const statusMap: Record<'출석' | '미출석' | '외박' | '지연출석', AttendanceStatus> = {
       '출석': 'PRESENT',
       '미출석': 'ABSENT',
       '외박': 'SLEEPOVER',
+      '지연출석': 'LATE',
     };
 
     updateAttendancesMutation.mutate({
@@ -139,9 +140,10 @@ export default function Check() {
         room: s.room,
         stdId: s.studentId,
         name: s.name,
-        checked: s.status === '출석',
+        checked: s.status === '출석' || s.status === '지연출석',
         checkedDate: s.time !== '-' ? s.time : '',
         isSleepover: s.overnight,
+        isLate: s.status === '지연출석',
       }));
       
       exportMergedAttendanceToExcel(mergedData);
@@ -174,9 +176,11 @@ export default function Check() {
 
         const isOvernight = att.status === 'SLEEPOVER';
         const isPresent = att.status === 'PRESENT';
+        const isLate = att.status === 'LATE';
 
-        let displayStatus: '출석' | '미출석' | '외박' = '미출석';
+        let displayStatus: '출석' | '미출석' | '외박' | '지연출석' = '미출석';
         if (isOvernight) displayStatus = '외박';
+        else if (isLate) displayStatus = '지연출석';
         else if (isPresent) displayStatus = '출석';
 
         let checkedTime = '-';
@@ -330,6 +334,7 @@ export default function Check() {
     total: filteredStudents.length,
     present: filteredStudents.filter((s) => s.status === '출석').length,
     absent: filteredStudents.filter((s) => s.status === '미출석').length,
+    late: filteredStudents.filter((s) => s.status === '지연출석').length,
   };
 
   if (attendancesLoading) {
@@ -368,6 +373,9 @@ export default function Check() {
               <div className="stat-box absence">
                 미출석 : <span className="negative">{stats.absent}</span>명
               </div>
+              <div className="stat-box late">
+                지연출석 : <span className="warning">{stats.late}</span>명
+              </div>
               <button 
                 className="excel-button" 
                 onClick={handleExportExcel}
@@ -400,6 +408,12 @@ export default function Check() {
                   onClick={() => setStatusFilter('미출석')}
                 >
                   미출석
+                </button>
+                <button
+                  className={`filter-btn ${statusFilter === '지연출석' ? 'active' : ''}`}
+                  onClick={() => setStatusFilter('지연출석')}
+                >
+                  지연출석
                 </button>
                 <button
                   className={`filter-btn ${statusFilter === '외박' ? 'active' : ''}`}
@@ -530,14 +544,16 @@ export default function Check() {
                     <td>
                       <select
                         value={student.status}
-                        onChange={(e) => handleStatusChange(student, e.target.value as '출석' | '미출석' | '외박')}
+                        onChange={(e) => handleStatusChange(student, e.target.value as '출석' | '미출석' | '외박' | '지연출석')}
                         disabled={updateAttendancesMutation.isPending}
                         className={`status-select ${
                           student.status === '출석' ? 'status-present' :
+                          student.status === '지연출석' ? 'status-late' :
                           student.status === '외박' ? 'status-sleepover' : 'status-absent'
                         }`}
                       >
                         <option value="출석">출석</option>
+                        <option value="지연출석">지연출석</option>
                         <option value="미출석">미출석</option>
                         <option value="외박">외박</option>
                       </select>

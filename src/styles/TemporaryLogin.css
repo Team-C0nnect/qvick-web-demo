@@ -129,7 +129,21 @@
 
 .temp-input-field:focus {
   border-color: #6d23ed;
-  box-shadow: 0 0 0 4px rgba(109, 35, 237, 0.1);
+  box-shadow: none;
+}
+
+.temp-input-field:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.temp-input-field:-webkit-autofill,
+.temp-input-field:-webkit-autofill:hover,
+.temp-input-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: #0f0f10;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+  transition: background-color 9999s ease-out 0s;
 }
 
 .temp-input-field:disabled {

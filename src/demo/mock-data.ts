@@ -71,10 +71,10 @@ export const mockStudentPage: PageStudentResponse = {
 // ──────────────────────────── 출석 ────────────────────────────
 const today = new Date().toISOString().split('T')[0];
 
-const statuses: ('PRESENT' | 'ABSENT' | 'SLEEPOVER')[] = [
-  'PRESENT','PRESENT','PRESENT','PRESENT','PRESENT',
+const statuses: ('PRESENT' | 'ABSENT' | 'SLEEPOVER' | 'LATE')[] = [
+  'PRESENT','PRESENT','PRESENT','PRESENT','LATE',
   'PRESENT','PRESENT','PRESENT','ABSENT','PRESENT',
-  'PRESENT','PRESENT','ABSENT','PRESENT','PRESENT',
+  'PRESENT','LATE','ABSENT','PRESENT','PRESENT',
   'PRESENT','SLEEPOVER','PRESENT','PRESENT','PRESENT',
 ];
 
@@ -88,7 +88,9 @@ export const mockAttendances: AttendanceResponse[] = mockStudents.map((s, i) => 
     gender: s.gender,
   },
   date: today,
-  checkedAt: statuses[i] === 'PRESENT' ? `${today}T21:${String(30 + (i % 20)).padStart(2, '0')}:00` : undefined,
+  checkedAt: statuses[i] === 'PRESENT' ? `${today}T21:${String(30 + (i % 20)).padStart(2, '0')}:00`
+    : statuses[i] === 'LATE' ? `${today}T22:${String(20 + (i % 10)).padStart(2, '0')}:00`
+    : undefined,
   status: statuses[i],
 }));
 

@@ -8,6 +8,7 @@ export interface MergedAttendanceMember {
   checked: boolean;   // 출석 여부 (신버전 OR 구버전 중 하나라도 출석이면 true)
   checkedDate: string; // 출석 시간 (HH:MM 형식)
   isSleepover: boolean; // 외박 여부
+  isLate?: boolean;     // 지연출석 여부
 }
 
 // xlsx-js-style Border 타입
@@ -203,6 +204,8 @@ function createWorksheet(
       if (member) {
         if (member.isSleepover) {
           attendance = '외박';
+        } else if (member.isLate) {
+          attendance = member.checkedDate ? `지연(${member.checkedDate})` : '지연출석';
         } else if (member.checked) {
           attendance = member.checkedDate || '출석';
         } else {
@@ -228,8 +231,15 @@ function createWorksheet(
         }
       }
       
-      // 22:15 이후 출석(지각)은 빨간색 폰트
-      if (member && member.checked && !member.isSleepover && isLateAttendance(attendance)) {
+      // 지연출석은 주황색 폰트
+      if (member && member.isLate) {
+        cellStyles[`D${rowIndex + 1}`] = {
+          ...cellStyles[`D${rowIndex + 1}`],
+          font: { color: { rgb: 'FF8C00' }, bold: true }
+        };
+      }
+      // 22:15 이후 출석(지각)은 빨간색 폰트 (isLate가 아닌 경우)
+      else if (member && member.checked && !member.isSleepover && isLateAttendance(attendance)) {
         cellStyles[`D${rowIndex + 1}`] = {
           ...cellStyles[`D${rowIndex + 1}`],
           font: { color: { rgb: 'FF0000' }, bold: true }

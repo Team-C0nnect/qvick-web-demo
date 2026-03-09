@@ -105,6 +105,10 @@
   color: #e1322e;
 }
 
+.stat-box .warning {
+  color: #f59e0b;
+}
+
 .excel-button {
   background: #164e8d;
   color: #ffffff;
@@ -268,6 +272,11 @@
   font-weight: 600;
 }
 
+.status-late {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
 .status-select {
   border: none;
   background: transparent;
@@ -295,6 +304,10 @@
 
 .status-select.status-sleepover {
   color: #8b5cf6;
+}
+
+.status-select.status-late {
+  color: #f59e0b;
 }
 
 .edit-button {

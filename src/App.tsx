@@ -17,12 +17,31 @@ import InquiryForm from './pages/InquiryForm';
 import InquiryAdmin from './pages/InquiryAdmin';
 import TemporaryLogin from './pages/TemporaryLogin';
 import TemporaryScan from './pages/TemporaryScan';
+import { DemoProvider, useDemoMode } from './demo/DemoContext';
+import DemoLanding from './demo/DemoLanding';
+import DemoBanner from './demo/DemoBanner';
 import './App.css';
+
+/** body에 demo-active 클래스 토글 (배너 여백용) */
+function DemoBodyClass() {
+  const { isDemo } = useDemoMode();
+  if (isDemo) {
+    document.body.classList.add('demo-active');
+  } else {
+    document.body.classList.remove('demo-active');
+  }
+  return null;
+}
 
 function App() {
   return (
     <Router>
+      <DemoProvider>
+      <DemoBodyClass />
+      <DemoBanner />
       <Routes>
+        {/* 데모 랜딩 페이지 */}
+        <Route path="/preview" element={<DemoLanding />} />
         <Route path="/login" element={<Login />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
@@ -56,6 +75,7 @@ function App() {
           <Route path="admin/inquiry" element={<InquiryAdmin />} />
         </Route>
       </Routes>
+      </DemoProvider>
     </Router>
   );
 }

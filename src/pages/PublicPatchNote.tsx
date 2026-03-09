@@ -56,7 +56,7 @@ export default function PublicPatchNotePage() {
 
   // 페이지 제목 설정
   useEffect(() => {
-    document.title = 'Qvick - 패치노트';
+    document.title = 'qvick admin - 패치노트';
   }, []);
 
   const handleSelectNote = (note: PatchNote) => {
@@ -182,10 +182,10 @@ export default function PublicPatchNotePage() {
         <div className="header-content">
           <div className="header-brand">
             <QvickLogoIcon />
-            <span className="brand-text">Qvick</span>
+            <span className="brand-text">qvick admin</span>
           </div>
           <h1 className="header-title">패치노트</h1>
-          <p className="header-subtitle">Qvick의 새로운 업데이트 소식을 확인하세요</p>
+          <p className="header-subtitle">qvick admin의 새로운 업데이트 소식을 확인하세요</p>
         </div>
         <div className="header-decoration">
           <div className="decoration-circle circle-1"></div>
@@ -310,9 +310,9 @@ export default function PublicPatchNotePage() {
         <div className="footer-content">
           <div className="footer-brand">
             <QvickLogoIcon />
-            <span>Qvick</span>
+            <span>qvick admin</span>
           </div>
-          <p className="footer-copyright">© 2024 Qvick. All rights reserved.</p>
+          <p className="footer-copyright">© 2024 qvick admin. All rights reserved.</p>
         </div>
       </footer>
     </div>

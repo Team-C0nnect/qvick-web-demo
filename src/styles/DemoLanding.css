@@ -1,0 +1,240 @@
+/* ─── Demo Landing Page ─── */
+
+.demo-landing {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  color: #ffffff;
+  background: #0f0f10;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── Hero ─── */
+
+.demo-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 60px 24px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.demo-hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(109, 35, 237, 0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 30% 70%, rgba(137, 126, 237, 0.10) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.demo-hero-content {
+  position: relative;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.demo-hero-logo {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 8px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.landing-logo-svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.demo-hero-title {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #ffffff 30%, #897EED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.demo-hero-subtitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: #897EED;
+  margin: 0;
+}
+
+.demo-hero-desc {
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 8px 0 16px;
+}
+
+.demo-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 48px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #897EED 0%, #6D23ED 100%);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 24px rgba(109, 35, 237, 0.35);
+}
+
+.demo-cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(109, 35, 237, 0.5);
+}
+
+.demo-cta-btn:active {
+  transform: translateY(0);
+}
+
+.demo-cta-hint {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+/* ─── Features ─── */
+
+.demo-features {
+  padding: 80px 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.demo-section-title {
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 48px;
+  color: #ffffff;
+}
+
+.demo-features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.demo-feature-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 32px 28px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.demo-feature-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(137, 126, 237, 0.3);
+}
+
+.demo-feature-icon {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  color: #897EED;
+}
+
+.demo-feature-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.demo-feature-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: #ffffff;
+}
+
+.demo-feature-card p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+/* ─── Tech Stack ─── */
+
+.demo-tech {
+  padding: 40px 24px 80px;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.demo-tech-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.demo-tech-chip {
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #897EED;
+  background: rgba(137, 126, 237, 0.1);
+  border: 1px solid rgba(137, 126, 237, 0.2);
+  border-radius: 100px;
+}
+
+/* ─── Footer ─── */
+
+.demo-footer {
+  text-align: center;
+  padding: 32px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 640px) {
+  .demo-hero-title {
+    font-size: 32px;
+  }
+
+  .demo-hero-subtitle {
+    font-size: 16px;
+  }
+
+  .demo-hero-desc {
+    font-size: 14px;
+  }
+
+  .demo-cta-btn {
+    padding: 14px 36px;
+    font-size: 16px;
+  }
+
+  .demo-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-section-title {
+    font-size: 22px;
+  }
+}

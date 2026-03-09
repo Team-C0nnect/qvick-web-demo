@@ -1,0 +1,65 @@
+/* ─── Demo Mode Banner ─── */
+
+.demo-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #897EED 0%, #6D23ED 100%);
+  color: #ffffff;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 2px 12px rgba(109, 35, 237, 0.3);
+}
+
+.demo-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.demo-banner-text {
+  opacity: 0.9;
+}
+
+.demo-banner-exit {
+  margin-left: 8px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6D23ED;
+  background: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.demo-banner-exit:hover {
+  opacity: 0.85;
+}
+
+/* 배너 height만큼 아래 컨텐츠 밀기 */
+.demo-active .header {
+  top: 36px;
+}
+
+.demo-active .app-layout {
+  padding-top: 36px;
+}
+
+.demo-active .login-header {
+  top: 36px;
+}

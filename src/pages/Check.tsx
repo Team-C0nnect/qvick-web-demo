@@ -150,8 +150,7 @@ export default function Check() {
     setShowExcelMenu(false);
 
     try {
-      const filtered = students.filter(s => s.gender === gender);
-      const mergedData: MergedAttendanceMember[] = filtered.map(s => ({
+      const mergedData: MergedAttendanceMember[] = students.map(s => ({
         room: s.room,
         stdId: s.studentId,
         name: s.name,

@@ -65,10 +65,12 @@ const MAX_ROWS_PER_PAGE = 44;
  * 병합된 출석 데이터를 엑셀로 내보내기
  */
 export const exportMergedAttendanceToExcel = (data: MergedAttendanceMember[], gender?: '남' | '여') => {
-  const roomOrder = generateRoomOrder();
+  // 성별에 따라 층 필터: 여=2층, 남=3,4,5층
+  const floors = gender === '여' ? [2] : gender === '남' ? [3, 4, 5] : undefined;
+  const roomOrder = generateRoomOrder(floors);
   const roomMap = groupMembersByRoom(data, roomOrder);
   const workbook = XLSX.utils.book_new();
-  const pageGroups = definePageGroups(roomOrder);
+  const pageGroups = definePageGroups(roomOrder, floors);
   
   pageGroups.forEach(group => {
     const worksheet = createWorksheet(group, roomMap);
@@ -85,13 +87,15 @@ export const exportMergedAttendanceToExcel = (data: MergedAttendanceMember[], ge
 /**
  * 방 번호 순서 생성
  */
-function generateRoomOrder(): string[] {
+function generateRoomOrder(floors?: number[]): string[] {
   const roomOrder: string[] = [];
-  FLOOR_CONFIG.floors.forEach(floorInfo => {
-    for (let i = floorInfo.start; i <= floorInfo.end; i++) {
-      roomOrder.push(FLOOR_CONFIG.formatRoomNumber(floorInfo.floor, i));
-    }
-  });
+  FLOOR_CONFIG.floors
+    .filter(f => !floors || floors.includes(f.floor))
+    .forEach(floorInfo => {
+      for (let i = floorInfo.start; i <= floorInfo.end; i++) {
+        roomOrder.push(FLOOR_CONFIG.formatRoomNumber(floorInfo.floor, i));
+      }
+    });
   return roomOrder;
 }
 
@@ -117,10 +121,12 @@ function groupMembersByRoom(data: MergedAttendanceMember[], roomOrder: string[])
 /**
  * 페이지 그룹 정의
  */
-function definePageGroups(roomOrder: string[]): PageGroup[] {
+function definePageGroups(roomOrder: string[], floors?: number[]): PageGroup[] {
   const pageGroups: PageGroup[] = [];
-  
-  FLOOR_CONFIG.pageGroups.forEach(floorGroup => {
+
+  FLOOR_CONFIG.pageGroups
+    .filter(fg => !floors || floors.includes(fg.floor))
+    .forEach(floorGroup => {
     floorGroup.groups.forEach(group => {
       const startRoom = FLOOR_CONFIG.formatRoomNumber(floorGroup.floor, group.start);
       const endRoom = FLOOR_CONFIG.formatRoomNumber(floorGroup.floor, group.end);

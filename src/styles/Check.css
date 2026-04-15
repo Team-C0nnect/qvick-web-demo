@@ -128,6 +128,45 @@
   background: #1a5aa1;
 }
 
+.excel-dropdown {
+  position: relative;
+}
+
+.excel-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  overflow: hidden;
+  min-width: 120px;
+}
+
+.excel-menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+  cursor: pointer;
+  text-align: left;
+}
+
+.excel-menu-item:hover {
+  background: #f3f4f6;
+}
+
+.excel-menu-item + .excel-menu-item {
+  border-top: 1px solid #e5e7eb;
+}
+
 .excel-icon {
   width: 22px;
   height: 22px;

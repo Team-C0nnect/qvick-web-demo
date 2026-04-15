@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
@@ -41,6 +41,20 @@ export default function Check() {
   const [sortKey, setSortKey] = useState<SortKey | null>('room');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [isExporting, setIsExporting] = useState(false);
+  const [showExcelMenu, setShowExcelMenu] = useState(false);
+  const excelMenuRef = useRef<HTMLDivElement>(null);
+
+  // 바깥 클릭 시 메뉴 닫기
+  useEffect(() => {
+    if (!showExcelMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (excelMenuRef.current && !excelMenuRef.current.contains(e.target as Node)) {
+        setShowExcelMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showExcelMenu]);
   
   // Filter states
   const [statusFilter, setStatusFilter] = useState<'전체' | '출석' | '미출석' | '외박' | '지연출석'>('전체');
@@ -130,13 +144,14 @@ export default function Check() {
     ));
   }, [currentDate, updateAttendancesMutation]);
 
-  // 엑셀 내보내기 (병합된 데이터 사용)
-  const handleExportExcel = useCallback(() => {
+  // 엑셀 내보내기 (성별 선택)
+  const handleExportExcel = useCallback((gender: '남' | '여') => {
     setIsExporting(true);
-    
+    setShowExcelMenu(false);
+
     try {
-      // 병합된 데이터를 excel.ts 형식으로 변환
-      const mergedData: MergedAttendanceMember[] = students.map(s => ({
+      const filtered = students.filter(s => s.gender === gender);
+      const mergedData: MergedAttendanceMember[] = filtered.map(s => ({
         room: s.room,
         stdId: s.studentId,
         name: s.name,
@@ -145,8 +160,8 @@ export default function Check() {
         isSleepover: s.overnight,
         isLate: s.status === '지연출석',
       }));
-      
-      exportMergedAttendanceToExcel(mergedData);
+
+      exportMergedAttendanceToExcel(mergedData, gender);
     } catch (error) {
       console.error('엑셀 내보내기 실패:', error);
       alert('엑셀 내보내기에 실패했습니다.');
@@ -376,14 +391,26 @@ export default function Check() {
               <div className="stat-box late">
                 지연출석 : <span className="warning">{stats.late}</span>명
               </div>
-              <button 
-                className="excel-button" 
-                onClick={handleExportExcel}
-                disabled={isExporting}
-              >
-                <ExcelIcon className="excel-icon" />
-                {isExporting ? '다운로드 중...' : 'Excel'}
-              </button>
+              <div className="excel-dropdown" ref={excelMenuRef}>
+                <button
+                  className="excel-button"
+                  onClick={() => setShowExcelMenu(!showExcelMenu)}
+                  disabled={isExporting}
+                >
+                  <ExcelIcon className="excel-icon" />
+                  {isExporting ? '다운로드 중...' : 'Excel ▾'}
+                </button>
+                {showExcelMenu && (
+                  <div className="excel-menu">
+                    <button className="excel-menu-item" onClick={() => handleExportExcel('남')}>
+                      남학생
+                    </button>
+                    <button className="excel-menu-item" onClick={() => handleExportExcel('여')}>
+                      여학생
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

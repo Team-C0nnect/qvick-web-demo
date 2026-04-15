@@ -64,7 +64,7 @@ const MAX_ROWS_PER_PAGE = 44;
 /**
  * 병합된 출석 데이터를 엑셀로 내보내기
  */
-export const exportMergedAttendanceToExcel = (data: MergedAttendanceMember[]) => {
+export const exportMergedAttendanceToExcel = (data: MergedAttendanceMember[], gender?: '남' | '여') => {
   const roomOrder = generateRoomOrder();
   const roomMap = groupMembersByRoom(data, roomOrder);
   const workbook = XLSX.utils.book_new();
@@ -78,7 +78,8 @@ export const exportMergedAttendanceToExcel = (data: MergedAttendanceMember[]) =>
   // 현재 날짜로 파일명 생성
   const today = new Date();
   const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  XLSX.writeFile(workbook, `기숙사_출석부_${dateStr}.xlsx`);
+  const genderLabel = gender === '남' ? '_남' : gender === '여' ? '_여' : '';
+  XLSX.writeFile(workbook, `기숙사_출석부_${dateStr}${genderLabel}.xlsx`);
 };
 
 /**

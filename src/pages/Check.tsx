@@ -43,7 +43,7 @@ export default function Check() {
   const [isExporting, setIsExporting] = useState(false);
   
   // Filter states
-  const [statusFilter, setStatusFilter] = useState<'전체' | '출석' | '미출석' | '외박'>('전체');
+  const [statusFilter, setStatusFilter] = useState<'전체' | '출석' | '미출석' | '외박' | '지연출석'>('전체');
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
   

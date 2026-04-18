@@ -118,7 +118,7 @@
   width: 320px;
 }
 
-.input-wrapper {
+.login-input-wrapper {
   display: flex;
   flex-direction: column;
   gap: 4px;

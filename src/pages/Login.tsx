@@ -98,7 +98,7 @@ export default function Login() {
             {error && <div className="error-message">{error}</div>}
             
             <div className="input-group">
-              <div className="input-wrapper">
+              <div className="login-input-wrapper">
                 <label className="input-label">이메일</label>
                 <input
                   type="email"
@@ -110,7 +110,7 @@ export default function Login() {
                 />
               </div>
 
-              <div className="input-wrapper">
+              <div className="login-input-wrapper">
                 <label className="input-label">비밀번호</label>
                 <input
                   type="password"

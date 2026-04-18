@@ -1,5 +1,5 @@
 ---
-name: 기능 요청
+name: feature
 about: 기능 요청
 title: "[Feat]"
 labels: bug, enhancement

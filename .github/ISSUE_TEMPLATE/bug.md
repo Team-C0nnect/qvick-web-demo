@@ -1,5 +1,5 @@
 ---
-name: 버그 제보
+name: bug
 about: 버그 제보
 title: "[Bug]"
 labels: bug

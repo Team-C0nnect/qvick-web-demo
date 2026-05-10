@@ -198,30 +198,34 @@ function definePageGroups(roomOrder: string[], floors?: number[]): PageGroup[] {
 }
 
 /**
- * 시간이 22:15 이후인지 확인
+ * 시간이 endTime을 초과하는지 확인
  */
-function isLateAttendance(timeStr: string): boolean {
+function isLateAttendance(timeStr: string, endTime?: string): boolean {
   if (
     !timeStr ||
     timeStr === '출석' ||
     timeStr === '미출석' ||
-    timeStr === '외박'
+    timeStr === '외박' ||
+    !endTime
   ) {
     return false;
   }
 
-  // HH:MM 형식 파싱
-  const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return false;
+  // HH:MM 형식 추출 (SS는 무시)
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
+  const endMatch = endTime.match(/^(\d{1,2}):(\d{2})/);
+  if (!match || !endMatch) return false;
 
   const hour = parseInt(match[1], 10);
   const minute = parseInt(match[2], 10);
+  const endHour = parseInt(endMatch[1], 10);
+  const endMinute = parseInt(endMatch[2], 10);
 
-  // 22:15 이후면 지각
-  if (hour > 22) return true;
-  if (hour === 22 && minute > 15) return true;
+  const totalMinutes = hour * 60 + minute;
+  const endTotalMinutes = endHour * 60 + endMinute;
 
-  return false;
+  // endTime을 초과하면 지각
+  return totalMinutes > endTotalMinutes;
 }
 
 /**

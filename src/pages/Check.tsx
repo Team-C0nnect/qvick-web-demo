@@ -188,7 +188,7 @@ export default function Check() {
 
   // 엑셀 내보내기 (성별, 미출석만 여부 선택)
   const handleExportExcel = useCallback(
-    (gender: '남' | '여', onlyAbsent: boolean = false) => {
+    (gender: '남' | '여' | null, onlyAbsent: boolean = false) => {
       setIsExporting(true);
       setShowExcelMenu(false);
       setSelectedGender(null);

@@ -17,7 +17,11 @@
 
 .modal-container {
   background:
-    linear-gradient(180deg, rgba(247, 244, 255, 0.92) 0%, rgba(255, 255, 255, 0.98) 22%),
+    linear-gradient(
+      180deg,
+      rgba(247, 244, 255, 0.92) 0%,
+      rgba(255, 255, 255, 0.98) 22%
+    ),
     var(--fill-normal, #ffffff);
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.8);
@@ -37,7 +41,11 @@
   gap: 16px;
   padding: 28px 28px 20px;
   border-bottom: 1px solid rgba(109, 114, 120, 0.14);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.76) 0%, rgba(255, 255, 255, 0.32) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.76) 0%,
+    rgba(255, 255, 255, 0.32) 100%
+  );
 }
 
 .modal-header-copy {
@@ -108,7 +116,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    color 0.2s ease;
   flex-shrink: 0;
 }
 
@@ -143,7 +154,11 @@
   padding: 20px;
   border-radius: 22px;
   background:
-    linear-gradient(135deg, rgba(109, 35, 237, 0.12) 0%, rgba(91, 150, 199, 0.1) 100%),
+    linear-gradient(
+      135deg,
+      rgba(109, 35, 237, 0.12) 0%,
+      rgba(91, 150, 199, 0.1) 100%
+    ),
     #ffffff;
   border: 1px solid rgba(109, 35, 237, 0.1);
 }
@@ -299,7 +314,10 @@
   height: 52px;
   display: flex;
   align-items: center;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .input-wrapper:focus-within {
@@ -312,7 +330,7 @@
   border-color: rgba(203, 213, 225, 0.72);
 }
 
-.input-field {
+.modal-input-field {
   font-family: 'Pretendard', sans-serif;
   font-weight: 600;
   font-size: 15px;
@@ -324,7 +342,7 @@
   width: 100%;
 }
 
-.input-field:disabled {
+.modal-input-field:disabled {
   color: #475569;
   cursor: default;
 }
@@ -337,6 +355,8 @@
 
 .form-grade-row {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .form-grade-row .form-field {
@@ -364,7 +384,10 @@
   font-size: 14px;
   color: #64748b;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .gender-option.active {
@@ -400,7 +423,10 @@
   font-size: 14px;
   letter-spacing: -0.01em;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .cancel-button {

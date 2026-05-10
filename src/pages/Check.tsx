@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
+import { scheduleService } from '../services/schedule.service';
 import {
   exportMergedAttendanceToExcel,
   type MergedAttendanceMember,
@@ -92,7 +93,27 @@ export default function Check() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // 출석 스케줄 (남/여 기숙사)
+  const { data: maleSchedule } = useQuery({
+    queryKey: ['schedule', currentDate, 'MALE'],
+    queryFn: () => scheduleService.getScheduleByDate(currentDate, 'MALE'),
+  });
+
+  const { data: femaleSchedule } = useQuery({
+    queryKey: ['schedule', currentDate, 'FEMALE'],
+    queryFn: () => scheduleService.getScheduleByDate(currentDate, 'FEMALE'),
+  });
+
   const [students, setStudents] = useState<Student[]>([]);
+  const [scheduleCache, setScheduleCache] = useState<
+    Map<
+      string,
+      {
+        maleSchedule?: { endTime: string };
+        femaleSchedule?: { endTime: string };
+      }
+    >
+  >(new Map());
 
   // 외박 상태 업데이트 mutation
   const updateAttendancesMutation = useMutation({
@@ -229,6 +250,95 @@ export default function Check() {
     [students],
   );
 
+  // 스케줄 기반 지연출석 판별 (endTime 초과)
+  const isLateAttendance = (
+    checkedTime: string,
+    endTime: string | undefined,
+  ): boolean => {
+    if (!checkedTime || checkedTime === '-' || !endTime) return false;
+
+    // HH:MM 형식 추출 (SS는 무시)
+    const checkedMatch = checkedTime.match(/^(\d{2}):(\d{2})/);
+    const endMatch = endTime.match(/^(\d{2}):(\d{2})/);
+
+    if (!checkedMatch || !endMatch) return false;
+
+    const checkedMinutes =
+      parseInt(checkedMatch[1], 10) * 60 + parseInt(checkedMatch[2], 10);
+    const endMinutes =
+      parseInt(endMatch[1], 10) * 60 + parseInt(endMatch[2], 10);
+
+    // endTime을 초과하면 지연출석
+    return checkedMinutes > endMinutes;
+  };
+
+  // 스케줄 데이터 로깅
+  useEffect(() => {
+    console.log('[Schedule Debug]', {
+      currentDate,
+      maleSchedule,
+      femaleSchedule,
+    });
+  }, [currentDate, maleSchedule, femaleSchedule]);
+
+  // 출석 데이터의 각 날짜별 스케줄을 로드
+  useEffect(() => {
+    if (!attendancesData || attendancesData.length === 0) return;
+
+    // 고유한 날짜들 추출
+    const uniqueDates = [...new Set(attendancesData.map((att) => att.date))];
+    console.log('[Schedule Load] uniqueDates:', uniqueDates);
+
+    // 이미 로드된 날짜는 스킵
+    const datesToLoad = uniqueDates.filter((date) => !scheduleCache.has(date));
+    console.log('[Schedule Load] datesToLoad:', datesToLoad);
+
+    if (datesToLoad.length === 0) return;
+
+    // 각 날짜별 스케줄 로드 (Promise.all 사용)
+    Promise.all(
+      datesToLoad.flatMap((date) => [
+        scheduleService
+          .getScheduleByDate(date, 'MALE')
+          .then((schedule) => {
+            console.log(`[Schedule Loaded] ${date} MALE:`, schedule);
+            return { date, gender: 'MALE', schedule };
+          })
+          .catch((err) => {
+            console.error(`[Schedule Error] ${date} MALE:`, err);
+            return { date, gender: 'MALE', schedule: undefined };
+          }),
+        scheduleService
+          .getScheduleByDate(date, 'FEMALE')
+          .then((schedule) => {
+            console.log(`[Schedule Loaded] ${date} FEMALE:`, schedule);
+            return { date, gender: 'FEMALE', schedule };
+          })
+          .catch((err) => {
+            console.error(`[Schedule Error] ${date} FEMALE:`, err);
+            return { date, gender: 'FEMALE', schedule: undefined };
+          }),
+      ]),
+    ).then((results) => {
+      const newCache = new Map(scheduleCache);
+
+      results.forEach((result) => {
+        if (!newCache.has(result.date)) {
+          newCache.set(result.date, {});
+        }
+        const dateSchedules = newCache.get(result.date)!;
+        if (result.gender === 'MALE') {
+          dateSchedules.maleSchedule = result.schedule;
+        } else {
+          dateSchedules.femaleSchedule = result.schedule;
+        }
+      });
+
+      setScheduleCache(newCache);
+      console.log('[Schedule Cache Updated]', newCache);
+    });
+  }, [attendancesData, scheduleCache]);
+
   // 신버전 출석 데이터 매핑
   useEffect(() => {
     // 학번 → ID 매핑
@@ -250,12 +360,6 @@ export default function Check() {
 
         const isOvernight = att.status === 'SLEEPOVER';
         const isPresent = att.status === 'PRESENT';
-        const isLate = att.status === 'LATE';
-
-        let displayStatus: '출석' | '미출석' | '외박' | '지연출석' = '미출석';
-        if (isOvernight) displayStatus = '외박';
-        else if (isLate) displayStatus = '지연출석';
-        else if (isPresent) displayStatus = '출석';
 
         let checkedTime = '-';
         if (att.checkedAt) {
@@ -263,6 +367,38 @@ export default function Check() {
           const hours = date.getHours().toString().padStart(2, '0');
           const minutes = date.getMinutes().toString().padStart(2, '0');
           checkedTime = `${hours}:${minutes}`;
+        }
+
+        // 출석 기록의 실제 날짜(att.date)를 기준으로 스케줄 조회
+        const dateSchedules = scheduleCache.get(att.date);
+        let endTime: string | undefined;
+        if (student.gender === 'MALE') {
+          endTime = dateSchedules?.maleSchedule?.endTime;
+        } else {
+          endTime = dateSchedules?.femaleSchedule?.endTime;
+        }
+
+        if (isPresent) {
+          console.log('[Attendance Check]', {
+            name: student.name,
+            attDate: att.date,
+            currentDate,
+            checkedTime,
+            endTime,
+            isLate: isLateAttendance(checkedTime, endTime),
+          });
+        }
+
+        let displayStatus: '출석' | '미출석' | '외박' | '지연출석' = '미출석';
+        if (isOvernight) {
+          displayStatus = '외박';
+        } else if (isPresent) {
+          // PRESENT 상태인 경우, 스케줄의 endTime을 기준으로 지연출석 판별
+          if (isLateAttendance(checkedTime, endTime)) {
+            displayStatus = '지연출석';
+          } else {
+            displayStatus = '출석';
+          }
         }
 
         mappedStudents.push({
@@ -285,7 +421,7 @@ export default function Check() {
     }
 
     setStudents(mappedStudents);
-  }, [attendancesData, studentsData]);
+  }, [attendancesData, studentsData, scheduleCache]);
 
   // Sort function
   const handleSort = (key: SortKey) => {

@@ -1,0 +1,74 @@
+/* Confirmation Modal */
+.confirmation-modal {
+  max-width: 400px;
+}
+
+.confirmation-modal-content {
+  padding: 24px 28px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.confirmation-modal-content p {
+  margin: 0;
+  font-size: 15px;
+  color: #0f0f10;
+  line-height: 1.6;
+  letter-spacing: -0.3px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.confirmation-modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 28px;
+  border-top: 1px solid #e6e6e7;
+  justify-content: flex-end;
+}
+
+.confirmation-modal-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
+  letter-spacing: -0.3px;
+}
+
+.confirmation-modal-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.confirmation-modal-button.cancel {
+  background: #f5f5f5;
+  color: #0f0f10;
+}
+
+.confirmation-modal-button.cancel:hover:not(:disabled) {
+  background: #e6e6e7;
+}
+
+.confirmation-modal-button.cancel:active:not(:disabled) {
+  background: #d0d0d0;
+}
+
+.confirmation-modal-button.confirm {
+  background: #0f0f10;
+  color: #ffffff;
+}
+
+.confirmation-modal-button.confirm:hover:not(:disabled) {
+  background: #2a2a2c;
+}
+
+.confirmation-modal-button.confirm:active:not(:disabled) {
+  background: #1a1a1c;
+}

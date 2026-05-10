@@ -402,7 +402,9 @@
   color: #0f0f10;
   text-align: center;
   outline: none;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
 }
 
 .time-input:focus {
@@ -416,7 +418,7 @@
   margin: 0;
 }
 
-.time-input[type=number] {
+.time-input[type='number'] {
   -moz-appearance: textfield;
 }
 
@@ -531,7 +533,9 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s, opacity 0.2s;
+  transition:
+    background-color 0.2s,
+    opacity 0.2s;
 }
 
 .action-button:disabled {
@@ -634,7 +638,9 @@
   cursor: pointer;
   background: #ed4ca4;
   color: #ffffff;
-  transition: background-color 0.2s, opacity 0.2s;
+  transition:
+    background-color 0.2s,
+    opacity 0.2s;
 }
 
 .action-button.create-female:hover:not(:disabled) {
@@ -673,7 +679,7 @@
   .schedule-editor {
     width: 100%;
   }
-  
+
   .scheduler-panel {
     width: 100%;
   }
@@ -822,10 +828,68 @@
   color: #ffffff;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin-top: 12px;
 }
 
-.apply-weekday-btn:hover {
+.apply-weekday-btn:hover:not(:disabled) {
   background: #5919c7;
+}
+
+.apply-weekday-btn:disabled {
+  background: #d0d0d0;
+  cursor: not-allowed;
+}
+
+/* Weekday Quick Actions */
+.weekday-quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.weekday-quick-btn {
+  padding: 8px 12px;
+  border: 1px solid #e6e6e7;
+  background: #ffffff;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #5d5f60;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.weekday-quick-btn:hover {
+  border-color: #6d23ed;
+  background: #f8f0ff;
+}
+
+.weekday-quick-btn:active {
+  background: #f0e4ff;
+}
+
+/* Clear Weekday Button */
+.clear-weekday-btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: #ff6b6b;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 8px;
+}
+
+.clear-weekday-btn:hover {
+  background: #ff5252;
+}
+
+.clear-weekday-btn:active {
+  background: #ff3838;
 }
 
 /* Quick Actions */
@@ -1011,5 +1075,3 @@
   color: #747678;
   margin: 0;
 }
-
-

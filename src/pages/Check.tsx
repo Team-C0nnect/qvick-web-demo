@@ -3,12 +3,19 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
-import { exportMergedAttendanceToExcel, type MergedAttendanceMember } from '../services/excel.service';
+import {
+  exportMergedAttendanceToExcel,
+  type MergedAttendanceMember,
+} from '../services/excel.service';
 import { CheckTableSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
 import { SearchIcon, ExcelIcon } from '../components/Icons';
 import EditStudentModal from '../components/EditStudentModal';
-import type { Gender, AttendanceStatus, UpdateAttendancesRequest } from '../types/api';
+import type {
+  Gender,
+  AttendanceStatus,
+  UpdateAttendancesRequest,
+} from '../types/api';
 
 interface Student {
   id: number | null;
@@ -37,35 +44,47 @@ export default function Check() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [currentDate, setCurrentDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [currentDate, setCurrentDate] = useState(
+    () => new Date().toISOString().split('T')[0],
+  );
   const [sortKey, setSortKey] = useState<SortKey | null>('room');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [isExporting, setIsExporting] = useState(false);
   const [showExcelMenu, setShowExcelMenu] = useState(false);
+  const [selectedGender, setSelectedGender] = useState<'남' | '여' | null>(
+    null,
+  );
   const excelMenuRef = useRef<HTMLDivElement>(null);
 
   // 바깥 클릭 시 메뉴 닫기
   useEffect(() => {
     if (!showExcelMenu) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (excelMenuRef.current && !excelMenuRef.current.contains(e.target as Node)) {
+      if (
+        excelMenuRef.current &&
+        !excelMenuRef.current.contains(e.target as Node)
+      ) {
         setShowExcelMenu(false);
+        setSelectedGender(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showExcelMenu]);
-  
+
   // Filter states
-  const [statusFilter, setStatusFilter] = useState<'전체' | '출석' | '미출석' | '외박' | '지연출석'>('전체');
+  const [statusFilter, setStatusFilter] = useState<
+    '전체' | '출석' | '미출석' | '외박' | '지연출석'
+  >('전체');
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
-  
+
   const queryClient = useQueryClient();
 
   // 신버전 출석 데이터 (자동 새로고침)
-  const { data: attendancesData, isLoading: attendancesLoading } = useAttendances(currentDate);
-  
+  const { data: attendancesData, isLoading: attendancesLoading } =
+    useAttendances(currentDate);
+
   // 학생 목록 (ID 매핑용)
   const { data: studentsData } = useQuery({
     queryKey: ['students-all'],
@@ -77,7 +96,8 @@ export default function Check() {
 
   // 외박 상태 업데이트 mutation
   const updateAttendancesMutation = useMutation({
-    mutationFn: (data: UpdateAttendancesRequest) => attendanceService.updateAttendances(data),
+    mutationFn: (data: UpdateAttendancesRequest) =>
+      attendanceService.updateAttendances(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
     },
@@ -85,8 +105,13 @@ export default function Check() {
 
   // 학생 정보 수정 mutation
   const updateStudentMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: import('../types/api').TeacherUpdateStudentRequest }) =>
-      studentService.updateStudent(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: import('../types/api').TeacherUpdateStudentRequest;
+    }) => studentService.updateStudent(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
       queryClient.invalidateQueries({ queryKey: ['students-all'] });
@@ -98,7 +123,7 @@ export default function Check() {
     const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
     }, REFRESH_INTERVAL);
-    
+
     return () => clearInterval(interval);
   }, [queryClient]);
 
@@ -118,56 +143,86 @@ export default function Check() {
   // });
 
   // 출석 상태 변경 핸들러
-  const handleStatusChange = useCallback((student: Student, newDisplayStatus: '출석' | '미출석' | '외박' | '지연출석') => {
-    if (!student.id) {
-      console.error('학생 ID를 찾을 수 없습니다.');
-      return;
-    }
+  const handleStatusChange = useCallback(
+    (
+      student: Student,
+      newDisplayStatus: '출석' | '미출석' | '외박' | '지연출석',
+    ) => {
+      if (!student.id) {
+        console.error('학생 ID를 찾을 수 없습니다.');
+        return;
+      }
 
-    const statusMap: Record<'출석' | '미출석' | '외박' | '지연출석', AttendanceStatus> = {
-      '출석': 'PRESENT',
-      '미출석': 'ABSENT',
-      '외박': 'SLEEPOVER',
-      '지연출석': 'LATE',
-    };
+      const statusMap: Record<
+        '출석' | '미출석' | '외박' | '지연출석',
+        AttendanceStatus
+      > = {
+        출석: 'PRESENT',
+        미출석: 'ABSENT',
+        외박: 'SLEEPOVER',
+        지연출석: 'LATE',
+      };
 
-    updateAttendancesMutation.mutate({
-      date: currentDate,
-      attendances: [{ studentId: student.id, status: statusMap[newDisplayStatus] }],
-    });
+      updateAttendancesMutation.mutate({
+        date: currentDate,
+        attendances: [
+          { studentId: student.id, status: statusMap[newDisplayStatus] },
+        ],
+      });
 
-    // 로컬 상태 즉시 업데이트
-    setStudents(prev => prev.map(s =>
-      s.studentId === student.studentId
-        ? { ...s, overnight: newDisplayStatus === '외박', status: newDisplayStatus }
-        : s
-    ));
-  }, [currentDate, updateAttendancesMutation]);
+      // 로컬 상태 즉시 업데이트
+      setStudents((prev) =>
+        prev.map((s) =>
+          s.studentId === student.studentId
+            ? {
+                ...s,
+                overnight: newDisplayStatus === '외박',
+                status: newDisplayStatus,
+              }
+            : s,
+        ),
+      );
+    },
+    [currentDate, updateAttendancesMutation],
+  );
 
-  // 엑셀 내보내기 (성별 선택)
-  const handleExportExcel = useCallback((gender: '남' | '여') => {
-    setIsExporting(true);
-    setShowExcelMenu(false);
+  // 엑셀 내보내기 (성별, 미출석만 여부 선택)
+  const handleExportExcel = useCallback(
+    (gender: '남' | '여', onlyAbsent: boolean = false) => {
+      setIsExporting(true);
+      setShowExcelMenu(false);
+      setSelectedGender(null);
 
-    try {
-      const mergedData: MergedAttendanceMember[] = students.map(s => ({
-        room: s.room,
-        stdId: s.studentId,
-        name: s.name,
-        checked: s.status === '출석' || s.status === '지연출석',
-        checkedDate: s.time !== '-' ? s.time : '',
-        isSleepover: s.overnight,
-        isLate: s.status === '지연출석',
-      }));
+      try {
+        let exportStudents = students;
 
-      exportMergedAttendanceToExcel(mergedData, gender);
-    } catch (error) {
-      console.error('엑셀 내보내기 실패:', error);
-      alert('엑셀 내보내기에 실패했습니다.');
-    } finally {
-      setIsExporting(false);
-    }
-  }, [students]);
+        // 미출석만 필터링
+        if (onlyAbsent) {
+          exportStudents = students.filter((s) => s.status === '미출석');
+        }
+
+        const mergedData: MergedAttendanceMember[] = exportStudents.map(
+          (s) => ({
+            room: s.room,
+            stdId: s.studentId,
+            name: s.name,
+            checked: s.status === '출석' || s.status === '지연출석',
+            checkedDate: s.time !== '-' ? s.time : '',
+            isSleepover: s.overnight,
+            isLate: s.status === '지연출석',
+          }),
+        );
+
+        exportMergedAttendanceToExcel(mergedData, gender, onlyAbsent);
+      } catch (error) {
+        console.error('엑셀 내보내기 실패:', error);
+        alert('엑셀 내보내기에 실패했습니다.');
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [students],
+  );
 
   // 신버전 출석 데이터 매핑
   useEffect(() => {
@@ -230,7 +285,7 @@ export default function Check() {
   // Sort function
   const handleSort = (key: SortKey) => {
     let direction: SortDirection = 'asc';
-    
+
     if (sortKey === key) {
       if (sortDirection === 'asc') {
         direction = 'desc';
@@ -241,7 +296,7 @@ export default function Check() {
         return;
       }
     }
-    
+
     setSortKey(key);
     setSortDirection(direction);
   };
@@ -288,7 +343,10 @@ export default function Check() {
       // Search query filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        if (!student.name.toLowerCase().includes(query) && !student.room.toLowerCase().includes(query)) {
+        if (
+          !student.name.toLowerCase().includes(query) &&
+          !student.room.toLowerCase().includes(query)
+        ) {
           return false;
         }
       }
@@ -324,9 +382,9 @@ export default function Check() {
       console.error('학생 ID를 찾을 수 없습니다.');
       return;
     }
-    
+
     const gender: Gender = updatedStudent.gender === '남' ? 'MALE' : 'FEMALE';
-    
+
     updateStudentMutation.mutate({
       id: updatedStudent.id,
       data: {
@@ -338,8 +396,12 @@ export default function Check() {
         gender,
       },
     });
-    
-    setStudents(students.map((s) => (s.studentId === updatedStudent.studentId ? updatedStudent : s)));
+
+    setStudents(
+      students.map((s) =>
+        s.studentId === updatedStudent.studentId ? updatedStudent : s,
+      ),
+    );
   };
 
   // 기존 handleExportExcel은 위에서 useCallback으로 정의됨
@@ -357,255 +419,306 @@ export default function Check() {
         <CheckTableSkeleton />
       </div>
     );
-  }  return (
+  }
+  return (
     <div className="check-page">
-          <div className="controls-section">
-            <div className="controls-left">
-              <div className="date-picker">
-                <input
-                  type="date"
-                  value={currentDate}
-                  onChange={(e) => setCurrentDate(e.target.value)}
-                />
-              </div>
-              <div className="search-box">
-                <SearchIcon className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="호실 / 이름으로 검색..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
+      <div className="controls-section">
+        <div className="controls-left">
+          <div className="date-picker">
+            <input
+              type="date"
+              value={currentDate}
+              onChange={(e) => setCurrentDate(e.target.value)}
+            />
+          </div>
+          <div className="search-box">
+            <SearchIcon className="search-icon" />
+            <input
+              type="text"
+              placeholder="호실 / 이름으로 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
 
-            <div className="stats-section">
-              <div className="stat-box">전체 : {stats.total}명</div>
-              <div className="stat-box attendance">
-                출석 : <span className="positive">{stats.present}</span>명
-              </div>
-              <div className="stat-box absence">
-                미출석 : <span className="negative">{stats.absent}</span>명
-              </div>
-              <div className="stat-box late">
-                지연출석 : <span className="warning">{stats.late}</span>명
-              </div>
-              <div className="excel-dropdown" ref={excelMenuRef}>
-                <button
-                  className="excel-button"
-                  onClick={() => setShowExcelMenu(!showExcelMenu)}
-                  disabled={isExporting}
-                >
-                  <ExcelIcon className="excel-icon" />
-                  {isExporting ? '다운로드 중...' : 'Excel ▾'}
-                </button>
-                {showExcelMenu && (
-                  <div className="excel-menu">
-                    <button className="excel-menu-item" onClick={() => handleExportExcel('남')}>
+        <div className="stats-section">
+          <div className="stat-box">전체 : {stats.total}명</div>
+          <div className="stat-box attendance">
+            출석 : <span className="positive">{stats.present}</span>명
+          </div>
+          <div className="stat-box absence">
+            미출석 : <span className="negative">{stats.absent}</span>명
+          </div>
+          <div className="stat-box late">
+            지연출석 : <span className="warning">{stats.late}</span>명
+          </div>
+          <div className="excel-dropdown" ref={excelMenuRef}>
+            <button
+              className="excel-button"
+              onClick={() => setShowExcelMenu(!showExcelMenu)}
+              disabled={isExporting}
+            >
+              <ExcelIcon className="excel-icon" />
+              {isExporting ? '다운로드 중...' : 'Excel ▾'}
+            </button>
+            {showExcelMenu && (
+              <div className="excel-menu">
+                {selectedGender === null ? (
+                  <>
+                    <button
+                      className="excel-menu-item"
+                      onClick={() => setSelectedGender('남')}
+                    >
                       남학생
                     </button>
-                    <button className="excel-menu-item" onClick={() => handleExportExcel('여')}>
+                    <button
+                      className="excel-menu-item"
+                      onClick={() => setSelectedGender('여')}
+                    >
                       여학생
                     </button>
-                  </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="excel-menu-header">
+                      {selectedGender === '남' ? '남학생' : '여학생'} 선택
+                    </div>
+                    <button
+                      className="excel-menu-item"
+                      onClick={() => handleExportExcel(selectedGender)}
+                    >
+                      전체 다운로드
+                    </button>
+                    <button
+                      className="excel-menu-item absent-only"
+                      onClick={() => handleExportExcel(selectedGender, true)}
+                    >
+                      미출석 명단<br></br>다운로드
+                    </button>
+                    <button
+                      className="excel-menu-item back-button"
+                      onClick={() => setSelectedGender(null)}
+                    >
+                      ← 뒤로가기
+                    </button>
+                  </>
                 )}
               </div>
-            </div>
+            )}
           </div>
+        </div>
+      </div>
 
-          <div className="filter-section">
-            <div className="filter-group">
-              <label className="filter-label">출석 상태:</label>
-              <div className="filter-buttons">
-                <button
-                  className={`filter-btn ${statusFilter === '전체' ? 'active' : ''}`}
-                  onClick={() => setStatusFilter('전체')}
-                >
-                  전체
-                </button>
-                <button
-                  className={`filter-btn ${statusFilter === '출석' ? 'active' : ''}`}
-                  onClick={() => setStatusFilter('출석')}
-                >
-                  출석
-                </button>
-                <button
-                  className={`filter-btn ${statusFilter === '미출석' ? 'active' : ''}`}
-                  onClick={() => setStatusFilter('미출석')}
-                >
-                  미출석
-                </button>
-                <button
-                  className={`filter-btn ${statusFilter === '지연출석' ? 'active' : ''}`}
-                  onClick={() => setStatusFilter('지연출석')}
-                >
-                  지연출석
-                </button>
-                <button
-                  className={`filter-btn ${statusFilter === '외박' ? 'active' : ''}`}
-                  onClick={() => setStatusFilter('외박')}
-                >
-                  외박
-                </button>
-              </div>
-            </div>
-
-            <div className="filter-group">
-              <label className="filter-label">성별:</label>
-              <div className="filter-buttons">
-                <button
-                  className={`filter-btn ${genderFilter === '전체' ? 'active' : ''}`}
-                  onClick={() => setGenderFilter('전체')}
-                >
-                  전체
-                </button>
-                <button
-                  className={`filter-btn ${genderFilter === '남' ? 'active' : ''}`}
-                  onClick={() => setGenderFilter('남')}
-                >
-                  남
-                </button>
-                <button
-                  className={`filter-btn ${genderFilter === '여' ? 'active' : ''}`}
-                  onClick={() => setGenderFilter('여')}
-                >
-                  여
-                </button>
-              </div>
-            </div>
-
-            <div className="filter-group">
-              <label className="filter-label">학년:</label>
-              <div className="filter-buttons">
-                <button
-                  className={`filter-btn ${gradeFilter === '전체' ? 'active' : ''}`}
-                  onClick={() => setGradeFilter('전체')}
-                >
-                  전체
-                </button>
-                <button
-                  className={`filter-btn ${gradeFilter === 1 ? 'active' : ''}`}
-                  onClick={() => setGradeFilter(1)}
-                >
-                  1학년
-                </button>
-                <button
-                  className={`filter-btn ${gradeFilter === 2 ? 'active' : ''}`}
-                  onClick={() => setGradeFilter(2)}
-                >
-                  2학년
-                </button>
-                <button
-                  className={`filter-btn ${gradeFilter === 3 ? 'active' : ''}`}
-                  onClick={() => setGradeFilter(3)}
-                >
-                  3학년
-                </button>
-              </div>
-            </div>
+      <div className="filter-section">
+        <div className="filter-group">
+          <label className="filter-label">출석 상태:</label>
+          <div className="filter-buttons">
+            <button
+              className={`filter-btn ${statusFilter === '전체' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('전체')}
+            >
+              전체
+            </button>
+            <button
+              className={`filter-btn ${statusFilter === '출석' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('출석')}
+            >
+              출석
+            </button>
+            <button
+              className={`filter-btn ${statusFilter === '미출석' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('미출석')}
+            >
+              미출석
+            </button>
+            <button
+              className={`filter-btn ${statusFilter === '지연출석' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('지연출석')}
+            >
+              지연출석
+            </button>
+            <button
+              className={`filter-btn ${statusFilter === '외박' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('외박')}
+            >
+              외박
+            </button>
           </div>
+        </div>
 
-          <div className="table-container">
-            <table className="student-table">
-              <thead>
-                <tr>
-                  <th onClick={() => handleSort('room')} className="sortable">
-                    호실
-                    {sortKey === 'room' && (
-                      <span className="sort-indicator">
-                        {sortDirection === 'asc' ? '▲' : '▼'}
-                      </span>
-                    )}
-                  </th>
-                  <th onClick={() => handleSort('name')} className="sortable">
-                    이름
-                    {sortKey === 'name' && (
-                      <span className="sort-indicator">
-                        {sortDirection === 'asc' ? '▲' : '▼'}
-                      </span>
-                    )}
-                  </th>
-                  <th onClick={() => handleSort('status')} className="sortable">
-                    상태
-                    {sortKey === 'status' && (
-                      <span className="sort-indicator">
-                        {sortDirection === 'asc' ? '▲' : '▼'}
-                      </span>
-                    )}
-                  </th>
-                  <th onClick={() => handleSort('gender')} className="sortable">
-                    성별
-                    {sortKey === 'gender' && (
-                      <span className="sort-indicator">
-                        {sortDirection === 'asc' ? '▲' : '▼'}
-                      </span>
-                    )}
-                  </th>
-                  <th onClick={() => handleSort('studentId')} className="sortable">
-                    학번
-                    {sortKey === 'studentId' && (
-                      <span className="sort-indicator">
-                        {sortDirection === 'asc' ? '▲' : '▼'}
-                      </span>
-                    )}
-                  </th>
-                  <th onClick={() => handleSort('time')} className="sortable">
-                    출석 시간
-                    {sortKey === 'time' && (
-                      <span className="sort-indicator">
-                        {sortDirection === 'asc' ? '▲' : '▼'}
-                      </span>
-                    )}
-                  </th>
-                  <th>연락처</th>
-                  <th></th>
-                  <th>정보 수정</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.map((student, index) => (
-                  <tr key={index}>
-                    <td className="room-cell">{student.room}</td>
-                    <td>{student.name}</td>
-                    <td>
-                      <select
-                        value={student.status}
-                        onChange={(e) => handleStatusChange(student, e.target.value as '출석' | '미출석' | '외박' | '지연출석')}
-                        disabled={updateAttendancesMutation.isPending}
-                        className={`status-select ${
-                          student.status === '출석' ? 'status-present' :
-                          student.status === '지연출석' ? 'status-late' :
-                          student.status === '외박' ? 'status-sleepover' : 'status-absent'
-                        }`}
-                      >
-                        <option value="출석">출석</option>
-                        <option value="지연출석">지연출석</option>
-                        <option value="미출석">미출석</option>
-                        <option value="외박">외박</option>
-                      </select>
-                    </td>
-                    <td>{student.gender}</td>
-                    <td>{student.studentId}</td>
-                    <td>{student.time}</td>
-                    <td>{student.phone}</td>
-                    <td></td>
-                    <td>
-                      <button className="edit-button" onClick={() => handleEditClick(student)}>
-                        수정
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="filter-group">
+          <label className="filter-label">성별:</label>
+          <div className="filter-buttons">
+            <button
+              className={`filter-btn ${genderFilter === '전체' ? 'active' : ''}`}
+              onClick={() => setGenderFilter('전체')}
+            >
+              전체
+            </button>
+            <button
+              className={`filter-btn ${genderFilter === '남' ? 'active' : ''}`}
+              onClick={() => setGenderFilter('남')}
+            >
+              남
+            </button>
+            <button
+              className={`filter-btn ${genderFilter === '여' ? 'active' : ''}`}
+              onClick={() => setGenderFilter('여')}
+            >
+              여
+            </button>
           </div>
+        </div>
 
-          <EditStudentModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            student={selectedStudent}
-            onSave={handleSaveStudent}
-          />
+        <div className="filter-group">
+          <label className="filter-label">학년:</label>
+          <div className="filter-buttons">
+            <button
+              className={`filter-btn ${gradeFilter === '전체' ? 'active' : ''}`}
+              onClick={() => setGradeFilter('전체')}
+            >
+              전체
+            </button>
+            <button
+              className={`filter-btn ${gradeFilter === 1 ? 'active' : ''}`}
+              onClick={() => setGradeFilter(1)}
+            >
+              1학년
+            </button>
+            <button
+              className={`filter-btn ${gradeFilter === 2 ? 'active' : ''}`}
+              onClick={() => setGradeFilter(2)}
+            >
+              2학년
+            </button>
+            <button
+              className={`filter-btn ${gradeFilter === 3 ? 'active' : ''}`}
+              onClick={() => setGradeFilter(3)}
+            >
+              3학년
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="table-container">
+        <table className="student-table">
+          <thead>
+            <tr>
+              <th onClick={() => handleSort('room')} className="sortable">
+                호실
+                {sortKey === 'room' && (
+                  <span className="sort-indicator">
+                    {sortDirection === 'asc' ? '▲' : '▼'}
+                  </span>
+                )}
+              </th>
+              <th onClick={() => handleSort('name')} className="sortable">
+                이름
+                {sortKey === 'name' && (
+                  <span className="sort-indicator">
+                    {sortDirection === 'asc' ? '▲' : '▼'}
+                  </span>
+                )}
+              </th>
+              <th onClick={() => handleSort('status')} className="sortable">
+                상태
+                {sortKey === 'status' && (
+                  <span className="sort-indicator">
+                    {sortDirection === 'asc' ? '▲' : '▼'}
+                  </span>
+                )}
+              </th>
+              <th onClick={() => handleSort('gender')} className="sortable">
+                성별
+                {sortKey === 'gender' && (
+                  <span className="sort-indicator">
+                    {sortDirection === 'asc' ? '▲' : '▼'}
+                  </span>
+                )}
+              </th>
+              <th onClick={() => handleSort('studentId')} className="sortable">
+                학번
+                {sortKey === 'studentId' && (
+                  <span className="sort-indicator">
+                    {sortDirection === 'asc' ? '▲' : '▼'}
+                  </span>
+                )}
+              </th>
+              <th onClick={() => handleSort('time')} className="sortable">
+                출석 시간
+                {sortKey === 'time' && (
+                  <span className="sort-indicator">
+                    {sortDirection === 'asc' ? '▲' : '▼'}
+                  </span>
+                )}
+              </th>
+              <th>연락처</th>
+              <th></th>
+              <th>정보 수정</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredStudents.map((student, index) => (
+              <tr key={index}>
+                <td className="room-cell">{student.room}</td>
+                <td>{student.name}</td>
+                <td>
+                  <select
+                    value={student.status}
+                    onChange={(e) =>
+                      handleStatusChange(
+                        student,
+                        e.target.value as
+                          | '출석'
+                          | '미출석'
+                          | '외박'
+                          | '지연출석',
+                      )
+                    }
+                    disabled={updateAttendancesMutation.isPending}
+                    className={`status-select ${
+                      student.status === '출석'
+                        ? 'status-present'
+                        : student.status === '지연출석'
+                          ? 'status-late'
+                          : student.status === '외박'
+                            ? 'status-sleepover'
+                            : 'status-absent'
+                    }`}
+                  >
+                    <option value="출석">출석</option>
+                    <option value="지연출석">지연출석</option>
+                    <option value="미출석">미출석</option>
+                    <option value="외박">외박</option>
+                  </select>
+                </td>
+                <td>{student.gender}</td>
+                <td>{student.studentId}</td>
+                <td>{student.time}</td>
+                <td>{student.phone}</td>
+                <td></td>
+                <td>
+                  <button
+                    className="edit-button"
+                    onClick={() => handleEditClick(student)}
+                  >
+                    수정
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <EditStudentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        student={selectedStudent}
+        onSave={handleSaveStudent}
+      />
     </div>
   );
 }

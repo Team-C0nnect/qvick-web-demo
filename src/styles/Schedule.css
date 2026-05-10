@@ -869,14 +869,27 @@
   background: #f0e4ff;
 }
 
-.weekday-quick-btn.clear {
-  grid-column: 1 / -1;
-  background: #f8f9fa;
+/* Clear Weekday Button */
+.clear-weekday-btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: #ff6b6b;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 8px;
 }
 
-.weekday-quick-btn.clear:hover {
-  border-color: #ff4d4f;
-  background: #fff1f1;
+.clear-weekday-btn:hover {
+  background: #ff5252;
+}
+
+.clear-weekday-btn:active {
+  background: #ff3838;
 }
 
 /* Quick Actions */

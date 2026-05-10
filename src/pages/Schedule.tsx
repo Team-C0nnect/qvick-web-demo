@@ -335,7 +335,8 @@ export default function Schedule() {
   };
 
   const clearWeekdaySelection = () => {
-    setSelectedWeekdays([]); // 전체 해제
+    setSelectedWeekdays([]); // 요일 선택 해제
+    setSelectedDates([]); // 선택된 날짜도 함께 해제
   };
 
   // 일괄 스케줄 생성 (병렬 처리)
@@ -574,19 +575,6 @@ export default function Schedule() {
     });
   };
 
-  // 전체 선택
-  const handleSelectAll = () => {
-    const allDates = calendarDays
-      .filter((d) => d.isCurrentMonth && !d.isWeekend)
-      .map((d) => d.fullDate);
-    setSelectedDates(allDates);
-  };
-
-  // 선택 해제
-  const handleClearSelection = () => {
-    setSelectedDates([]);
-  };
-
   // 남/여 동시 적용
   const handleApplyBoth = async () => {
     await handleBulkCreate('MALE');
@@ -798,12 +786,6 @@ export default function Schedule() {
               <button className="weekday-quick-btn" onClick={selectSundayOnly}>
                 일요일 선택
               </button>
-              <button
-                className="weekday-quick-btn clear"
-                onClick={clearWeekdaySelection}
-              >
-                요일 선택 해제
-              </button>
             </div>
             <button
               className="apply-weekday-btn"
@@ -812,17 +794,11 @@ export default function Schedule() {
             >
               해당 요일 전체 선택
             </button>
-          </div>
-        )}
-
-        {/* 빠른 선택 버튼 */}
-        {selectionMode !== 'single' && (
-          <div className="quick-actions">
-            <button className="quick-btn" onClick={handleSelectAll}>
-              평일 전체 선택
-            </button>
-            <button className="quick-btn" onClick={handleClearSelection}>
-              선택 해제
+            <button
+              className="clear-weekday-btn"
+              onClick={clearWeekdaySelection}
+            >
+              요일 선택 해제
             </button>
           </div>
         )}

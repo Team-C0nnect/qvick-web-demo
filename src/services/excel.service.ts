@@ -91,7 +91,7 @@ const MAX_ROWS_PER_PAGE = 44;
  */
 export const exportMergedAttendanceToExcel = (
   data: MergedAttendanceMember[],
-  gender?: '남' | '여',
+  gender?: '남' | '여' | null,
   onlyAbsent: boolean = false,
 ) => {
   const workbook = XLSX.utils.book_new();

@@ -196,9 +196,14 @@ export default function Check() {
       try {
         let exportStudents = students;
 
+        // 성별 필터링
+        if (gender) {
+          exportStudents = exportStudents.filter((s) => s.gender === gender);
+        }
+
         // 미출석만 필터링
         if (onlyAbsent) {
-          exportStudents = students.filter((s) => s.status === '미출석');
+          exportStudents = exportStudents.filter((s) => s.status === '미출석');
         }
 
         const mergedData: MergedAttendanceMember[] = exportStudents.map(

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { scheduleService } from '../services/schedule.service';
+import ConfirmationModal from '../components/ConfirmationModal';
 import '../styles/Schedule.css';
 import { CalendarIcon } from '../components/Icons';
 import type { AttendanceScheduleResponse, Gender } from '../types/api';
@@ -33,8 +34,10 @@ export default function Schedule() {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [selectionMode, setSelectionMode] = useState<'single' | 'multi' | 'weekday'>('single');
-  
+  const [selectionMode, setSelectionMode] = useState<
+    'single' | 'multi' | 'weekday'
+  >('single');
+
   // 로딩 모달 상태
   const [loadingModal, setLoadingModal] = useState<{
     isOpen: boolean;
@@ -43,22 +46,41 @@ export default function Schedule() {
     total: number;
     action: 'create' | 'delete' | 'update';
   }>({ isOpen: false, title: '', current: 0, total: 0, action: 'create' });
-  
+
+  // 확인 모달 상태
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText: string;
+    cancelText?: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: '확인',
+    onConfirm: () => {},
+  });
+
   // 남기숙사 시간 상태
   const [maleStartHour, setMaleStartHour] = useState(DEFAULT_START_HOUR);
   const [maleStartMinute, setMaleStartMinute] = useState(DEFAULT_START_MINUTE);
   const [maleEndHour, setMaleEndHour] = useState(DEFAULT_END_HOUR);
   const [maleEndMinute, setMaleEndMinute] = useState(DEFAULT_END_MINUTE);
-  
+
   // 여기숙사 시간 상태
   const [femaleStartHour, setFemaleStartHour] = useState(DEFAULT_START_HOUR);
-  const [femaleStartMinute, setFemaleStartMinute] = useState(DEFAULT_START_MINUTE);
+  const [femaleStartMinute, setFemaleStartMinute] =
+    useState(DEFAULT_START_MINUTE);
   const [femaleEndHour, setFemaleEndHour] = useState(DEFAULT_END_HOUR);
   const [femaleEndMinute, setFemaleEndMinute] = useState(DEFAULT_END_MINUTE);
-  
+
   // 요일 선택 (월별 일괄 등록용)
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([1, 2, 3, 4]); // 월~목 기본 선택
-  
+  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([
+    1, 2, 3, 4,
+  ]); // 월~목 기본 선택
+
   const queryClient = useQueryClient();
 
   // Fetch month schedules
@@ -80,8 +102,15 @@ export default function Schedule() {
 
   // Update schedule mutation
   const updateScheduleMutation = useMutation({
-    mutationFn: ({ date, gender, data }: { date: string; gender: Gender; data: { startTime?: string; endTime?: string } }) =>
-      scheduleService.updateSchedule(date, gender, data),
+    mutationFn: ({
+      date,
+      gender,
+      data,
+    }: {
+      date: string;
+      gender: Gender;
+      data: { startTime?: string; endTime?: string };
+    }) => scheduleService.updateSchedule(date, gender, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['schedules'] });
     },
@@ -111,13 +140,13 @@ export default function Schedule() {
     const lastDayOfMonth = new Date(currentYear, currentMonth, 0);
     const daysInMonth = lastDayOfMonth.getDate();
     const startDayOfWeek = firstDayOfMonth.getDay();
-    
+
     const todayStr = today.toISOString().split('T')[0];
 
     // Create schedule maps by date and gender
     const maleScheduleMap = new Map<string, AttendanceScheduleResponse>();
     const femaleScheduleMap = new Map<string, AttendanceScheduleResponse>();
-    
+
     if (schedulesData) {
       schedulesData.forEach((schedule) => {
         const dateStr = schedule.date;
@@ -130,14 +159,18 @@ export default function Schedule() {
     }
 
     // Previous month days
-    const prevMonthLastDay = new Date(currentYear, currentMonth - 1, 0).getDate();
+    const prevMonthLastDay = new Date(
+      currentYear,
+      currentMonth - 1,
+      0,
+    ).getDate();
     for (let i = startDayOfWeek - 1; i >= 0; i--) {
       const date = prevMonthLastDay - i;
       const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
       const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
       const fullDate = `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
       const dayOfWeek = (startDayOfWeek - i - 1 + 7) % 7;
-      
+
       result.push({
         date,
         fullDate,
@@ -175,7 +208,7 @@ export default function Schedule() {
       const fullDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
       const totalDays = result.length;
       const dayOfWeek = (totalDays + date - 1) % 7;
-      
+
       result.push({
         date,
         fullDate,
@@ -193,16 +226,19 @@ export default function Schedule() {
   const selectedDayData = useMemo(() => {
     if (selectedDates.length === 0) return null;
     const firstDate = selectedDates[0];
-    return calendarDays.find(d => d.fullDate === firstDate && d.isCurrentMonth) || null;
+    return (
+      calendarDays.find((d) => d.fullDate === firstDate && d.isCurrentMonth) ||
+      null
+    );
   }, [selectedDates, calendarDays]);
 
   // 날짜 클릭 핸들러
   const handleDateClick = (day: CalendarDay) => {
     if (!day.isCurrentMonth) return;
-    
+
     if (selectionMode === 'single') {
       setSelectedDates([day.fullDate]);
-      
+
       // 기존 스케줄이 있으면 해당 시간으로 설정
       if (day.maleSchedule) {
         const [sh, sm] = day.maleSchedule.startTime.split(':');
@@ -214,7 +250,7 @@ export default function Schedule() {
       } else {
         resetMaleTime();
       }
-      
+
       if (day.femaleSchedule) {
         const [sh, sm] = day.femaleSchedule.startTime.split(':');
         const [eh, em] = day.femaleSchedule.endTime.split(':');
@@ -227,9 +263,9 @@ export default function Schedule() {
       }
     } else if (selectionMode === 'multi') {
       // 다중 선택 모드
-      setSelectedDates(prev => {
+      setSelectedDates((prev) => {
         if (prev.includes(day.fullDate)) {
-          return prev.filter(d => d !== day.fullDate);
+          return prev.filter((d) => d !== day.fullDate);
         } else {
           return [...prev, day.fullDate];
         }
@@ -244,7 +280,7 @@ export default function Schedule() {
     setMaleEndHour(DEFAULT_END_HOUR);
     setMaleEndMinute(DEFAULT_END_MINUTE);
   };
-  
+
   const resetFemaleTime = () => {
     setFemaleStartHour(DEFAULT_START_HOUR);
     setFemaleStartMinute(DEFAULT_START_MINUTE);
@@ -274,9 +310,9 @@ export default function Schedule() {
 
   // 요일 토글 (월별 일괄 등록용)
   const toggleWeekday = (dayIndex: number) => {
-    setSelectedWeekdays(prev => {
+    setSelectedWeekdays((prev) => {
       if (prev.includes(dayIndex)) {
-        return prev.filter(d => d !== dayIndex);
+        return prev.filter((d) => d !== dayIndex);
       } else {
         return [...prev, dayIndex].sort();
       }
@@ -286,32 +322,39 @@ export default function Schedule() {
   // 월별 요일 선택 적용
   const applyWeekdaySelection = () => {
     const dates = calendarDays
-      .filter(d => d.isCurrentMonth && selectedWeekdays.includes(d.dayOfWeek))
-      .map(d => d.fullDate);
+      .filter((d) => d.isCurrentMonth && selectedWeekdays.includes(d.dayOfWeek))
+      .map((d) => d.fullDate);
     setSelectedDates(dates);
   };
 
   // 일괄 스케줄 생성 (병렬 처리)
   const handleBulkCreate = async (gender: Gender) => {
     if (selectedDates.length === 0) {
-      alert('날짜를 선택해주세요.');
+      setConfirmModal({
+        isOpen: true,
+        title: '알림',
+        message: '날짜를 선택해주세요.',
+        confirmText: '확인',
+        onConfirm: () =>
+          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+      });
       return;
     }
-    
+
     const isMALE = gender === 'MALE';
     const genderName = isMALE ? '남기숙사' : '여기숙사';
-    const startTime = isMALE 
+    const startTime = isMALE
       ? `${maleStartHour.padStart(2, '0')}:${maleStartMinute.padStart(2, '0')}`
       : `${femaleStartHour.padStart(2, '0')}:${femaleStartMinute.padStart(2, '0')}`;
     const endTime = isMALE
       ? `${maleEndHour.padStart(2, '0')}:${maleEndMinute.padStart(2, '0')}`
       : `${femaleEndHour.padStart(2, '0')}:${femaleEndMinute.padStart(2, '0')}`;
-    
+
     const total = selectedDates.length;
     let completedCount = 0;
     let successCount = 0;
     let failCount = 0;
-    
+
     // 로딩 모달 표시
     setLoadingModal({
       isOpen: true,
@@ -320,7 +363,7 @@ export default function Schedule() {
       total,
       action: 'create',
     });
-    
+
     // 병렬 처리
     const promises = selectedDates.map(async (date) => {
       try {
@@ -335,44 +378,78 @@ export default function Schedule() {
         failCount++;
       } finally {
         completedCount++;
-        setLoadingModal(prev => ({
+        setLoadingModal((prev) => ({
           ...prev,
           current: completedCount,
         }));
       }
     });
-    
+
     await Promise.all(promises);
-    
+
     // 로딩 모달 닫기
-    setLoadingModal(prev => ({ ...prev, isOpen: false }));
-    
+    setLoadingModal((prev) => ({ ...prev, isOpen: false }));
+
     queryClient.invalidateQueries({ queryKey: ['schedules'] });
-    
+
     if (failCount > 0) {
-      alert(`${successCount}개 생성 완료, ${failCount}개 실패 (이미 존재하는 스케줄일 수 있습니다)`);
+      setConfirmModal({
+        isOpen: true,
+        title: '생성 완료',
+        message: `${successCount}개 생성 완료 (max: ${failCount}개)\n(이미 존재하는 스케줄일 수 있습니다)`,
+        confirmText: '확인',
+        onConfirm: () =>
+          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+      });
     } else {
-      alert(`${successCount}개 스케줄이 생성되었습니다.`);
+      setConfirmModal({
+        isOpen: true,
+        title: '생성 완료',
+        message: `${successCount}개 스케줄이 생성되었습니다.`,
+        confirmText: '확인',
+        onConfirm: () =>
+          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+      });
     }
   };
 
   // 일괄 스케줄 삭제 (병렬 처리)
   const handleBulkDelete = async (gender: Gender) => {
     if (selectedDates.length === 0) {
-      alert('날짜를 선택해주세요.');
+      setConfirmModal({
+        isOpen: true,
+        title: '알림',
+        message: '날짜를 선택해주세요.',
+        confirmText: '확인',
+        onConfirm: () =>
+          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+      });
       return;
     }
-    
+
     const genderName = gender === 'MALE' ? '남기숙사' : '여기숙사';
-    if (!confirm(`선택된 ${selectedDates.length}개 날짜의 ${genderName} 스케줄을 삭제하시겠습니까?`)) {
-      return;
-    }
-    
+
+    // 삭제 확인 모달 표시
+    setConfirmModal({
+      isOpen: true,
+      title: '삭제 확인',
+      message: `선택된 ${selectedDates.length}개 날짜의\n${genderName} 스케줄을 삭제하시겠습니까?`,
+      confirmText: '삭제',
+      cancelText: '취소',
+      onConfirm: async () => {
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        await performBulkDelete(gender, genderName);
+      },
+    });
+  };
+
+  // 실제 삭제 수행
+  const performBulkDelete = async (gender: Gender, genderName: string) => {
     const total = selectedDates.length;
     let completedCount = 0;
     let successCount = 0;
     let failCount = 0;
-    
+
     // 로딩 모달 표시
     setLoadingModal({
       isOpen: true,
@@ -381,7 +458,7 @@ export default function Schedule() {
       total,
       action: 'delete',
     });
-    
+
     // 병렬 처리
     const promises = selectedDates.map(async (date) => {
       try {
@@ -391,40 +468,54 @@ export default function Schedule() {
         failCount++;
       } finally {
         completedCount++;
-        setLoadingModal(prev => ({
+        setLoadingModal((prev) => ({
           ...prev,
           current: completedCount,
         }));
       }
     });
-    
+
     await Promise.all(promises);
-    
+
     // 로딩 모달 닫기
-    setLoadingModal(prev => ({ ...prev, isOpen: false }));
-    
+    setLoadingModal((prev) => ({ ...prev, isOpen: false }));
+
     queryClient.invalidateQueries({ queryKey: ['schedules'] });
-    
+
     if (failCount > 0) {
-      alert(`${successCount}개 삭제 완료, ${failCount}개 실패`);
+      setConfirmModal({
+        isOpen: true,
+        title: '삭제 완료',
+        message: `${successCount}개 삭제 완료\n${failCount}개 실패`,
+        confirmText: '확인',
+        onConfirm: () =>
+          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+      });
     } else {
-      alert(`${successCount}개 삭제 완료`);
+      setConfirmModal({
+        isOpen: true,
+        title: '삭제 완료',
+        message: `${successCount}개 삭제 완료`,
+        confirmText: '확인',
+        onConfirm: () =>
+          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+      });
     }
   };
 
   // 단일 스케줄 생성
   const handleSingleCreate = (gender: Gender) => {
     if (selectedDates.length !== 1) return;
-    
+
     const date = selectedDates[0];
     const isMALE = gender === 'MALE';
-    const startTime = isMALE 
+    const startTime = isMALE
       ? `${maleStartHour.padStart(2, '0')}:${maleStartMinute.padStart(2, '0')}`
       : `${femaleStartHour.padStart(2, '0')}:${femaleStartMinute.padStart(2, '0')}`;
     const endTime = isMALE
       ? `${maleEndHour.padStart(2, '0')}:${maleEndMinute.padStart(2, '0')}`
       : `${femaleEndHour.padStart(2, '0')}:${femaleEndMinute.padStart(2, '0')}`;
-    
+
     createScheduleMutation.mutate({
       date,
       gender,
@@ -436,16 +527,16 @@ export default function Schedule() {
   // 단일 스케줄 수정
   const handleSingleUpdate = (gender: Gender) => {
     if (selectedDates.length !== 1) return;
-    
+
     const date = selectedDates[0];
     const isMALE = gender === 'MALE';
-    const startTime = isMALE 
+    const startTime = isMALE
       ? `${maleStartHour.padStart(2, '0')}:${maleStartMinute.padStart(2, '0')}`
       : `${femaleStartHour.padStart(2, '0')}:${femaleStartMinute.padStart(2, '0')}`;
     const endTime = isMALE
       ? `${maleEndHour.padStart(2, '0')}:${maleEndMinute.padStart(2, '0')}`
       : `${femaleEndHour.padStart(2, '0')}:${femaleEndMinute.padStart(2, '0')}`;
-    
+
     updateScheduleMutation.mutate({
       date,
       gender,
@@ -456,18 +547,27 @@ export default function Schedule() {
   // 단일 스케줄 삭제
   const handleSingleDelete = (gender: Gender) => {
     if (selectedDates.length !== 1) return;
-    
+
     const genderName = gender === 'MALE' ? '남기숙사' : '여기숙사';
-    if (confirm(`${genderName} 스케줄을 삭제하시겠습니까?`)) {
-      deleteScheduleMutation.mutate({ date: selectedDates[0], gender });
-    }
+
+    setConfirmModal({
+      isOpen: true,
+      title: '삭제 확인',
+      message: `${genderName} 스케줄을 삭제하시겠습니까?`,
+      confirmText: '삭제',
+      cancelText: '취소',
+      onConfirm: () => {
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        deleteScheduleMutation.mutate({ date: selectedDates[0], gender });
+      },
+    });
   };
 
   // 전체 선택
   const handleSelectAll = () => {
     const allDates = calendarDays
-      .filter(d => d.isCurrentMonth && !d.isWeekend)
-      .map(d => d.fullDate);
+      .filter((d) => d.isCurrentMonth && !d.isWeekend)
+      .map((d) => d.fullDate);
     setSelectedDates(allDates);
   };
 
@@ -487,15 +587,23 @@ export default function Schedule() {
     return `${year}. ${month}. ${day}.`;
   };
 
-  const isPending = createScheduleMutation.isPending || updateScheduleMutation.isPending || deleteScheduleMutation.isPending;
+  const isPending =
+    createScheduleMutation.isPending ||
+    updateScheduleMutation.isPending ||
+    deleteScheduleMutation.isPending;
 
   // 통계 계산
   const stats = useMemo(() => {
-    const currentMonthDays = calendarDays.filter(d => d.isCurrentMonth);
-    const maleCount = currentMonthDays.filter(d => d.maleSchedule).length;
-    const femaleCount = currentMonthDays.filter(d => d.femaleSchedule).length;
-    const weekdaysCount = currentMonthDays.filter(d => !d.isWeekend).length;
-    return { maleCount, femaleCount, weekdaysCount, totalDays: currentMonthDays.length };
+    const currentMonthDays = calendarDays.filter((d) => d.isCurrentMonth);
+    const maleCount = currentMonthDays.filter((d) => d.maleSchedule).length;
+    const femaleCount = currentMonthDays.filter((d) => d.femaleSchedule).length;
+    const weekdaysCount = currentMonthDays.filter((d) => !d.isWeekend).length;
+    return {
+      maleCount,
+      femaleCount,
+      weekdaysCount,
+      totalDays: currentMonthDays.length,
+    };
   }, [calendarDays]);
 
   // 스켈레톤 캘린더 그리드 생성 (42개 셀)
@@ -522,9 +630,15 @@ export default function Schedule() {
             <h2 className="calendar-title">출석 스케줄 관리</h2>
           </div>
           <div className="month-selector">
-            <button className="nav-button prev" onClick={handlePrevMonth}>←</button>
-            <span className="month-text">{currentYear}년 {currentMonth}월</span>
-            <button className="nav-button next" onClick={handleNextMonth}>→</button>
+            <button className="nav-button prev" onClick={handlePrevMonth}>
+              ←
+            </button>
+            <span className="month-text">
+              {currentYear}년 {currentMonth}월
+            </span>
+            <button className="nav-button next" onClick={handleNextMonth}>
+              →
+            </button>
           </div>
         </div>
 
@@ -532,11 +646,15 @@ export default function Schedule() {
         <div className="schedule-stats">
           <div className="stat-item">
             <span className="stat-label">남기숙사</span>
-            <span className="stat-value male">{stats.maleCount}/{stats.weekdaysCount}</span>
+            <span className="stat-value male">
+              {stats.maleCount}/{stats.weekdaysCount}
+            </span>
           </div>
           <div className="stat-item">
             <span className="stat-label">여기숙사</span>
-            <span className="stat-value female">{stats.femaleCount}/{stats.weekdaysCount}</span>
+            <span className="stat-value female">
+              {stats.femaleCount}/{stats.weekdaysCount}
+            </span>
           </div>
           <div className="stat-item">
             <span className="stat-label">선택됨</span>
@@ -547,8 +665,8 @@ export default function Schedule() {
         <div className="calendar">
           <div className="calendar-weekdays">
             {days.map((day, index) => (
-              <div 
-                key={day} 
+              <div
+                key={day}
                 className={`weekday ${index === 0 ? 'sunday' : ''} ${index === 6 ? 'saturday' : ''}`}
               >
                 {day}
@@ -556,13 +674,15 @@ export default function Schedule() {
             ))}
           </div>
 
-          {isLoading ? renderSkeletonCalendar() : (
+          {isLoading ? (
+            renderSkeletonCalendar()
+          ) : (
             <div className="calendar-grid">
               {calendarDays.map((day, i) => {
                 const isSelected = selectedDates.includes(day.fullDate);
                 const hasMaleSchedule = !!day.maleSchedule;
                 const hasFemaleSchedule = !!day.femaleSchedule;
-                
+
                 return (
                   <div
                     key={i}
@@ -576,24 +696,30 @@ export default function Schedule() {
                   >
                     {day.isCurrentMonth ? (
                       <>
-                        <span className={`date-number ${day.isToday ? 'today-number' : ''}`}>
+                        <span
+                          className={`date-number ${day.isToday ? 'today-number' : ''}`}
+                        >
                           {day.date}
                         </span>
                         <div className="schedule-indicators">
                           {hasMaleSchedule && (
                             <div className="schedule-tag blue">
-                              {formatTime(day.maleSchedule!.startTime)}~{formatTime(day.maleSchedule!.endTime)}
+                              {formatTime(day.maleSchedule!.startTime)}~
+                              {formatTime(day.maleSchedule!.endTime)}
                             </div>
                           )}
                           {hasFemaleSchedule && (
                             <div className="schedule-tag pink">
-                              {formatTime(day.femaleSchedule!.startTime)}~{formatTime(day.femaleSchedule!.endTime)}
+                              {formatTime(day.femaleSchedule!.startTime)}~
+                              {formatTime(day.femaleSchedule!.endTime)}
                             </div>
                           )}
                         </div>
                       </>
                     ) : (
-                      <span className="date-number inactive-date">{day.date}</span>
+                      <span className="date-number inactive-date">
+                        {day.date}
+                      </span>
                     )}
                   </div>
                 );
@@ -607,21 +733,30 @@ export default function Schedule() {
       <div className="scheduler-panel">
         {/* 선택 모드 */}
         <div className="mode-selector">
-          <button 
+          <button
             className={`mode-btn ${selectionMode === 'single' ? 'active' : ''}`}
-            onClick={() => { setSelectionMode('single'); setSelectedDates([]); }}
+            onClick={() => {
+              setSelectionMode('single');
+              setSelectedDates([]);
+            }}
           >
             단일 선택
           </button>
-          <button 
+          <button
             className={`mode-btn ${selectionMode === 'multi' ? 'active' : ''}`}
-            onClick={() => { setSelectionMode('multi'); setSelectedDates([]); }}
+            onClick={() => {
+              setSelectionMode('multi');
+              setSelectedDates([]);
+            }}
           >
             다중 선택
           </button>
-          <button 
+          <button
             className={`mode-btn ${selectionMode === 'weekday' ? 'active' : ''}`}
-            onClick={() => { setSelectionMode('weekday'); setSelectedDates([]); }}
+            onClick={() => {
+              setSelectionMode('weekday');
+              setSelectedDates([]);
+            }}
           >
             요일별 선택
           </button>
@@ -642,7 +777,10 @@ export default function Schedule() {
                 </button>
               ))}
             </div>
-            <button className="apply-weekday-btn" onClick={applyWeekdaySelection}>
+            <button
+              className="apply-weekday-btn"
+              onClick={applyWeekdaySelection}
+            >
               해당 요일 전체 선택
             </button>
           </div>
@@ -651,31 +789,36 @@ export default function Schedule() {
         {/* 빠른 선택 버튼 */}
         {selectionMode !== 'single' && (
           <div className="quick-actions">
-            <button className="quick-btn" onClick={handleSelectAll}>평일 전체 선택</button>
-            <button className="quick-btn" onClick={handleClearSelection}>선택 해제</button>
+            <button className="quick-btn" onClick={handleSelectAll}>
+              평일 전체 선택
+            </button>
+            <button className="quick-btn" onClick={handleClearSelection}>
+              선택 해제
+            </button>
           </div>
         )}
 
         {selectedDates.length > 0 ? (
           <>
             <h3 className="scheduler-title">
-              {selectedDates.length === 1 
+              {selectedDates.length === 1
                 ? formatDisplayDate(selectedDates[0])
-                : `${selectedDates.length}개 날짜 선택됨`
-              }
+                : `${selectedDates.length}개 날짜 선택됨`}
             </h3>
-            
+
             {/* 남기숙사 섹션 */}
             <div className="gender-section male">
               <div className="gender-header">
                 <span className="gender-badge male">남기숙사</span>
-                {selectedDates.length === 1 && selectedDayData?.maleSchedule && (
-                  <span className="current-time">
-                    현재: {formatTime(selectedDayData.maleSchedule.startTime)} ~ {formatTime(selectedDayData.maleSchedule.endTime)}
-                  </span>
-                )}
+                {selectedDates.length === 1 &&
+                  selectedDayData?.maleSchedule && (
+                    <span className="current-time">
+                      현재: {formatTime(selectedDayData.maleSchedule.startTime)}{' '}
+                      ~ {formatTime(selectedDayData.maleSchedule.endTime)}
+                    </span>
+                  )}
               </div>
-              
+
               <div className="time-picker-row">
                 <div className="time-input-group">
                   <input
@@ -717,21 +860,51 @@ export default function Schedule() {
                   />
                 </div>
               </div>
-              
+
               <div className="gender-actions">
                 {selectedDates.length === 1 ? (
                   selectedDayData?.maleSchedule ? (
                     <>
-                      <button className="action-button update small" onClick={() => handleSingleUpdate('MALE')} disabled={isPending}>수정</button>
-                      <button className="action-button delete small" onClick={() => handleSingleDelete('MALE')} disabled={isPending}>삭제</button>
+                      <button
+                        className="action-button update small"
+                        onClick={() => handleSingleUpdate('MALE')}
+                        disabled={isPending}
+                      >
+                        수정
+                      </button>
+                      <button
+                        className="action-button delete small"
+                        onClick={() => handleSingleDelete('MALE')}
+                        disabled={isPending}
+                      >
+                        삭제
+                      </button>
                     </>
                   ) : (
-                    <button className="action-button create" onClick={() => handleSingleCreate('MALE')} disabled={isPending}>생성</button>
+                    <button
+                      className="action-button create"
+                      onClick={() => handleSingleCreate('MALE')}
+                      disabled={isPending}
+                    >
+                      생성
+                    </button>
                   )
                 ) : (
                   <>
-                    <button className="action-button create small" onClick={() => handleBulkCreate('MALE')} disabled={isPending}>일괄 생성</button>
-                    <button className="action-button delete small" onClick={() => handleBulkDelete('MALE')} disabled={isPending}>일괄 삭제</button>
+                    <button
+                      className="action-button create small"
+                      onClick={() => handleBulkCreate('MALE')}
+                      disabled={isPending}
+                    >
+                      일괄 생성
+                    </button>
+                    <button
+                      className="action-button delete small"
+                      onClick={() => handleBulkDelete('MALE')}
+                      disabled={isPending}
+                    >
+                      일괄 삭제
+                    </button>
                   </>
                 )}
               </div>
@@ -741,13 +914,16 @@ export default function Schedule() {
             <div className="gender-section female">
               <div className="gender-header">
                 <span className="gender-badge female">여기숙사</span>
-                {selectedDates.length === 1 && selectedDayData?.femaleSchedule && (
-                  <span className="current-time">
-                    현재: {formatTime(selectedDayData.femaleSchedule.startTime)} ~ {formatTime(selectedDayData.femaleSchedule.endTime)}
-                  </span>
-                )}
+                {selectedDates.length === 1 &&
+                  selectedDayData?.femaleSchedule && (
+                    <span className="current-time">
+                      현재:{' '}
+                      {formatTime(selectedDayData.femaleSchedule.startTime)} ~{' '}
+                      {formatTime(selectedDayData.femaleSchedule.endTime)}
+                    </span>
+                  )}
               </div>
-              
+
               <div className="time-picker-row">
                 <div className="time-input-group">
                   <input
@@ -789,21 +965,51 @@ export default function Schedule() {
                   />
                 </div>
               </div>
-              
+
               <div className="gender-actions">
                 {selectedDates.length === 1 ? (
                   selectedDayData?.femaleSchedule ? (
                     <>
-                      <button className="action-button update small" onClick={() => handleSingleUpdate('FEMALE')} disabled={isPending}>수정</button>
-                      <button className="action-button delete small" onClick={() => handleSingleDelete('FEMALE')} disabled={isPending}>삭제</button>
+                      <button
+                        className="action-button update small"
+                        onClick={() => handleSingleUpdate('FEMALE')}
+                        disabled={isPending}
+                      >
+                        수정
+                      </button>
+                      <button
+                        className="action-button delete small"
+                        onClick={() => handleSingleDelete('FEMALE')}
+                        disabled={isPending}
+                      >
+                        삭제
+                      </button>
                     </>
                   ) : (
-                    <button className="action-button create-female" onClick={() => handleSingleCreate('FEMALE')} disabled={isPending}>생성</button>
+                    <button
+                      className="action-button create-female"
+                      onClick={() => handleSingleCreate('FEMALE')}
+                      disabled={isPending}
+                    >
+                      생성
+                    </button>
                   )
                 ) : (
                   <>
-                    <button className="action-button create-female small" onClick={() => handleBulkCreate('FEMALE')} disabled={isPending}>일괄 생성</button>
-                    <button className="action-button delete small" onClick={() => handleBulkDelete('FEMALE')} disabled={isPending}>일괄 삭제</button>
+                    <button
+                      className="action-button create-female small"
+                      onClick={() => handleBulkCreate('FEMALE')}
+                      disabled={isPending}
+                    >
+                      일괄 생성
+                    </button>
+                    <button
+                      className="action-button delete small"
+                      onClick={() => handleBulkDelete('FEMALE')}
+                      disabled={isPending}
+                    >
+                      일괄 삭제
+                    </button>
                   </>
                 )}
               </div>
@@ -811,8 +1017,8 @@ export default function Schedule() {
 
             {/* 남/여 동시 적용 */}
             {selectedDates.length > 1 && (
-              <button 
-                className="action-button apply-both" 
+              <button
+                className="action-button apply-both"
                 onClick={handleApplyBoth}
                 disabled={isPending || loadingModal.isOpen}
               >
@@ -823,7 +1029,9 @@ export default function Schedule() {
         ) : (
           <div className="no-selection">
             <p>캘린더에서 날짜를 선택해주세요.</p>
-            <p className="hint">다중 선택 모드에서 여러 날짜를 한번에 선택할 수 있습니다.</p>
+            <p className="hint">
+              다중 선택 모드에서 여러 날짜를 한번에 선택할 수 있습니다.
+            </p>
           </div>
         )}
       </div>
@@ -835,17 +1043,31 @@ export default function Schedule() {
             <div className="loading-modal-spinner"></div>
             <h3 className="loading-modal-title">{loadingModal.title}</h3>
             <div className="loading-modal-progress">
-              <div 
+              <div
                 className="loading-modal-progress-bar"
-                style={{ width: `${(loadingModal.current / loadingModal.total) * 100}%` }}
+                style={{
+                  width: `${(loadingModal.current / loadingModal.total) * 100}%`,
+                }}
               ></div>
             </div>
             <p className="loading-modal-text">
-              {loadingModal.current} / {loadingModal.total} ({Math.round((loadingModal.current / loadingModal.total) * 100)}%)
+              {loadingModal.current} / {loadingModal.total} (
+              {Math.round((loadingModal.current / loadingModal.total) * 100)}%)
             </p>
           </div>
         </div>
       )}
+
+      {/* 확인 모달 */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText={confirmModal.cancelText}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

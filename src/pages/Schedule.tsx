@@ -77,9 +77,7 @@ export default function Schedule() {
   const [femaleEndMinute, setFemaleEndMinute] = useState(DEFAULT_END_MINUTE);
 
   // 요일 선택 (월별 일괄 등록용)
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([
-    1, 2, 3, 4,
-  ]); // 월~목 기본 선택
+  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]); // 초기값: 아무것도 선택 안 함
 
   const queryClient = useQueryClient();
 
@@ -325,6 +323,19 @@ export default function Schedule() {
       .filter((d) => d.isCurrentMonth && selectedWeekdays.includes(d.dayOfWeek))
       .map((d) => d.fullDate);
     setSelectedDates(dates);
+  };
+
+  // 요일 선택 헬퍼 함수
+  const selectWeekdaysOnly = () => {
+    setSelectedWeekdays([1, 2, 3, 4]); // 월~금
+  };
+
+  const selectSundayOnly = () => {
+    setSelectedWeekdays([0]); // 일요일
+  };
+
+  const clearWeekdaySelection = () => {
+    setSelectedWeekdays([]); // 전체 해제
   };
 
   // 일괄 스케줄 생성 (병렬 처리)
@@ -777,9 +788,27 @@ export default function Schedule() {
                 </button>
               ))}
             </div>
+            <div className="weekday-quick-actions">
+              <button
+                className="weekday-quick-btn"
+                onClick={selectWeekdaysOnly}
+              >
+                평일 전체 선택
+              </button>
+              <button className="weekday-quick-btn" onClick={selectSundayOnly}>
+                일요일 선택
+              </button>
+              <button
+                className="weekday-quick-btn clear"
+                onClick={clearWeekdaySelection}
+              >
+                요일 선택 해제
+              </button>
+            </div>
             <button
               className="apply-weekday-btn"
               onClick={applyWeekdaySelection}
+              disabled={selectedWeekdays.length === 0}
             >
               해당 요일 전체 선택
             </button>

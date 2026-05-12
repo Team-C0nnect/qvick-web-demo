@@ -44,6 +44,24 @@ function StudentIcon({ className }: { className?: string }) {
   );
 }
 
+// 계정 관리 아이콘
+function AccountIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+      <path d="M16 11h6" strokeLinecap="round" />
+      <path d="M19 8v6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function Sidebar() {
   // 사용자 정보 조회
   const { data: user } = useQuery<MyUserResponse>({
@@ -62,13 +80,13 @@ export default function Sidebar() {
     { path: '/notice', label: '공지사항', icon: 'notice' },
     { path: '/schedule', label: '일정 관리', icon: 'schedule' },
     { path: '/room', label: '방 관리', icon: 'room' },
-    { path: '/student-management', label: '학생 관리', icon: 'student' },
     { path: '/teacher-patchnote', label: '패치노트', icon: 'patchnote' },
   ];
 
   const adminMenuItems = [
     { path: '/admin/patchnote', label: '패치노트 관리', icon: 'patchnote' },
     { path: '/admin/inquiry', label: '문의 관리', icon: 'inquiry' },
+    { path: '/admin/account-management', label: '계정 관리', icon: 'account' },
   ];
 
   const getIcon = (iconType: string) => {
@@ -85,6 +103,8 @@ export default function Sidebar() {
         return <RoomIcon className="menu-icon" />;
       case 'student':
         return <StudentIcon className="menu-icon" />;
+      case 'account':
+        return <AccountIcon className="menu-icon" />;
       case 'patchnote':
         return <PatchNoteIcon className="menu-icon" />;
       case 'inquiry':

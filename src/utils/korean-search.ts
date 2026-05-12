@@ -116,6 +116,23 @@ const ENGLISH_TO_KOREAN_KEY: Record<string, string> = {
   P: 'ㅖ',
 };
 
+const COMPOUND_VOWEL_MAP: Record<string, string> = {
+  'ㅗㅏ': 'ㅘ',
+  'ㅗㅐ': 'ㅙ',
+  'ㅗㅣ': 'ㅚ',
+  'ㅜㅓ': 'ㅝ',
+  'ㅜㅔ': 'ㅞ',
+  'ㅜㅣ': 'ㅟ',
+  'ㅡㅣ': 'ㅢ',
+};
+
+const EXPANDED_VOWEL_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(COMPOUND_VOWEL_MAP).map(([expanded, compound]) => [
+    compound,
+    expanded,
+  ]),
+);
+
 const choIndexMap = new Map<string, number>(
   CHO_LIST.map((value, index) => [value, index]),
 );
@@ -157,27 +174,35 @@ const decomposeHangul = (value: string) => {
     .join('');
 };
 
+const expandCompoundVowels = (value: string) => {
+  return [...value].map((char) => EXPANDED_VOWEL_MAP[char] ?? char).join('');
+};
+
 const composeCompatibilityJamo = (value: string) => {
   const chars = [...value];
   let result = '';
 
   for (let index = 0; index < chars.length; index += 1) {
     const choIndex = choIndexMap.get(chars[index]);
-    const jungIndex = jungIndexMap.get(chars[index + 1]);
+    const firstJung = chars[index + 1];
+    const compoundJung = COMPOUND_VOWEL_MAP[`${firstJung}${chars[index + 2]}`];
+    const jung = compoundJung ?? firstJung;
+    const jungIndex = jungIndexMap.get(jung);
 
     if (choIndex === undefined || jungIndex === undefined) {
       result += chars[index];
       continue;
     }
 
-    const nextJongIndex = jongIndexMap.get(chars[index + 2]);
-    const nextNextIsVowel = jungIndexMap.has(chars[index + 3]);
+    const nextIndex = index + (compoundJung ? 3 : 2);
+    const nextJongIndex = jongIndexMap.get(chars[nextIndex]);
+    const nextNextIsVowel = jungIndexMap.has(chars[nextIndex + 1]);
     const jongIndex = nextJongIndex && !nextNextIsVowel ? nextJongIndex : 0;
 
     result += String.fromCharCode(
       HANGUL_BASE + (choIndex * JUNG_COUNT + jungIndex) * JONG_COUNT + jongIndex,
     );
-    index += jongIndex > 0 ? 2 : 1;
+    index = nextIndex + (jongIndex > 0 ? 1 : 0) - 1;
   }
 
   return result;
@@ -187,17 +212,25 @@ const createSearchKeys = (value: string) => {
   const normalized = normalizeSearchText(value);
   const keyboardConverted = convertEnglishKeyboardMistype(value);
   const composed = normalizeSearchText(composeCompatibilityJamo(normalized));
+  const decomposed = decomposeHangul(composed);
+  const expandedDecomposed = expandCompoundVowels(decomposed);
   const composedKeyboardConverted = normalizeSearchText(
     composeCompatibilityJamo(keyboardConverted),
+  );
+  const decomposedKeyboardConverted = decomposeHangul(composedKeyboardConverted);
+  const expandedKeyboardConverted = expandCompoundVowels(
+    decomposedKeyboardConverted,
   );
 
   return [
     normalized,
     composed,
-    decomposeHangul(composed),
+    decomposed,
+    expandedDecomposed,
     normalizeSearchText(keyboardConverted),
     composedKeyboardConverted,
-    decomposeHangul(composedKeyboardConverted),
+    decomposedKeyboardConverted,
+    expandedKeyboardConverted,
   ].filter(Boolean);
 };
 

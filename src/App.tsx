@@ -68,7 +68,6 @@ function App() {
             <Route path="notice/:id" element={<NoticeDetail />} />
             <Route path="schedule" element={<Schedule />} />
             <Route path="room" element={<Room />} />
-            <Route path="student-management" element={<StudentManagement />} />
             {/* Teacher 전용 패치노트 페이지 */}
             <Route path="teacher-patchnote" element={<TeacherPatchNote />} />
             <Route
@@ -78,6 +77,10 @@ function App() {
             {/* Admin 전용 페이지 */}
             <Route path="admin/patchnote" element={<PatchNoteAdmin />} />
             <Route path="admin/inquiry" element={<InquiryAdmin />} />
+            <Route
+              path="admin/account-management"
+              element={<StudentManagement />}
+            />
           </Route>
         </Routes>
       </DemoProvider>

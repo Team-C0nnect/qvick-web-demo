@@ -406,7 +406,9 @@ export default function StudentManagement() {
               ) : (
                 filteredStudents.map((student) => (
                   <tr key={student.id} className="student-row">
-                    <td>{student.id}</td>
+                    <td>
+                      <span className="spoiler-number">{student.id}</span>
+                    </td>
                     <td>{student.name}</td>
                     <td className="grade-classroom-number">{student.grade}</td>
                     <td className="grade-classroom-number">

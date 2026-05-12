@@ -1,31 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { studentService } from '../services/student.service';
+import { authService } from '../services/auth.service';
+import apiClient from '../lib/api-client';
 import { SearchIcon } from '../components/Icons';
+import DeleteStudentModal from '../components/DeleteStudentModal';
+import type { MyUserResponse } from '../types/api';
+import type {
+  Student,
+  StudentWithPhone,
+  SortColumn,
+  SortDirection,
+} from '../types/student-management';
 import '../styles/StudentManagement.css';
-
-interface Student {
-  id: number;
-  name: string;
-  grade: number;
-  classroom: number;
-  number: number;
-  room: string;
-  gender: 'MALE' | 'FEMALE';
-}
-
-interface StudentWithPhone extends Student {
-  phoneNumber?: string;
-}
-
-interface DeleteModalState {
-  student: Student | null;
-  password: string;
-  error: string;
-}
-
-type SortColumn = 'id' | 'name' | 'grade' | 'classroom' | 'number' | 'gender';
-type SortDirection = 'asc' | 'desc';
 
 export default function StudentManagement() {
   const queryClient = useQueryClient();
@@ -36,16 +23,26 @@ export default function StudentManagement() {
     '전체',
   );
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
-  const [deleteModal, setDeleteModal] = useState<DeleteModalState>({
-    student: null,
+  const [deleteModal, setDeleteModal] = useState({
+    student: null as Student | null,
     password: '',
+    confirmName: '',
     error: '',
   });
+  const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
 
   // 학생 목록 조회
   const { data: studentsData, isLoading } = useQuery({
     queryKey: ['students-all'],
     queryFn: () => studentService.getStudents({ page: 0, size: 1000 }),
+  });
+
+  const { data: user } = useQuery<MyUserResponse>({
+    queryKey: ['user', 'me'],
+    queryFn: async () => {
+      const response = await apiClient.get<MyUserResponse>('/users/my');
+      return response.data;
+    },
   });
 
   const allStudents = (studentsData?.content || []) as StudentWithPhone[];
@@ -57,7 +54,12 @@ export default function StudentManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students-all'] });
-      setDeleteModal({ student: null, password: '', error: '' });
+      setDeleteModal({
+        student: null,
+        password: '',
+        confirmName: '',
+        error: '',
+      });
     },
     onError: (error: Error) => {
       console.error('Delete student error:', error);
@@ -166,6 +168,7 @@ export default function StudentManagement() {
     setDeleteModal({
       student,
       password: '',
+      confirmName: '',
       error: '',
     });
   };
@@ -174,6 +177,14 @@ export default function StudentManagement() {
     setDeleteModal((prev) => ({
       ...prev,
       password,
+      error: '', // 입력 시 에러 초기화
+    }));
+  };
+
+  const handleConfirmNameChange = (confirmName: string) => {
+    setDeleteModal((prev) => ({
+      ...prev,
+      confirmName,
       error: '', // 입력 시 에러 초기화
     }));
   };
@@ -194,6 +205,23 @@ export default function StudentManagement() {
   const handleConfirmDelete = async () => {
     if (!deleteModal.student) return;
 
+    // 학생 이름 확인
+    if (!deleteModal.confirmName) {
+      setDeleteModal((prev) => ({
+        ...prev,
+        error: '학생 이름을 입력해주세요.',
+      }));
+      return;
+    }
+
+    if (deleteModal.confirmName !== deleteModal.student.name) {
+      setDeleteModal((prev) => ({
+        ...prev,
+        error: `학생 이름이 일치하지 않습니다. (입력: ${deleteModal.confirmName}, 실제: ${deleteModal.student!.name})`,
+      }));
+      return;
+    }
+
     if (!deleteModal.password) {
       setDeleteModal((prev) => ({
         ...prev,
@@ -202,20 +230,35 @@ export default function StudentManagement() {
       return;
     }
 
-    // 비밀번호 검증
-    if (deleteModal.password !== 'qvick2026!!') {
+    if (!user?.email) {
       setDeleteModal((prev) => ({
         ...prev,
-        error: '비밀번호가 올바르지 않습니다.',
+        error: '현재 로그인 정보를 확인할 수 없습니다. 다시 로그인해주세요.',
       }));
       return;
     }
 
-    deleteMutation.mutate(deleteModal.student.id);
+    setIsVerifyingPassword(true);
+
+    try {
+      await authService.verifyPassword({
+        email: user.email,
+        password: deleteModal.password,
+      });
+      await deleteMutation.mutateAsync(deleteModal.student.id);
+    } catch (error) {
+      console.error('Verify password or delete student error:', error);
+      setDeleteModal((prev) => ({
+        ...prev,
+        error: '로그인 비밀번호가 올바르지 않거나 학생 삭제에 실패했습니다.',
+      }));
+    } finally {
+      setIsVerifyingPassword(false);
+    }
   };
 
   const handleCloseDeleteModal = () => {
-    setDeleteModal({ student: null, password: '', error: '' });
+    setDeleteModal({ student: null, password: '', confirmName: '', error: '' });
   };
 
   const handleSort = (column: SortColumn) => {
@@ -392,15 +435,9 @@ export default function StudentManagement() {
                 <th></th>
               </tr>
             </thead>
-            <tbody>
-              {filteredStudents.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="empty-state">
-                    해당하는 학생이 없습니다.
-                  </td>
-                </tr>
-              ) : (
-                filteredStudents.map((student) => (
+            {filteredStudents.length > 0 && (
+              <tbody>
+                {filteredStudents.map((student) => (
                   <tr key={student.id} className="student-row">
                     <td>
                       <span className="spoiler-number">{student.id}</span>
@@ -417,16 +454,19 @@ export default function StudentManagement() {
                       <button
                         className="delete-student-btn"
                         onClick={() => handleDeleteClick(student)}
-                        disabled={deleteMutation.isPending}
+                        disabled={deleteMutation.isPending || isVerifyingPassword}
                       >
                         삭제
                       </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
+                ))}
+              </tbody>
+            )}
           </table>
+          {filteredStudents.length === 0 && (
+            <div className="empty-table-state">해당하는 학생이 없습니다.</div>
+          )}
         </div>
 
         <div className="student-count">
@@ -436,88 +476,14 @@ export default function StudentManagement() {
 
       {/* 삭제 확인 모달 */}
       {deleteModal.student && (
-        <div className="modal-overlay" onClick={handleCloseDeleteModal}>
-          <div
-            className="modal-container delete-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-header">
-              <h2 className="modal-title">학생 계정 삭제</h2>
-              <button
-                type="button"
-                className="modal-close-button"
-                onClick={handleCloseDeleteModal}
-                aria-label="모달 닫기"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="delete-modal-content">
-              <p className="delete-warning">다음 학생을 삭제하시겠습니까?</p>
-              <div className="student-info-card">
-                <div className="info-row">
-                  <span className="info-label">이름</span>
-                  <span className="info-value">{deleteModal.student.name}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">학년/반/번호</span>
-                  <span className="info-value">
-                    {deleteModal.student.grade}학년{' '}
-                    {deleteModal.student.classroom}반{' '}
-                    {deleteModal.student.number}번
-                  </span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">성별</span>
-                  <span className="info-value">
-                    {deleteModal.student.gender === 'MALE' ? '남' : '여'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="password-section">
-                <label htmlFor="delete-password" className="password-label">
-                  비밀번호 입력 (확인)
-                </label>
-                <input
-                  id="delete-password"
-                  type="password"
-                  placeholder="비밀번호를 입력해주세요"
-                  value={deleteModal.password}
-                  onChange={(e) => handlePasswordChange(e.target.value)}
-                  className="password-input"
-                  disabled={deleteMutation.isPending}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleConfirmDelete();
-                    }
-                  }}
-                />
-                {deleteModal.error && (
-                  <div className="error-message">{deleteModal.error}</div>
-                )}
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button
-                className="modal-btn cancel-btn"
-                onClick={handleCloseDeleteModal}
-                disabled={deleteMutation.isPending}
-              >
-                취소
-              </button>
-              <button
-                className="modal-btn delete-btn"
-                onClick={handleConfirmDelete}
-                disabled={deleteMutation.isPending || !deleteModal.password}
-              >
-                {deleteMutation.isPending ? '삭제 중...' : '삭제'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteStudentModal
+          deleteModal={deleteModal}
+          isPending={deleteMutation.isPending || isVerifyingPassword}
+          onConfirmNameChange={handleConfirmNameChange}
+          onPasswordChange={handlePasswordChange}
+          onConfirmDelete={handleConfirmDelete}
+          onClose={handleCloseDeleteModal}
+        />
       )}
     </div>
   );

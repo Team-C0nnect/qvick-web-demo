@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { studentService } from '../services/student.service';
-import Header from '../components/Header';
 import { SearchIcon } from '../components/Icons';
 import '../styles/StudentManagement.css';
 
@@ -239,7 +238,6 @@ export default function StudentManagement() {
   if (isLoading) {
     return (
       <div className="student-management">
-        <Header />
         <div className="loading">로딩 중...</div>
       </div>
     );
@@ -247,8 +245,6 @@ export default function StudentManagement() {
 
   return (
     <div className="student-management">
-      <Header />
-
       <div className="student-management-container">
         {/* 검색 섹션 */}
         <div className="toolbar-section">

@@ -14,6 +14,10 @@ export const authService = {
     return response.data;
   },
 
+  verifyPassword: async (data: LoginRequest): Promise<void> => {
+    await apiClient.post<JwtPayload>('/auth/login', data);
+  },
+
   reissue: async (data: ReissueRequest): Promise<JwtPayload> => {
     const response = await apiClient.post<JwtPayload>('/auth/reissue', data);
     return response.data;

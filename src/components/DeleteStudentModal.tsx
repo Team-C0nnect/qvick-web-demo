@@ -115,9 +115,7 @@ export default function DeleteStudentModal({
             className="modal-btn delete-btn"
             onClick={onConfirmDelete}
             disabled={
-              isPending ||
-              !deleteModal.password ||
-              !deleteModal.confirmName
+              isPending || !deleteModal.password || !deleteModal.confirmName
             }
           >
             {isPending ? '확인 중...' : '계정 삭제'}

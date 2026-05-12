@@ -25,9 +25,14 @@ interface DeleteModalState {
   error: string;
 }
 
+type SortColumn = 'id' | 'name' | 'grade' | 'classroom' | 'number' | 'gender';
+type SortDirection = 'asc' | 'desc';
+
 export default function StudentManagement() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(
     '전체',
   );
@@ -64,19 +69,65 @@ export default function StudentManagement() {
     },
   });
 
-  // Get sorted students - 학년, 반, 번호 순서로 정렬 (고정)
+  // Get sorted students - 선택된 칼럼으로 정렬
   const getSortedStudents = () => {
     return [...allStudents].sort((a, b) => {
-      // 학년으로 정렬
-      if (a.grade !== b.grade) {
-        return a.grade - b.grade;
+      // sortColumn이 null이면 기본 정렬: 학년 → 반 → 번호
+      if (sortColumn === null) {
+        if (a.grade !== b.grade) {
+          return a.grade - b.grade;
+        }
+        if (a.classroom !== b.classroom) {
+          return a.classroom - b.classroom;
+        }
+        return a.number - b.number;
       }
-      // 같은 학년이면 반으로 정렬
-      if (a.classroom !== b.classroom) {
-        return a.classroom - b.classroom;
+
+      let compareA: number | string = '';
+      let compareB: number | string = '';
+
+      switch (sortColumn) {
+        case 'id':
+          compareA = a.id;
+          compareB = b.id;
+          break;
+        case 'name':
+          compareA = a.name;
+          compareB = b.name;
+          break;
+        case 'grade':
+          compareA = a.grade;
+          compareB = b.grade;
+          break;
+        case 'classroom':
+          compareA = a.classroom;
+          compareB = b.classroom;
+          break;
+        case 'number':
+          compareA = a.number;
+          compareB = b.number;
+          break;
+        case 'gender':
+          compareA = a.gender;
+          compareB = b.gender;
+          break;
+        default:
+          return 0;
       }
-      // 같은 반이면 번호로 정렬
-      return a.number - b.number;
+
+      if (typeof compareA === 'number' && typeof compareB === 'number') {
+        return sortDirection === 'asc'
+          ? compareA - compareB
+          : compareB - compareA;
+      }
+
+      const strA = String(compareA).toLowerCase();
+      const strB = String(compareB).toLowerCase();
+      if (sortDirection === 'asc') {
+        return strA.localeCompare(strB, 'ko-KR');
+      } else {
+        return strB.localeCompare(strA, 'ko-KR');
+      }
     });
   };
 
@@ -166,6 +217,23 @@ export default function StudentManagement() {
 
   const handleCloseDeleteModal = () => {
     setDeleteModal({ student: null, password: '', error: '' });
+  };
+
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      if (sortDirection === 'asc') {
+        // 아래 누르면 desc로 변경
+        setSortDirection('desc');
+      } else {
+        // desc 누르면 초기 상태로 (학년→반→번호 정렬)
+        setSortColumn(null);
+        setSortDirection('asc');
+      }
+    } else {
+      // 다른 컬럼을 누르면 그 컬럼으로 정렬 (asc)
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
   };
 
   if (isLoading) {
@@ -258,12 +326,72 @@ export default function StudentManagement() {
           <table className="student-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>이름</th>
-                <th className="grade-header">학년</th>
-                <th>반</th>
-                <th>번호</th>
-                <th>성별</th>
+                <th
+                  onClick={() => handleSort('id')}
+                  className={`sortable ${sortColumn === 'id' ? 'active' : ''}`}
+                >
+                  ID
+                  {sortColumn === 'id' && (
+                    <span className="sort-indicator">
+                      {sortDirection === 'asc' ? '▲' : '▼'}
+                    </span>
+                  )}
+                </th>
+                <th
+                  onClick={() => handleSort('name')}
+                  className={`sortable ${sortColumn === 'name' ? 'active' : ''}`}
+                >
+                  이름
+                  {sortColumn === 'name' && (
+                    <span className="sort-indicator">
+                      {sortDirection === 'asc' ? '▲' : '▼'}
+                    </span>
+                  )}
+                </th>
+                <th
+                  onClick={() => handleSort('grade')}
+                  className={`sortable ${sortColumn === 'grade' ? 'active' : ''}`}
+                >
+                  학년
+                  {sortColumn === 'grade' && (
+                    <span className="sort-indicator">
+                      {sortDirection === 'asc' ? '▲' : '▼'}
+                    </span>
+                  )}
+                </th>
+                <th
+                  onClick={() => handleSort('classroom')}
+                  className={`sortable ${sortColumn === 'classroom' ? 'active' : ''}`}
+                >
+                  반
+                  {sortColumn === 'classroom' && (
+                    <span className="sort-indicator">
+                      {sortDirection === 'asc' ? '▲' : '▼'}
+                    </span>
+                  )}
+                </th>
+                <th
+                  onClick={() => handleSort('number')}
+                  className={`sortable ${sortColumn === 'number' ? 'active' : ''}`}
+                >
+                  번호
+                  {sortColumn === 'number' && (
+                    <span className="sort-indicator">
+                      {sortDirection === 'asc' ? '▲' : '▼'}
+                    </span>
+                  )}
+                </th>
+                <th
+                  onClick={() => handleSort('gender')}
+                  className={`sortable ${sortColumn === 'gender' ? 'active' : ''}`}
+                >
+                  성별
+                  {sortColumn === 'gender' && (
+                    <span className="sort-indicator">
+                      {sortDirection === 'asc' ? '▲' : '▼'}
+                    </span>
+                  )}
+                </th>
                 <th>전화번호</th>
                 <th></th>
               </tr>

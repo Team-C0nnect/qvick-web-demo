@@ -146,6 +146,11 @@
   background-color: #f3f4f6;
 }
 
+.student-table th.sortable.active {
+  background-color: #e0e7ff;
+  color: #3b82f6;
+}
+
 .sort-indicator {
   margin-left: 0.5rem;
   font-size: 0.75rem;

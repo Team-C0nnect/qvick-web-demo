@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { studentService } from '../services/student.service';
 import { authService } from '../services/auth.service';
 import apiClient from '../lib/api-client';
+import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { SearchIcon } from '../components/Icons';
 import DeleteStudentModal from '../components/DeleteStudentModal';
 import type { MyUserResponse } from '../types/api';
@@ -138,11 +139,11 @@ export default function StudentManagement() {
   const getFilteredStudents = () => {
     return sortedStudents.filter((student) => {
       // Search query filter
-      if (searchTerm) {
-        const query = searchTerm.toLowerCase();
-        if (!student.name.toLowerCase().includes(query)) {
-          return false;
-        }
+      if (
+        searchTerm.trim() &&
+        !matchesKoreanNameSearch(student.name, searchTerm)
+      ) {
+        return false;
       }
 
       // Gender filter

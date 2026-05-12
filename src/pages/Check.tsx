@@ -4,6 +4,7 @@ import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
 import { scheduleService } from '../services/schedule.service';
+import { matchesKoreanNameSearch } from '../utils/korean-search';
 import {
   exportMergedAttendanceToExcel,
   type MergedAttendanceMember,
@@ -482,10 +483,10 @@ export default function Check() {
   const getFilteredStudents = () => {
     return sortedStudents.filter((student) => {
       // Search query filter
-      if (searchQuery) {
+      if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         if (
-          !student.name.toLowerCase().includes(query) &&
+          !matchesKoreanNameSearch(student.name, searchQuery) &&
           !student.room.toLowerCase().includes(query)
         ) {
           return false;

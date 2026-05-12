@@ -442,7 +442,7 @@ export default function StudentManagement() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="modal-header">
-              <h2 className="modal-title">학생 삭제</h2>
+              <h2 className="modal-title">학생 계정 삭제</h2>
               <button
                 type="button"
                 className="modal-close-button"

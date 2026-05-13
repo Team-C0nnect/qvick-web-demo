@@ -3,11 +3,13 @@
   padding: 32px 40px;
   display: flex;
   gap: 24px;
+  width: 100%;
+  align-items: flex-start;
 }
 
 .calendar-container {
-  flex: 1;
-  max-width: 760px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .calendar-header {
@@ -260,7 +262,8 @@
 
 /* Scheduler Panel */
 .scheduler-panel {
-  width: 320px;
+  width: clamp(320px, 26vw, 380px);
+  flex-shrink: 0;
   background: #ffffff;
   border-radius: 12px;
   padding: 24px;

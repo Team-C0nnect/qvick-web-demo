@@ -34,9 +34,6 @@ export default function Schedule() {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [selectionMode, setSelectionMode] = useState<
-    'single' | 'multi' | 'weekday'
-  >('single');
 
   // 로딩 모달 상태
   const [loadingModal, setLoadingModal] = useState<{
@@ -230,45 +227,55 @@ export default function Schedule() {
     );
   }, [selectedDates, calendarDays]);
 
+  const applyDayScheduleTime = (day: CalendarDay) => {
+    // 기존 스케줄이 있으면 해당 시간으로 설정
+    if (day.maleSchedule) {
+      const [sh, sm] = day.maleSchedule.startTime.split(':');
+      const [eh, em] = day.maleSchedule.endTime.split(':');
+      setMaleStartHour(sh);
+      setMaleStartMinute(sm);
+      setMaleEndHour(eh);
+      setMaleEndMinute(em);
+    } else {
+      resetMaleTime();
+    }
+
+    if (day.femaleSchedule) {
+      const [sh, sm] = day.femaleSchedule.startTime.split(':');
+      const [eh, em] = day.femaleSchedule.endTime.split(':');
+      setFemaleStartHour(sh);
+      setFemaleStartMinute(sm);
+      setFemaleEndHour(eh);
+      setFemaleEndMinute(em);
+    } else {
+      resetFemaleTime();
+    }
+  };
+
   // 날짜 클릭 핸들러
   const handleDateClick = (day: CalendarDay) => {
     if (!day.isCurrentMonth) return;
 
-    if (selectionMode === 'single') {
-      setSelectedDates([day.fullDate]);
-
-      // 기존 스케줄이 있으면 해당 시간으로 설정
-      if (day.maleSchedule) {
-        const [sh, sm] = day.maleSchedule.startTime.split(':');
-        const [eh, em] = day.maleSchedule.endTime.split(':');
-        setMaleStartHour(sh);
-        setMaleStartMinute(sm);
-        setMaleEndHour(eh);
-        setMaleEndMinute(em);
-      } else {
-        resetMaleTime();
-      }
-
-      if (day.femaleSchedule) {
-        const [sh, sm] = day.femaleSchedule.startTime.split(':');
-        const [eh, em] = day.femaleSchedule.endTime.split(':');
-        setFemaleStartHour(sh);
-        setFemaleStartMinute(sm);
-        setFemaleEndHour(eh);
-        setFemaleEndMinute(em);
-      } else {
-        resetFemaleTime();
-      }
-    } else if (selectionMode === 'multi') {
-      // 다중 선택 모드
-      setSelectedDates((prev) => {
-        if (prev.includes(day.fullDate)) {
-          return prev.filter((d) => d !== day.fullDate);
-        } else {
-          return [...prev, day.fullDate];
+    setSelectedDates((prev) => {
+      if (prev.includes(day.fullDate)) {
+        const nextDates = prev.filter((date) => date !== day.fullDate);
+        if (nextDates.length === 1) {
+          const remainingDay = calendarDays.find(
+            (calendarDay) => calendarDay.fullDate === nextDates[0],
+          );
+          if (remainingDay) {
+            applyDayScheduleTime(remainingDay);
+          }
         }
-      });
-    }
+        return nextDates;
+      }
+
+      const nextDates = [...prev, day.fullDate];
+      if (nextDates.length === 1) {
+        applyDayScheduleTime(day);
+      }
+      return nextDates;
+    });
   };
 
   // 시간 초기화 함수
@@ -730,78 +737,56 @@ export default function Schedule() {
 
       {/* Scheduler Panel */}
       <div className="scheduler-panel">
-        {/* 선택 모드 */}
-        <div className="mode-selector">
+        {/* 선택 도구 */}
+        <div className="selection-tools">
+          <div className="selection-summary">
+            <span className="selection-summary-label">날짜 선택</span>
+            <span className="selection-summary-value">
+              {selectedDates.length}일
+            </span>
+          </div>
           <button
-            className={`mode-btn ${selectionMode === 'single' ? 'active' : ''}`}
-            onClick={() => {
-              setSelectionMode('single');
-              setSelectedDates([]);
-            }}
+            className="selection-tool-btn"
+            onClick={() => setSelectedDates([])}
+            disabled={selectedDates.length === 0}
           >
-            단일 선택
-          </button>
-          <button
-            className={`mode-btn ${selectionMode === 'multi' ? 'active' : ''}`}
-            onClick={() => {
-              setSelectionMode('multi');
-              setSelectedDates([]);
-            }}
-          >
-            다중 선택
-          </button>
-          <button
-            className={`mode-btn ${selectionMode === 'weekday' ? 'active' : ''}`}
-            onClick={() => {
-              setSelectionMode('weekday');
-              setSelectedDates([]);
-            }}
-          >
-            요일별 선택
+            선택 해제
           </button>
         </div>
 
-        {/* 요일별 선택 모드 */}
-        {selectionMode === 'weekday' && (
-          <div className="weekday-selector">
-            <p className="section-label">요일 선택</p>
-            <div className="weekday-buttons">
-              {days.map((day, index) => (
-                <button
-                  key={day}
-                  className={`weekday-btn ${selectedWeekdays.includes(index) ? 'active' : ''} ${index === 0 ? 'sunday' : ''} ${index === 6 ? 'saturday' : ''}`}
-                  onClick={() => toggleWeekday(index)}
-                >
-                  {day}
-                </button>
-              ))}
-            </div>
-            <div className="weekday-quick-actions">
+        {/* 요일별 선택 도구 */}
+        <div className="weekday-selector">
+          <p className="section-label">요일 선택</p>
+          <div className="weekday-buttons">
+            {days.map((day, index) => (
               <button
-                className="weekday-quick-btn"
-                onClick={selectWeekdaysOnly}
+                key={day}
+                className={`weekday-btn ${selectedWeekdays.includes(index) ? 'active' : ''} ${index === 0 ? 'sunday' : ''} ${index === 6 ? 'saturday' : ''}`}
+                onClick={() => toggleWeekday(index)}
               >
-                평일 전체 선택
+                {day}
               </button>
-              <button className="weekday-quick-btn" onClick={selectSundayOnly}>
-                일요일 선택
-              </button>
-            </div>
-            <button
-              className="apply-weekday-btn"
-              onClick={applyWeekdaySelection}
-              disabled={selectedWeekdays.length === 0}
-            >
-              해당 요일 전체 선택
+            ))}
+          </div>
+          <div className="weekday-quick-actions">
+            <button className="weekday-quick-btn" onClick={selectWeekdaysOnly}>
+              평일 전체 선택
             </button>
-            <button
-              className="clear-weekday-btn"
-              onClick={clearWeekdaySelection}
-            >
-              요일 선택 해제
+            <button className="weekday-quick-btn" onClick={selectSundayOnly}>
+              일요일 선택
             </button>
           </div>
-        )}
+          <button
+            className="apply-weekday-btn"
+            onClick={applyWeekdaySelection}
+            disabled={selectedWeekdays.length === 0}
+          >
+            해당 요일 전체 선택
+          </button>
+          <button className="clear-weekday-btn" onClick={clearWeekdaySelection}>
+            요일 선택 해제
+          </button>
+        </div>
 
         {selectedDates.length > 0 ? (
           <>
@@ -1035,7 +1020,7 @@ export default function Schedule() {
           <div className="no-selection">
             <p>캘린더에서 날짜를 선택해주세요.</p>
             <p className="hint">
-              다중 선택 모드에서 여러 날짜를 한번에 선택할 수 있습니다.
+              날짜를 다시 클릭하면 선택을 해제할 수 있습니다.
             </p>
           </div>
         )}

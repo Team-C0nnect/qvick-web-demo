@@ -373,13 +373,18 @@ export default function Check() {
 
         // 출석 기록의 실제 날짜(att.date)를 기준으로 스케줄 조회
         const dateSchedules = scheduleCache.get(att.date);
+        const canUseCurrentScheduleFallback = att.date === currentDate;
         let endTime: string | undefined;
         if (student.gender === 'MALE') {
           endTime =
-            dateSchedules?.maleSchedule?.endTime ?? maleSchedule?.endTime;
+            dateSchedules?.maleSchedule?.endTime ??
+            (canUseCurrentScheduleFallback ? maleSchedule?.endTime : undefined);
         } else {
           endTime =
-            dateSchedules?.femaleSchedule?.endTime ?? femaleSchedule?.endTime;
+            dateSchedules?.femaleSchedule?.endTime ??
+            (canUseCurrentScheduleFallback
+              ? femaleSchedule?.endTime
+              : undefined);
         }
 
         const isCheckedAttendance = isPresent || isLate || Boolean(att.checkedAt);

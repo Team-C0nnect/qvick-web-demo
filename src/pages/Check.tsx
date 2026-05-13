@@ -273,26 +273,15 @@ export default function Check() {
     return checkedMinutes > endMinutes;
   };
 
-  // 스케줄 데이터 로깅
-  useEffect(() => {
-    console.log('[Schedule Debug]', {
-      currentDate,
-      maleSchedule,
-      femaleSchedule,
-    });
-  }, [currentDate, maleSchedule, femaleSchedule]);
-
   // 출석 데이터의 각 날짜별 스케줄을 로드
   useEffect(() => {
     if (!attendancesData || attendancesData.length === 0) return;
 
     // 고유한 날짜들 추출
     const uniqueDates = [...new Set(attendancesData.map((att) => att.date))];
-    console.log('[Schedule Load] uniqueDates:', uniqueDates);
 
     // 이미 로드된 날짜는 스킵
     const datesToLoad = uniqueDates.filter((date) => !scheduleCache.has(date));
-    console.log('[Schedule Load] datesToLoad:', datesToLoad);
 
     if (datesToLoad.length === 0) return;
 
@@ -302,7 +291,6 @@ export default function Check() {
         scheduleService
           .getScheduleByDate(date, 'MALE')
           .then((schedule) => {
-            console.log(`[Schedule Loaded] ${date} MALE:`, schedule);
             return { date, gender: 'MALE', schedule };
           })
           .catch((err) => {
@@ -312,7 +300,6 @@ export default function Check() {
         scheduleService
           .getScheduleByDate(date, 'FEMALE')
           .then((schedule) => {
-            console.log(`[Schedule Loaded] ${date} FEMALE:`, schedule);
             return { date, gender: 'FEMALE', schedule };
           })
           .catch((err) => {
@@ -336,7 +323,6 @@ export default function Check() {
       });
 
       setScheduleCache(newCache);
-      console.log('[Schedule Cache Updated]', newCache);
     });
   }, [attendancesData, scheduleCache]);
 
@@ -389,18 +375,6 @@ export default function Check() {
 
         const isCheckedAttendance = isPresent || isLate || Boolean(att.checkedAt);
         const isLateBySchedule = isLateAttendance(checkedTime, endTime);
-
-        if (isCheckedAttendance) {
-          console.log('[Attendance Check]', {
-            name: student.name,
-            status: att.status,
-            attDate: att.date,
-            currentDate,
-            checkedTime,
-            endTime,
-            isLate: isLate || isLateBySchedule,
-          });
-        }
 
         let displayStatus: '출석' | '미출석' | '외박' | '지연출석' = '미출석';
         if (isOvernight) {

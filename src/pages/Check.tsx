@@ -258,9 +258,9 @@ export default function Check() {
   ): boolean => {
     if (!checkedTime || checkedTime === '-' || !endTime) return false;
 
-    // HH:MM 형식 추출 (SS는 무시)
-    const checkedMatch = checkedTime.match(/^(\d{2}):(\d{2})/);
-    const endMatch = endTime.match(/^(\d{2}):(\d{2})/);
+    // H:MM, HH:MM, HH:MM:SS 형식 모두 허용
+    const checkedMatch = checkedTime.match(/^(\d{1,2}):(\d{2})/);
+    const endMatch = endTime.match(/^(\d{1,2}):(\d{2})/);
 
     if (!checkedMatch || !endMatch) return false;
 
@@ -273,26 +273,15 @@ export default function Check() {
     return checkedMinutes > endMinutes;
   };
 
-  // 스케줄 데이터 로깅
-  useEffect(() => {
-    console.log('[Schedule Debug]', {
-      currentDate,
-      maleSchedule,
-      femaleSchedule,
-    });
-  }, [currentDate, maleSchedule, femaleSchedule]);
-
   // 출석 데이터의 각 날짜별 스케줄을 로드
   useEffect(() => {
     if (!attendancesData || attendancesData.length === 0) return;
 
     // 고유한 날짜들 추출
     const uniqueDates = [...new Set(attendancesData.map((att) => att.date))];
-    console.log('[Schedule Load] uniqueDates:', uniqueDates);
 
     // 이미 로드된 날짜는 스킵
     const datesToLoad = uniqueDates.filter((date) => !scheduleCache.has(date));
-    console.log('[Schedule Load] datesToLoad:', datesToLoad);
 
     if (datesToLoad.length === 0) return;
 
@@ -302,7 +291,6 @@ export default function Check() {
         scheduleService
           .getScheduleByDate(date, 'MALE')
           .then((schedule) => {
-            console.log(`[Schedule Loaded] ${date} MALE:`, schedule);
             return { date, gender: 'MALE', schedule };
           })
           .catch((err) => {
@@ -312,7 +300,6 @@ export default function Check() {
         scheduleService
           .getScheduleByDate(date, 'FEMALE')
           .then((schedule) => {
-            console.log(`[Schedule Loaded] ${date} FEMALE:`, schedule);
             return { date, gender: 'FEMALE', schedule };
           })
           .catch((err) => {
@@ -336,7 +323,6 @@ export default function Check() {
       });
 
       setScheduleCache(newCache);
-      console.log('[Schedule Cache Updated]', newCache);
     });
   }, [attendancesData, scheduleCache]);
 
@@ -361,6 +347,7 @@ export default function Check() {
 
         const isOvernight = att.status === 'SLEEPOVER';
         const isPresent = att.status === 'PRESENT';
+        const isLate = att.status === 'LATE';
 
         let checkedTime = '-';
         if (att.checkedAt) {
@@ -372,30 +359,29 @@ export default function Check() {
 
         // 출석 기록의 실제 날짜(att.date)를 기준으로 스케줄 조회
         const dateSchedules = scheduleCache.get(att.date);
+        const canUseCurrentScheduleFallback = att.date === currentDate;
         let endTime: string | undefined;
         if (student.gender === 'MALE') {
-          endTime = dateSchedules?.maleSchedule?.endTime;
+          endTime =
+            dateSchedules?.maleSchedule?.endTime ??
+            (canUseCurrentScheduleFallback ? maleSchedule?.endTime : undefined);
         } else {
-          endTime = dateSchedules?.femaleSchedule?.endTime;
+          endTime =
+            dateSchedules?.femaleSchedule?.endTime ??
+            (canUseCurrentScheduleFallback
+              ? femaleSchedule?.endTime
+              : undefined);
         }
 
-        if (isPresent) {
-          console.log('[Attendance Check]', {
-            name: student.name,
-            attDate: att.date,
-            currentDate,
-            checkedTime,
-            endTime,
-            isLate: isLateAttendance(checkedTime, endTime),
-          });
-        }
+        const isCheckedAttendance = isPresent || isLate || Boolean(att.checkedAt);
+        const isLateBySchedule = isLateAttendance(checkedTime, endTime);
 
         let displayStatus: '출석' | '미출석' | '외박' | '지연출석' = '미출석';
         if (isOvernight) {
           displayStatus = '외박';
-        } else if (isPresent) {
-          // PRESENT 상태인 경우, 스케줄의 endTime을 기준으로 지연출석 판별
-          if (isLateAttendance(checkedTime, endTime)) {
+        } else if (isCheckedAttendance) {
+          // 서버가 LATE를 주지 않아도 checkedAt이 있으면 스케줄 종료 시간 기준으로 지연출석 판별
+          if (isLate || isLateBySchedule) {
             displayStatus = '지연출석';
           } else {
             displayStatus = '출석';
@@ -422,7 +408,7 @@ export default function Check() {
     }
 
     setStudents(mappedStudents);
-  }, [attendancesData, studentsData, scheduleCache]);
+  }, [attendancesData, studentsData, scheduleCache, maleSchedule, femaleSchedule]);
 
   // Sort function
   const handleSort = (key: SortKey) => {

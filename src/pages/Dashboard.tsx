@@ -81,73 +81,110 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-content">
-        {/* 출결 현황 섹션 */}
-        <div className="attendance-section">
-          <h2 className="section-title">출결 현황</h2>
-          
-          {/* 출석/미출석 카드 */}
-          <div className="attendance-cards">
-            <div className="attendance-card">
-              <p className="attendance-label">출석 인원</p>
-              <p className="attendance-value">{presentCount}명</p>
-            </div>
-            <div className="attendance-card">
-              <p className="attendance-label">미출석 인원</p>
-              <p className="attendance-value">{absentCount}명</p>
-            </div>
+        <section className="dashboard-hero">
+          <div className="hero-copy">
+            <span className="hero-kicker">{todayLabel}</span>
+            <h1>오늘의 기숙사</h1>
+            <p>오늘 점호 흐름을 빠르게 정리했어요.</p>
           </div>
 
-          {/* 상세 현황 */}
-          <div className="attendance-details">
-            <div className="detail-row">
-              <span className="detail-label">남기숙사 미출석</span>
-              <span className="detail-value">{maleAbsent}명</span>
+          <div className="hero-attendance-card">
+            <div className="hero-card-top">
+              <span>출석률</span>
+              <strong>{attendanceRate}%</strong>
             </div>
-            <div className="detail-row">
-              <span className="detail-label">여기숙사 미출석</span>
-              <span className="detail-value">{femaleAbsent}명</span>
-            </div>
-            <div className="detail-row">
-              <span className="detail-label">금일 외박 인원</span>
-              <span className="detail-value">{todaySleepover}명</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 공지사항 섹션 */}
-        <div className="notice-section">
-          <h2 className="section-title">등록된 공지사항</h2>
-          
-          <button 
-            className="notice-register-btn"
-            onClick={() => navigate('/notice')}
-          >
-            공지 등록하기
-          </button>
-
-          <div className="notice-list">
-            {announcements.length === 0 ? (
-              <div className="notice-empty">
-                <p>등록된 공지사항이 없습니다.</p>
+            <div className="attendance-ring" style={{ '--rate': `${attendanceRate}%` } as CSSProperties}>
+              <div className="ring-inner">
+                <span>{presentCount}</span>
+                <small>/{totalCount || 0}명</small>
               </div>
-            ) : (
-              announcements.map((notice) => {
-                const { date, time } = formatDate(notice.createdAt);
-                return (
-                  <div 
-                    key={notice.id} 
-                    className="notice-item"
-                    onClick={() => navigate(`/notice/${notice.id}`)}
-                  >
-                    <span className="notice-title">{notice.title}</span>
-                    <span className="notice-date">{date}</span>
-                    <span className="notice-time">{time}</span>
-                  </div>
-                );
-              })
-            )}
+            </div>
+            <button className="hero-action" onClick={() => navigate('/check')}>
+              인원 확인
+            </button>
           </div>
-        </div>
+        </section>
+
+        <section className="metrics-strip">
+          {metricCards.map((metric) => (
+            <div className={`metric-card ${metric.tone}`} key={metric.label}>
+              <span className="metric-label">{metric.label}</span>
+              <strong>{metric.value}명</strong>
+              <div className="metric-bar">
+                <span
+                  style={{
+                    width: `${totalCount > 0 ? Math.min(100, Math.round((metric.value / totalCount) * 100)) : 0}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </section>
+
+        <section className="dashboard-grid">
+          <div className="insight-panel">
+            <div className="section-heading">
+              <span>Details</span>
+              <h2>출결 세부 현황</h2>
+            </div>
+
+            <div className="detail-list">
+              <div className="detail-row">
+                <span className="detail-label">남기숙사 미출석</span>
+                <span className="detail-value">{maleAbsent}명</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">여기숙사 미출석</span>
+                <span className="detail-value">{femaleAbsent}명</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">확인 필요 인원</span>
+                <span className="detail-value">{absentCount + lateCount}명</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="notice-section">
+            <div className="section-heading notice-heading">
+              <div>
+                <span>Announcements</span>
+                <h2>최근 공지사항</h2>
+              </div>
+              <button
+                className="notice-register-btn"
+                onClick={() => navigate('/notice')}
+              >
+                공지 등록
+              </button>
+            </div>
+
+            <div className="notice-list">
+              {announcements.length === 0 ? (
+                <div className="notice-empty">
+                  <p>등록된 공지사항이 없습니다.</p>
+                </div>
+              ) : (
+                announcements.map((notice, index) => {
+                  const { date, time } = formatDate(notice.createdAt);
+                  return (
+                    <button
+                      key={notice.id}
+                      className="notice-item"
+                      onClick={() => navigate(`/notice/${notice.id}`)}
+                    >
+                      <span className="notice-index">{String(index + 1).padStart(2, '0')}</span>
+                      <span className="notice-title">{notice.title}</span>
+                      <span className="notice-meta">
+                        <span>{date}</span>
+                        <span>{time}</span>
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

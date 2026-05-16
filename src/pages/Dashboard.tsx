@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import type { CSSProperties } from 'react';
 import { attendanceService } from '../services/attendance.service';
 import { announcementService } from '../services/announcement.service';
 import type { AnnouncementResponse } from '../types/api';
@@ -26,6 +27,8 @@ export default function Dashboard() {
   // 출석 현황 계산
   const presentCount = attendancesData?.filter((a) => a.status === 'PRESENT').length || 0;
   const absentCount = attendancesData?.filter((a) => a.status === 'ABSENT').length || 0;
+  const totalCount = attendancesData?.length || 0;
+  const attendanceRate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
 
   // 남/여 기숙사 미출석 계산
   const maleAbsent = attendancesData?.filter((a) => a.status === 'ABSENT' && a.student.gender === 'MALE').length || 0;
@@ -33,6 +36,7 @@ export default function Dashboard() {
 
   // 오늘 외박 인원 (SLEEPOVER 상태)
   const todaySleepover = attendancesData?.filter((a) => a.status === 'SLEEPOVER').length || 0;
+  const lateCount = attendancesData?.filter((a) => a.status === 'LATE').length || 0;
 
   // 공지사항 목록
   const announcements: AnnouncementResponse[] = announcementsData?.content || [];
@@ -52,6 +56,19 @@ export default function Dashboard() {
       time: `${period} ${displayHours}:${minutes}`
     };
   };
+
+  const todayLabel = new Date().toLocaleDateString('ko-KR', {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  });
+
+  const metricCards = [
+    { label: '출석', value: presentCount, tone: 'present' },
+    { label: '미출석', value: absentCount, tone: 'absent' },
+    { label: '지연', value: lateCount, tone: 'late' },
+    { label: '외박', value: todaySleepover, tone: 'sleepover' },
+  ];
 
   if (isLoading) {
     return (

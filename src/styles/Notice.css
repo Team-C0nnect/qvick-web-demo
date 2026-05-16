@@ -84,13 +84,8 @@
   font-weight: 600;
   color: #5d5f60;
   padding: 8px 0;
-  cursor: pointer;
   position: relative;
   transition: color 0.2s;
-}
-
-.tab:hover {
-  color: #6d23ed;
 }
 
 .tab.active {
@@ -221,6 +216,18 @@
 .notice-card:hover {
   border-color: #6d23ed;
   box-shadow: 0 2px 8px rgba(109, 35, 237, 0.15);
+}
+
+.notice-empty-state {
+  grid-column: 1 / -1;
+  padding: 48px 24px;
+  background: #ffffff;
+  border: 1px dashed #d8d2e7;
+  border-radius: 5px;
+  color: #747678;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
 }
 
 .notice-header {

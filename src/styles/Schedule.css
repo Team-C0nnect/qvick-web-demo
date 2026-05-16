@@ -673,10 +673,12 @@
 @media (max-width: 1200px) {
   .schedule-page {
     flex-direction: column;
+    padding: 28px 24px;
   }
 
   .calendar-container {
     max-width: 100%;
+    width: 100%;
   }
 
   .schedule-editor {
@@ -685,16 +687,69 @@
 
   .scheduler-panel {
     width: 100%;
+    max-width: 100%;
   }
 }
 
 @media (max-width: 768px) {
   .schedule-page {
-    padding: 24px 20px;
+    padding: 20px 14px;
+    gap: 18px;
+    overflow-x: hidden;
+  }
+
+  .calendar-header {
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .calendar-title-row {
+    min-width: 0;
+  }
+
+  .calendar-title {
+    font-size: 20px;
+    line-height: 1.25;
+  }
+
+  .month-selector {
+    width: 100%;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: #ffffff;
+    border: 1px solid #e6e6e7;
+    border-radius: 10px;
+  }
+
+  .schedule-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .stat-item {
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    padding: 10px;
+    background: #ffffff;
+    border-radius: 8px;
+  }
+
+  .calendar-container {
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar {
+    min-width: 640px;
   }
 
   .calendar-cell {
-    min-height: 80px;
+    min-height: 88px;
     font-size: 12px;
   }
 
@@ -706,9 +761,47 @@
   .date-number {
     font-size: 14px;
   }
+
+  .scheduler-panel {
+    padding: 18px;
+    gap: 16px;
+  }
+
+  .selection-tools,
+  .weekday-selector,
+  .gender-section {
+    padding: 14px;
+  }
+
+  .weekday-buttons {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .weekday-btn {
+    min-height: 38px;
+    padding: 6px 2px;
+  }
+
+  .weekday-quick-actions,
+  .gender-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .time-picker-row {
+    gap: 8px;
+  }
+
+  .time-input-group {
+    min-width: 0;
+  }
 }
 
 @media (max-width: 480px) {
+  .schedule-page {
+    padding: 16px 10px;
+  }
+
   .calendar-header {
     flex-direction: column;
     gap: 12px;
@@ -719,13 +812,61 @@
     font-size: 18px;
   }
 
+  .schedule-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar {
+    min-width: 540px;
+  }
+
   .calendar-cell {
-    min-height: 60px;
+    min-height: 64px;
     padding: 4px;
   }
 
   .schedule-tag {
     display: none;
+  }
+
+  .scheduler-panel {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .scheduler-title {
+    font-size: 18px;
+  }
+
+  .weekday-buttons {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .weekday-quick-actions,
+  .gender-actions {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gender-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .time-picker-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .time-range-separator {
+    width: 100%;
+    height: auto;
+    text-align: center;
+  }
+
+  .action-button.small,
+  .action-button.create-female.small {
+    width: 100%;
   }
 }
 

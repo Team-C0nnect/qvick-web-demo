@@ -643,30 +643,35 @@ export default function Check() {
           <label className="filter-label">출석 상태:</label>
           <div className="filter-buttons">
             <button
+              type="button"
               className={`filter-btn ${statusFilter === '전체' ? 'active' : ''}`}
               onClick={() => setStatusFilter('전체')}
             >
               전체
             </button>
             <button
+              type="button"
               className={`filter-btn ${statusFilter === '출석' ? 'active' : ''}`}
               onClick={() => setStatusFilter('출석')}
             >
               출석
             </button>
             <button
+              type="button"
               className={`filter-btn ${statusFilter === '미출석' ? 'active' : ''}`}
               onClick={() => setStatusFilter('미출석')}
             >
               미출석
             </button>
             <button
+              type="button"
               className={`filter-btn ${statusFilter === '지연출석' ? 'active' : ''}`}
               onClick={() => setStatusFilter('지연출석')}
             >
               지연출석
             </button>
             <button
+              type="button"
               className={`filter-btn ${statusFilter === '외박' ? 'active' : ''}`}
               onClick={() => setStatusFilter('외박')}
             >
@@ -679,18 +684,21 @@ export default function Check() {
           <label className="filter-label">성별:</label>
           <div className="filter-buttons">
             <button
+              type="button"
               className={`filter-btn ${genderFilter === '전체' ? 'active' : ''}`}
               onClick={() => setGenderFilter('전체')}
             >
               전체
             </button>
             <button
+              type="button"
               className={`filter-btn ${genderFilter === '남' ? 'active' : ''}`}
               onClick={() => setGenderFilter('남')}
             >
               남
             </button>
             <button
+              type="button"
               className={`filter-btn ${genderFilter === '여' ? 'active' : ''}`}
               onClick={() => setGenderFilter('여')}
             >
@@ -703,24 +711,28 @@ export default function Check() {
           <label className="filter-label">학년:</label>
           <div className="filter-buttons">
             <button
+              type="button"
               className={`filter-btn ${gradeFilter === '전체' ? 'active' : ''}`}
               onClick={() => setGradeFilter('전체')}
             >
               전체
             </button>
             <button
+              type="button"
               className={`filter-btn ${gradeFilter === 1 ? 'active' : ''}`}
               onClick={() => setGradeFilter(1)}
             >
               1학년
             </button>
             <button
+              type="button"
               className={`filter-btn ${gradeFilter === 2 ? 'active' : ''}`}
               onClick={() => setGradeFilter(2)}
             >
               2학년
             </button>
             <button
+              type="button"
               className={`filter-btn ${gradeFilter === 3 ? 'active' : ''}`}
               onClick={() => setGradeFilter(3)}
             >
@@ -790,9 +802,9 @@ export default function Check() {
           <tbody>
             {filteredStudents.map((student, index) => (
               <tr key={index}>
-                <td className="room-cell">{student.room}</td>
-                <td>{student.name}</td>
-                <td>
+                <td className="room-cell" data-label="호실">{student.room}</td>
+                <td data-label="이름">{student.name}</td>
+                <td data-label="상태">
                   <select
                     value={student.status}
                     onChange={(e) =>
@@ -822,13 +834,14 @@ export default function Check() {
                     <option value="외박">외박</option>
                   </select>
                 </td>
-                <td>{student.gender}</td>
-                <td>{student.studentId}</td>
-                <td>{student.time}</td>
-                <td>{student.phone}</td>
-                <td></td>
-                <td>
+                <td data-label="성별">{student.gender}</td>
+                <td data-label="학번">{student.studentId}</td>
+                <td data-label="출석 시간">{student.time}</td>
+                <td data-label="연락처">{student.phone}</td>
+                <td className="table-spacer"></td>
+                <td data-label="정보 수정">
                   <button
+                    type="button"
                     className="edit-button"
                     onClick={() => handleEditClick(student)}
                   >

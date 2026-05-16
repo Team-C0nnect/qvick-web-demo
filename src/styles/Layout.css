@@ -11,7 +11,7 @@
 }
 
 .main-content {
-  margin-left: 144px;
+  margin-left: 204px;
   flex: 1;
   min-height: calc(100vh - 60px);
 }

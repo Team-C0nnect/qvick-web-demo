@@ -125,26 +125,71 @@ export function NoticeGridSkeleton() {
 export function DashboardSkeleton() {
   return (
     <div className="dashboard-skeleton">
-      <div className="skeleton-welcome">
-        <Skeleton width="200px" height="32px" />
-        <Skeleton width="350px" height="18px" />
+      <div className="skeleton-dashboard-hero">
+        <div className="skeleton-welcome">
+          <Skeleton width="120px" height="16px" />
+          <Skeleton width="180px" height="34px" />
+          <Skeleton width="260px" height="18px" />
+        </div>
+        <Skeleton width="98px" height="40px" borderRadius="8px" />
       </div>
-      <div className="skeleton-quick-links">
+
+      <div className="skeleton-dashboard-summary">
+        <div className="skeleton-summary-top">
+          <div>
+            <Skeleton width="90px" height="16px" />
+            <Skeleton width="88px" height="34px" className="skeleton-summary-rate" />
+          </div>
+          <Skeleton width="90px" height="30px" borderRadius="15px" />
+        </div>
+        <Skeleton width="100%" height="10px" borderRadius="999px" />
+        <div className="skeleton-summary-meta">
+          <Skeleton width="80px" height="14px" />
+          <Skeleton width="100px" height="14px" />
+        </div>
+      </div>
+
+      <div className="skeleton-dashboard-metrics">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="skeleton-quick-link-card">
-            <Skeleton width="48px" height="48px" borderRadius="12px" />
-            <Skeleton width="80px" height="20px" />
-            <Skeleton width="160px" height="14px" />
+          <div key={i} className="skeleton-dashboard-metric">
+            <div className="skeleton-metric-top">
+              <Skeleton width="52px" height="16px" />
+              <Skeleton width="56px" height="14px" />
+            </div>
+            <Skeleton width="76px" height="30px" />
+            <Skeleton width="100%" height="6px" borderRadius="999px" />
+            <Skeleton width="34px" height="12px" />
           </div>
         ))}
       </div>
-      <div className="skeleton-stats-overview">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="skeleton-stat-card">
-            <Skeleton width="60px" height="14px" />
-            <Skeleton width="80px" height="28px" />
+
+      <div className="skeleton-dashboard-grid">
+        <div className="skeleton-dashboard-panel">
+          <Skeleton width="64px" height="14px" />
+          <Skeleton width="140px" height="26px" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="skeleton-detail-row">
+              <Skeleton width="120px" height="16px" />
+              <Skeleton width="48px" height="24px" />
+            </div>
+          ))}
+        </div>
+        <div className="skeleton-dashboard-panel">
+          <div className="skeleton-notice-heading">
+            <div>
+              <Skeleton width="110px" height="14px" />
+              <Skeleton width="126px" height="26px" className="skeleton-panel-title" />
+            </div>
+            <Skeleton width="88px" height="40px" borderRadius="8px" />
           </div>
-        ))}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton-notice-row">
+              <Skeleton width="32px" height="32px" borderRadius="8px" />
+              <Skeleton width="60%" height="16px" />
+              <Skeleton width="86px" height="28px" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

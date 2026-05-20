@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import type { CSSProperties } from 'react';
 import { attendanceService } from '../services/attendance.service';
 import { announcementService } from '../services/announcement.service';
 import type { AnnouncementResponse } from '../types/api';
@@ -64,11 +63,15 @@ export default function Dashboard() {
   });
 
   const metricCards = [
-    { label: '출석', value: presentCount, tone: 'present' },
-    { label: '미출석', value: absentCount, tone: 'absent' },
-    { label: '지연', value: lateCount, tone: 'late' },
-    { label: '외박', value: todaySleepover, tone: 'sleepover' },
+    { label: '출석', value: presentCount, tone: 'present', helper: '점호 완료' },
+    { label: '미출석', value: absentCount, tone: 'absent', helper: '즉시 확인' },
+    { label: '지연', value: lateCount, tone: 'late', helper: '지각 처리' },
+    { label: '외박', value: todaySleepover, tone: 'sleepover', helper: '외박 승인' },
   ];
+
+  const getMetricRate = (value: number) => (
+    totalCount > 0 ? Math.min(100, Math.round((value / totalCount) * 100)) : 0
+  );
 
   if (isLoading) {
     return (
@@ -88,37 +91,49 @@ export default function Dashboard() {
             <p>오늘 점호 흐름을 빠르게 정리했어요.</p>
           </div>
 
-          <div className="hero-attendance-card">
-            <div className="hero-card-top">
-              <span>출석률</span>
-              <strong>{attendanceRate}%</strong>
-            </div>
-            <div className="attendance-ring" style={{ '--rate': `${attendanceRate}%` } as CSSProperties}>
-              <div className="ring-inner">
-                <span>{presentCount}</span>
-                <small>/{totalCount || 0}명</small>
-              </div>
-            </div>
+          <div className="hero-actions">
             <button className="hero-action" onClick={() => navigate('/check')}>
               인원 확인
             </button>
           </div>
         </section>
 
-        <section className="metrics-strip">
-          {metricCards.map((metric) => (
-            <div className={`metric-card ${metric.tone}`} key={metric.label}>
-              <span className="metric-label">{metric.label}</span>
-              <strong>{metric.value}명</strong>
-              <div className="metric-bar">
-                <span
-                  style={{
-                    width: `${totalCount > 0 ? Math.min(100, Math.round((metric.value / totalCount) * 100)) : 0}%`,
-                  }}
-                />
-              </div>
+        <section className="summary-card">
+          <div className="summary-main">
+            <div>
+              <span className="summary-label">오늘 출석률</span>
+              <strong>{attendanceRate}%</strong>
             </div>
-          ))}
+            <span className="summary-count">
+              {presentCount}/{totalCount || 0}명
+            </span>
+          </div>
+          <div className="summary-progress" aria-label={`출석률 ${attendanceRate}%`}>
+            <span style={{ width: `${attendanceRate}%` }} />
+          </div>
+          <div className="summary-meta">
+            <span>미출석 {absentCount}명</span>
+            <span>확인 필요 {absentCount + lateCount}명</span>
+          </div>
+        </section>
+
+        <section className="metrics-strip" aria-label="오늘 출결 요약">
+          {metricCards.map((metric) => {
+            const metricRate = getMetricRate(metric.value);
+            return (
+              <div className={`metric-card ${metric.tone}`} key={metric.label}>
+                <div className="metric-card-top">
+                  <span className="metric-label">{metric.label}</span>
+                  <span className="metric-helper">{metric.helper}</span>
+                </div>
+                <strong>{metric.value}명</strong>
+                <div className="metric-bar" aria-hidden="true">
+                  <span style={{ width: `${metricRate}%` }} />
+                </div>
+                <span className="metric-rate">{metricRate}%</span>
+              </div>
+            );
+          })}
         </section>
 
         <section className="dashboard-grid">

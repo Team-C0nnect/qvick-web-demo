@@ -3,69 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
 import NoticeEditModal from '../components/NoticeEditModal';
+import { PinIcon, PencilIcon, TrashIcon } from '../components/Icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../styles/NoticeDetail.css';
-
-function PinIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M14.5 3.5L20.5 9.5M15.5 4.5L10.5 9.5C9.7 10.3 8.6 10.75 7.47 10.75H6.75L13.25 17.25V16.53C13.25 15.4 13.7 14.3 14.5 13.5L19.5 8.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9.75 14.25L4 20"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function PencilIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M4 20H8L18.5 9.5C19.6046 8.39543 19.6046 6.60457 18.5 5.5C17.3954 4.39543 15.6046 4.39543 14.5 5.5L4 16V20Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M13.5 6.5L17.5 10.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function TrashIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M4 7H20"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M10 11V17M14 11V17M6 7L7 20H17L18 7M9 7V4H15V7"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 export default function NoticeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -84,7 +25,11 @@ export default function NoticeDetail() {
     document.body.scrollTop = 0;
   }, [announcementId]);
 
-  const { data: announcement, isLoading, error } = useQuery({
+  const {
+    data: announcement,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['announcement', announcementId],
     queryFn: () => announcementService.getAnnouncement(announcementId),
     enabled: !!announcementId,
@@ -105,10 +50,14 @@ export default function NoticeDetail() {
 
   // 고정/고정 해제 mutation
   const pinMutation = useMutation({
-    mutationFn: (pin: boolean) => 
-      pin ? announcementService.pinAnnouncement(announcementId) : announcementService.unpinAnnouncement(announcementId),
+    mutationFn: (pin: boolean) =>
+      pin
+        ? announcementService.pinAnnouncement(announcementId)
+        : announcementService.unpinAnnouncement(announcementId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['announcement', announcementId] });
+      queryClient.invalidateQueries({
+        queryKey: ['announcement', announcementId],
+      });
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
     },
     onError: (error: Error) => {
@@ -193,7 +142,9 @@ export default function NoticeDetail() {
                   className={`detail-icon-button pin ${announcement.isPinned ? 'active' : ''}`}
                   onClick={handleTogglePin}
                   disabled={pinMutation.isPending}
-                  aria-label={announcement.isPinned ? '공지 고정 해제' : '공지 고정'}
+                  aria-label={
+                    announcement.isPinned ? '공지 고정 해제' : '공지 고정'
+                  }
                   title={announcement.isPinned ? '고정 해제' : '고정'}
                 >
                   <PinIcon className="detail-action-icon" />
@@ -220,7 +171,7 @@ export default function NoticeDetail() {
               </div>
             </div>
             <h1 className="notice-detail-title">{announcement.title}</h1>
-            
+
             <div className="notice-detail-meta">
               <div className="author-info">
                 {announcement.author.avatarUrl ? (
@@ -237,9 +188,13 @@ export default function NoticeDetail() {
                 <span className="author-name">{announcement.author.name}</span>
               </div>
               <div className="date-info">
-                <span className="created-date">{formatDate(announcement.createdAt)}</span>
+                <span className="created-date">
+                  {formatDate(announcement.createdAt)}
+                </span>
                 {announcement.createdAt !== announcement.updatedAt && (
-                  <span className="updated-date">(수정됨: {formatDate(announcement.updatedAt)})</span>
+                  <span className="updated-date">
+                    (수정됨: {formatDate(announcement.updatedAt)})
+                  </span>
                 )}
               </div>
             </div>

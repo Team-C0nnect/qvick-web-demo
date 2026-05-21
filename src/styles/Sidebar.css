@@ -94,6 +94,10 @@
     display: none;
   }
 
+  .sidebar-section-title {
+    display: none;
+  }
+
   .menu-item {
     justify-content: center;
     padding: 14px 8px;

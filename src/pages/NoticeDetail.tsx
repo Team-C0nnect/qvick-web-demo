@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
-import Header from '../components/Header';
 import NoticeEditModal from '../components/NoticeEditModal';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -67,7 +66,6 @@ export default function NoticeDetail() {
   if (isLoading) {
     return (
       <div className="notice-detail-page">
-        <Header />
         <div className="notice-detail-container">
           <div className="loading">로딩 중...</div>
         </div>
@@ -78,7 +76,6 @@ export default function NoticeDetail() {
   if (error || !announcement) {
     return (
       <div className="notice-detail-page">
-        <Header />
         <div className="notice-detail-container">
           <div className="error-state">
             <p>공지사항을 불러올 수 없습니다.</p>
@@ -104,13 +101,14 @@ export default function NoticeDetail() {
 
   return (
     <div className="notice-detail-page">
-      <Header />
-      
       <div className="notice-detail-container">
         <div className="detail-header-actions">
-          <button className="back-button" onClick={handleBack}>
-            ← 목록으로
-          </button>
+          <div>
+            <button className="back-button" onClick={handleBack}>
+              목록으로
+            </button>
+            <h1 className="detail-page-title">공지 상세</h1>
+          </div>
           <div className="detail-action-buttons">
             <button 
               className="detail-action-btn pin"
@@ -138,7 +136,7 @@ export default function NoticeDetail() {
         <article className="notice-article">
           <header className="notice-detail-header">
             {announcement.isPinned && (
-              <span className="pinned-badge">📌 고정</span>
+              <span className="notice-detail-pin-badge">고정됨</span>
             )}
             <h1 className="notice-detail-title">{announcement.title}</h1>
             

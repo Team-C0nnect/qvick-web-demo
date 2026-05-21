@@ -78,32 +78,61 @@
 
 /* Notice Skeleton */
 .notice-skeleton {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.skeleton-page-title {
-  margin-bottom: 24px;
+.skeleton-notice-hero,
+.skeleton-notice-toolbar,
+.notice-card-skeleton {
+  background: #ffffff;
+  border: 1px solid #e6e6e7;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(15, 15, 16, 0.04);
+}
+
+.skeleton-notice-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 30px;
+}
+
+.skeleton-notice-hero > div,
+.skeleton-notice-list-heading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .skeleton-filter-section {
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
+  flex: 1 1 360px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.skeleton-tabs {
+.skeleton-notice-toolbar {
   display: flex;
-  gap: 24px;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #eee;
-}
-
-.skeleton-action-section {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.skeleton-notice-summary,
+.skeleton-notice-list-heading,
+.skeleton-notice-card-footer,
+.skeleton-notice-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton-notice-list-heading {
+  justify-content: space-between;
 }
 
 .skeleton-notice-grid {
@@ -113,13 +142,11 @@
 }
 
 .notice-card-skeleton {
-  background: white;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 20px;
+  min-height: 174px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .skeleton-card-header {
@@ -129,7 +156,12 @@
 }
 
 .skeleton-title {
-  margin: 4px 0;
+  margin-top: 2px;
+}
+
+.skeleton-notice-card-footer {
+  justify-content: space-between;
+  margin-top: auto;
 }
 
 /* Dashboard Skeleton */
@@ -213,7 +245,7 @@
 
 .skeleton-dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.84fr) minmax(420px, 1.4fr);
+  grid-template-columns: minmax(300px, 0.95fr) minmax(360px, 1.05fr);
   gap: 16px;
 }
 
@@ -267,6 +299,7 @@
     gap: 16px;
   }
 
+  .skeleton-notice-hero,
   .skeleton-dashboard-hero,
   .skeleton-summary-top,
   .skeleton-notice-heading {
@@ -274,6 +307,16 @@
     align-items: stretch;
   }
 
+  .skeleton-notice-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .skeleton-filter-section {
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .skeleton-notice-grid,
   .skeleton-dashboard-metrics,
   .skeleton-dashboard-grid {
     grid-template-columns: 1fr;

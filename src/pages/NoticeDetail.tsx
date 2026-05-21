@@ -174,18 +174,20 @@ export default function NoticeDetail() {
 
             <div className="notice-detail-meta">
               <div className="author-info">
-                {announcement.author.avatarUrl ? (
+                {announcement.author?.avatarUrl ? (
                   <img
                     src={announcement.author.avatarUrl}
-                    alt={announcement.author.name}
+                    alt={announcement.author?.name ?? '작성자'}
                     className="author-avatar"
                   />
                 ) : (
                   <span className="author-avatar author-avatar-fallback">
-                    {announcement.author.name.slice(0, 1)}
+                    {(announcement.author?.name ?? '작성자').slice(0, 1)}
                   </span>
                 )}
-                <span className="author-name">{announcement.author.name}</span>
+                <span className="author-name">
+                  {announcement.author?.name ?? '작성자'}
+                </span>
               </div>
               <div className="date-info">
                 <span className="created-date">

@@ -1,9 +1,15 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function createOpenAIClient(): OpenAI | null {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey || apiKey === 'your-openai-api-key-here') {
+    return null;
+  }
+
+  return new OpenAI({ apiKey });
+}
 
 export async function refineAnnouncement(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log('HTTP trigger function processed a request.');
@@ -43,6 +49,16 @@ export async function refineAnnouncement(request: HttpRequest, context: Invocati
         status: 400,
         headers,
         body: JSON.stringify({ error: '내용을 입력해주세요.' }),
+      };
+    }
+
+    const openai = createOpenAIClient();
+    if (!openai) {
+      context.warn('OPENAI_API_KEY가 설정되지 않아 글 다듬기를 처리할 수 없습니다.');
+      return {
+        status: 503,
+        headers,
+        body: JSON.stringify({ error: 'AI 글 다듬기 설정이 완료되지 않았습니다.' }),
       };
     }
 

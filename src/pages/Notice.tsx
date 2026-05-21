@@ -187,6 +187,12 @@ export default function Notice() {
   const totalCount = announcementsData?.totalElements || 0;
   const pinnedCount = notices.filter((notice) => notice.isPinned).length;
   const selectedCount = selectedNotices.length;
+  const selectedNoticeItems = filteredNotices.filter((notice) =>
+    selectedNotices.includes(notice.id),
+  );
+  const shouldUnpinSelected =
+    selectedNoticeItems.length > 0 &&
+    selectedNoticeItems.every((notice) => notice.isPinned);
   const isMutating = deleteMutation.isPending || pinMutation.isPending;
 
   if (isLoading) {
@@ -246,16 +252,38 @@ export default function Notice() {
         </div>
       </section>
 
-      {selectedCount > 0 && (
-        <section className="selection-action-bar" aria-label="선택한 공지 작업">
-          <div className="selection-copy">
-            <strong>{selectedCount}개 선택됨</strong>
-            <span>선택한 공지사항의 고정 상태를 바꾸거나 삭제할 수 있습니다.</span>
-          </div>
-          <div className="selection-actions">
+      <section className="notice-list-header">
+        <div>
+          <span className="notice-kicker">List</span>
+          <h2>공지 목록</h2>
+        </div>
+        {filteredNotices.length > 0 && (
+          <div className="notice-list-actions" aria-label="공지 선택 작업">
+            {selectedCount > 0 && (
+              <>
+                <button
+                  type="button"
+                  className={`action-button ${shouldUnpinSelected ? 'unpin' : 'pin'}`}
+                  onClick={
+                    shouldUnpinSelected ? handleUnpinSelected : handlePinSelected
+                  }
+                  disabled={isMutating}
+                >
+                  {shouldUnpinSelected ? '고정 해제' : '고정'}
+                </button>
+                <button
+                  type="button"
+                  className="action-button delete"
+                  onClick={handleDeleteSelected}
+                  disabled={isMutating}
+                >
+                  삭제
+                </button>
+              </>
+            )}
             <button
               type="button"
-              className="action-button select-all"
+              className="select-all-button"
               onClick={handleSelectAll}
               disabled={isMutating}
             >
@@ -263,47 +291,7 @@ export default function Notice() {
                 ? '전체 해제'
                 : '전체 선택'}
             </button>
-            <button
-              type="button"
-              className="action-button pin"
-              onClick={handlePinSelected}
-              disabled={isMutating}
-            >
-              고정
-            </button>
-            <button
-              type="button"
-              className="action-button unpin"
-              onClick={handleUnpinSelected}
-              disabled={isMutating}
-            >
-              고정 해제
-            </button>
-            <button
-              type="button"
-              className="action-button delete"
-              onClick={handleDeleteSelected}
-              disabled={isMutating}
-            >
-              삭제
-            </button>
           </div>
-        </section>
-      )}
-
-      <section className="notice-list-header">
-        <div>
-          <span className="notice-kicker">List</span>
-          <h2>공지 목록</h2>
-        </div>
-        {filteredNotices.length > 0 && (
-          <button
-            type="button"
-            className="select-all-button"
-            onClick={handleSelectAll}
-          >
-            {selectedCount === filteredNotices.length ? '전체 해제' : '전체 선택'}
-          </button>
         )}
       </section>
 

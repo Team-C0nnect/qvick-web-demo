@@ -2,9 +2,15 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function createOpenAIClient(): OpenAI | null {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey || apiKey === 'your-openai-api-key-here') {
+    return null;
+  }
+
+  return new OpenAI({ apiKey });
+}
 
 // CORS 헤더
 const corsHeaders = {
@@ -183,8 +189,8 @@ export async function refinePatchnote(request: HttpRequest, context: InvocationC
       };
     }
 
-    // OpenAI API 키 확인
-    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your-openai-api-key-here') {
+    const openai = createOpenAIClient();
+    if (!openai) {
       context.log('OpenAI API 키가 설정되지 않아 로컬 다듬기를 수행합니다.');
       const result = localRefine(version, title, content);
       return {

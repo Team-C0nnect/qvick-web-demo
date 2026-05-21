@@ -119,11 +119,11 @@ export default function NoticeCreateModal({
 
   return (
     <div
-      className="modal-backdrop"
+      className="modal-backdrop notice-modal-backdrop"
       onMouseDown={handleBackdropMouseDown}
       onMouseUp={handleBackdropMouseUp}
     >
-      <div className="modal-container">
+      <div className="modal-container notice-modal-container">
         <div className="modal-header">
           <h2 className="modal-title">공지사항 작성</h2>
           <button

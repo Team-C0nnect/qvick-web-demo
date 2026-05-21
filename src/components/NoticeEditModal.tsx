@@ -140,11 +140,11 @@ export default function NoticeEditModal({
 
   return (
     <div
-      className="modal-backdrop"
+      className="modal-backdrop notice-modal-backdrop"
       onMouseDown={handleBackdropMouseDown}
       onMouseUp={handleBackdropMouseUp}
     >
-      <div className="modal-container">
+      <div className="modal-container notice-modal-container">
         <div className="modal-header">
           <h2 className="modal-title">공지사항 수정</h2>
           <button
@@ -173,15 +173,17 @@ export default function NoticeEditModal({
               autoFocus
               required
             />
-            <div className="char-count">{title.length}/100</div>
+            <div className="input-footer">
+              <span className="char-count">{title.length}/100</span>
+            </div>
           </div>
 
-          <div className="form-group content-group">
+          <div className="form-group">
             <div className="content-header">
               <label className="form-label" htmlFor="notice-content">
                 내용 <span className="required">*</span>
               </label>
-              <div className="content-actions">
+              <div className="editor-controls">
                 <button
                   type="button"
                   className="refine-button"
@@ -190,21 +192,34 @@ export default function NoticeEditModal({
                 >
                   {refineMutation.isPending ? "다듬는 중..." : "글 다듬기"}
                 </button>
-                <button
-                  type="button"
-                  className={`preview-button ${isPreview ? "active" : ""}`}
-                  onClick={() => setIsPreview(!isPreview)}
-                >
-                  {isPreview ? "편집" : "미리보기"}
-                </button>
+                <div className="editor-tabs">
+                  <button
+                    type="button"
+                    className={`tab-button ${!isPreview ? "active" : ""}`}
+                    onClick={() => setIsPreview(false)}
+                  >
+                    작성
+                  </button>
+                  <button
+                    type="button"
+                    className={`tab-button ${isPreview ? "active" : ""}`}
+                    onClick={() => setIsPreview(true)}
+                  >
+                    미리보기
+                  </button>
+                </div>
               </div>
             </div>
 
             {isPreview ? (
-              <div className="preview-container">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {content}
-                </ReactMarkdown>
+              <div className="markdown-preview">
+                {content ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {content}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="preview-empty">미리보기할 내용이 없습니다</p>
+                )}
               </div>
             ) : (
               <textarea

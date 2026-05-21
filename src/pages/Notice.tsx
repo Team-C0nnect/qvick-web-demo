@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
 import { NoticeGridSkeleton } from '../components/Skeleton';
 import NoticeCreateModal from '../components/NoticeCreateModal';
-import NoticeEditModal from '../components/NoticeEditModal';
 import '../styles/Notice.css';
 
 interface NoticeItem {
@@ -13,8 +12,8 @@ interface NoticeItem {
   title: string;
   author: string;
   date: string;
+  time: string;
   createdAt: string;
-  checked: boolean;
   isPinned: boolean;
 }
 
@@ -24,7 +23,6 @@ export default function Notice() {
   const [filter, setFilter] = useState('올해');
   const [currentPage] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingNoticeId, setEditingNoticeId] = useState<number | null>(null);
   const [selectedNotices, setSelectedNotices] = useState<number[]>([]);
 
   // Fetch announcements
@@ -140,15 +138,16 @@ export default function Notice() {
       category: '기숙사 생활 안내',
       title: announcement.title,
       author: announcement.author.name,
-      date: new Date(announcement.createdAt).toLocaleString('ko-KR', {
+      date: new Date(announcement.createdAt).toLocaleDateString('ko-KR', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
+      }),
+      time: new Date(announcement.createdAt).toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit',
       }),
       createdAt: announcement.createdAt,
-      checked: false,
       isPinned: announcement.isPinned,
     })) || [];
 
@@ -179,7 +178,22 @@ export default function Notice() {
     }
   };
 
-  const filteredNotices = notices.filter(isNoticeInFilter);
+  const filteredNotices = notices
+    .filter(isNoticeInFilter)
+    .sort((a, b) => {
+      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  const totalCount = announcementsData?.totalElements || 0;
+  const pinnedCount = notices.filter((notice) => notice.isPinned).length;
+  const selectedCount = selectedNotices.length;
+  const selectedNoticeItems = filteredNotices.filter((notice) =>
+    selectedNotices.includes(notice.id),
+  );
+  const shouldUnpinSelected =
+    selectedNoticeItems.length > 0 &&
+    selectedNoticeItems.every((notice) => notice.isPinned);
+  const isMutating = deleteMutation.isPending || pinMutation.isPending;
 
   if (isLoading) {
     return (
@@ -191,70 +205,13 @@ export default function Notice() {
 
   return (
     <div className="notice-page">
-      <h1 className="page-title">공지사항</h1>
-
-      <div className="filter-section">
-        {filters.map((item) => (
-          <button
-            key={item}
-            type="button"
-            className={`filter-button ${filter === item ? 'active' : ''}`}
-            onClick={() => {
-              setFilter(item);
-              setSelectedNotices([]);
-            }}
-          >
-            {item}
-          </button>
-        ))}
-      </div>
-
-      <div className="tabs-section">
-        <div className="tab active">전체</div>
-      </div>
-
-      <div className="action-section">
-        <div className="left-actions">
-          <div className="count-badge">
-            전체{' '}
-            <span className="count">
-              {announcementsData?.totalElements || 0}
-            </span>
-          </div>
-          {selectedNotices.length > 0 && (
-            <>
-              <button
-                type="button"
-                className="action-button select-all"
-                onClick={handleSelectAll}
-              >
-                {selectedNotices.length === filteredNotices.length
-                  ? '전체 해제'
-                  : '전체 선택'}
-              </button>
-              <button
-                type="button"
-                className="action-button pin"
-                onClick={handlePinSelected}
-              >
-                고정 ({selectedNotices.length})
-              </button>
-              <button
-                type="button"
-                className="action-button unpin"
-                onClick={handleUnpinSelected}
-              >
-                고정 해제 ({selectedNotices.length})
-              </button>
-              <button
-                type="button"
-                className="action-button delete"
-                onClick={handleDeleteSelected}
-              >
-                삭제 ({selectedNotices.length})
-              </button>
-            </>
-          )}
+      <section className="notice-page-header">
+        <div>
+          <span className="notice-kicker">Announcements</span>
+          <h1 className="page-title">공지사항</h1>
+          <p className="notice-page-description">
+            기숙사 공지를 작성하고 고정 공지를 빠르게 관리합니다.
+          </p>
         </div>
         <button
           type="button"
@@ -263,7 +220,80 @@ export default function Notice() {
         >
           공지사항 작성
         </button>
-      </div>
+      </section>
+
+      <section className="notice-toolbar" aria-label="공지사항 필터와 작업">
+        <div className="filter-section" aria-label="기간 필터">
+          {filters.map((item) => (
+            <button
+              key={item}
+              type="button"
+              className={`filter-button ${filter === item ? 'active' : ''}`}
+              onClick={() => {
+                setFilter(item);
+                setSelectedNotices([]);
+              }}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+
+        <div className="notice-summary">
+          <span>
+            전체 <strong>{totalCount}</strong>
+          </span>
+          <span>
+            고정 <strong>{pinnedCount}</strong>
+          </span>
+          <span>
+            표시 <strong>{filteredNotices.length}</strong>
+          </span>
+        </div>
+      </section>
+
+      <section className="notice-list-header">
+        <div>
+          <span className="notice-kicker">List</span>
+          <h2>공지 목록</h2>
+        </div>
+        {filteredNotices.length > 0 && (
+          <div className="notice-list-actions" aria-label="공지 선택 작업">
+            {selectedCount > 0 && (
+              <>
+                <button
+                  type="button"
+                  className={`action-button ${shouldUnpinSelected ? 'unpin' : 'pin'}`}
+                  onClick={
+                    shouldUnpinSelected ? handleUnpinSelected : handlePinSelected
+                  }
+                  disabled={isMutating}
+                >
+                  {shouldUnpinSelected ? '고정 해제' : '고정'}
+                </button>
+                <button
+                  type="button"
+                  className="action-button delete"
+                  onClick={handleDeleteSelected}
+                  disabled={isMutating}
+                >
+                  삭제
+                </button>
+              </>
+            )}
+            <button
+              type="button"
+              className="select-all-button"
+              onClick={handleSelectAll}
+              disabled={isMutating}
+            >
+              {selectedCount === filteredNotices.length
+                ? '전체 해제'
+                : '전체 선택'}
+            </button>
+          </div>
+        )}
+      </section>
 
       <div className="notice-grid">
         {filteredNotices.length === 0 ? (
@@ -271,30 +301,45 @@ export default function Notice() {
             해당 기간에 등록된 공지사항이 없습니다.
           </div>
         ) : (
-          filteredNotices.map((notice) => (
-            <div
-              key={notice.id}
-              className={`notice-card ${selectedNotices.includes(notice.id) ? 'selected' : ''}`}
-              onClick={() => navigate(`/notice/${notice.id}`)}
-            >
-              <div className="notice-header">
-                <span className="notice-category">{notice.category}</span>
-                {notice.isPinned && (
-                  <span className="pinned-badge">고정됨</span>
-                )}
-                <input
-                  type="checkbox"
-                  className="notice-checkbox"
-                  checked={selectedNotices.includes(notice.id)}
-                  onChange={(e) => handleToggleNotice(notice.id, e)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-              <h3 className="notice-title">{notice.title}</h3>
-              <p className="notice-author">{notice.author}</p>
-              <p className="notice-date">{notice.date}</p>
-            </div>
-          ))
+          filteredNotices.map((notice) => {
+            const isSelected = selectedNotices.includes(notice.id);
+            return (
+              <article
+                key={notice.id}
+                className={`notice-card ${isSelected ? 'selected' : ''} ${notice.isPinned ? 'pinned' : ''}`}
+                onClick={() => navigate(`/notice/${notice.id}`)}
+              >
+                <div className="notice-header">
+                  <div className="notice-badges">
+                    {notice.isPinned && (
+                      <span className="notice-pin-badge">고정됨</span>
+                    )}
+                    <span className="notice-category">{notice.category}</span>
+                  </div>
+                  <label
+                    className="notice-select"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="sr-only">{notice.title} 선택</span>
+                    <input
+                      type="checkbox"
+                      className="notice-checkbox"
+                      checked={isSelected}
+                      onChange={(e) => handleToggleNotice(notice.id, e)}
+                    />
+                  </label>
+                </div>
+                <h3 className="notice-title">{notice.title}</h3>
+                <div className="notice-card-footer">
+                  <span className="notice-author">{notice.author}</span>
+                  <span className="notice-date">
+                    {notice.date}
+                    <small>{notice.time}</small>
+                  </span>
+                </div>
+              </article>
+            );
+          })
         )}
       </div>
 
@@ -303,13 +348,6 @@ export default function Notice() {
         onClose={() => setIsCreateModalOpen(false)}
       />
 
-      {editingNoticeId && (
-        <NoticeEditModal
-          isOpen={true}
-          noticeId={editingNoticeId}
-          onClose={() => setEditingNoticeId(null)}
-        />
-      )}
     </div>
   );
 }

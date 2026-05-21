@@ -82,12 +82,18 @@ export function NoticeCardSkeleton() {
   return (
     <div className="notice-card-skeleton">
       <div className="skeleton-card-header">
-        <Skeleton width="100px" height="14px" />
-        <Skeleton width="18px" height="18px" borderRadius="4px" />
+        <div className="skeleton-notice-badges">
+          <Skeleton width="52px" height="24px" borderRadius="12px" />
+          <Skeleton width="92px" height="24px" borderRadius="12px" />
+        </div>
+        <Skeleton width="28px" height="28px" borderRadius="8px" />
       </div>
-      <Skeleton width="90%" height="20px" className="skeleton-title" />
-      <Skeleton width="60px" height="14px" />
-      <Skeleton width="120px" height="12px" />
+      <Skeleton width="88%" height="24px" className="skeleton-title" />
+      <Skeleton width="62%" height="18px" />
+      <div className="skeleton-notice-card-footer">
+        <Skeleton width="64px" height="14px" />
+        <Skeleton width="104px" height="14px" />
+      </div>
     </div>
   );
 }
@@ -96,22 +102,36 @@ export function NoticeCardSkeleton() {
 export function NoticeGridSkeleton() {
   return (
     <div className="notice-skeleton">
-      <Skeleton width="120px" height="32px" className="skeleton-page-title" />
-      <div className="skeleton-filter-section">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} width="60px" height="32px" borderRadius="6px" />
-        ))}
-        <Skeleton width="200px" height="32px" borderRadius="6px" />
+      <div className="skeleton-notice-hero">
+        <div>
+          <Skeleton width="120px" height="16px" />
+          <Skeleton width="150px" height="34px" className="skeleton-page-title" />
+          <Skeleton width="310px" height="18px" />
+        </div>
+        <Skeleton width="112px" height="40px" borderRadius="8px" />
       </div>
-      <div className="skeleton-tabs">
-        <Skeleton width="60px" height="32px" />
-        <Skeleton width="100px" height="32px" />
-        <Skeleton width="100px" height="32px" />
+
+      <div className="skeleton-notice-toolbar">
+        <div className="skeleton-filter-section">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} width="64px" height="36px" borderRadius="8px" />
+          ))}
+        </div>
+        <div className="skeleton-notice-summary">
+          <Skeleton width="72px" height="32px" borderRadius="16px" />
+          <Skeleton width="72px" height="32px" borderRadius="16px" />
+          <Skeleton width="72px" height="32px" borderRadius="16px" />
+        </div>
       </div>
-      <div className="skeleton-action-section">
-        <Skeleton width="80px" height="28px" borderRadius="14px" />
-        <Skeleton width="100px" height="36px" borderRadius="8px" />
+
+      <div className="skeleton-notice-list-heading">
+        <div>
+          <Skeleton width="42px" height="14px" />
+          <Skeleton width="96px" height="26px" className="skeleton-panel-title" />
+        </div>
+        <Skeleton width="88px" height="40px" borderRadius="8px" />
       </div>
+
       <div className="skeleton-notice-grid">
         {Array.from({ length: 6 }).map((_, i) => (
           <NoticeCardSkeleton key={i} />

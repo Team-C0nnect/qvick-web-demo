@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../lib/api-client';
 import { authService } from '../services/auth.service';
 import '../styles/Header.css';
@@ -25,6 +25,7 @@ function HeaderLogoIcon() {
 
 export default function Header() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Fetch current user info
   const { data: user } = useQuery<MyUserResponse>({
@@ -37,7 +38,8 @@ export default function Header() {
 
   const handleLogout = () => {
     authService.logout();
-    navigate('/login');
+    queryClient.clear();
+    navigate('/login', { replace: true });
   };
 
   return (

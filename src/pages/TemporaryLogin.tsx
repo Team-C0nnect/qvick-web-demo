@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { temporaryAttendanceService } from '../services/temporary-attendance.service';
+import { useToast } from '../hooks/useToast';
 import '../styles/TemporaryLogin.css';
 
 function LogoIcon() {
@@ -25,8 +26,8 @@ function LogoIcon() {
 export default function TemporaryLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const toast = useToast();
   const emailInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,10 +51,11 @@ export default function TemporaryLogin() {
     onSuccess: (data) => {
       localStorage.setItem('tempAccessToken', data.accessToken);
       localStorage.setItem('tempRefreshToken', data.refreshToken);
+      toast.success('로그인 완료');
       navigate('/temporary/scan');
     },
     onError: () => {
-      setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
+      toast.error('로그인 실패');
       // 에러 발생 시 비밀번호 초기화 후 비밀번호 필드에 포커스
       setPassword('');
       if (passwordInputRef.current) {
@@ -65,10 +67,9 @@ export default function TemporaryLogin() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
-      setError('이메일과 비밀번호를 입력해주세요.');
+      toast.warning('입력값 확인 필요');
       return;
     }
-    setError('');
     loginMutation.mutate({ email: email.trim(), password });
   };
 
@@ -83,7 +84,7 @@ export default function TemporaryLogin() {
   return (
     <div className="temp-login-page">
       <div className="temp-login-content">
-        <form className="temp-login-form" onSubmit={handleSubmit}>
+        <form className="temp-login-form" onSubmit={handleSubmit} noValidate>
           <div className="temp-form-header">
             <div className="temp-logo-icon-large">
               <LogoIcon />
@@ -93,12 +94,6 @@ export default function TemporaryLogin() {
           </div>
 
           <div className="temp-form-body">
-            {error && (
-              <div className="temp-error-message" role="alert">
-                {error}
-              </div>
-            )}
-
             <div className="temp-input-group">
               <div className="temp-input-wrapper">
                 <label htmlFor="email" className="temp-input-label">이메일</label>
@@ -117,7 +112,6 @@ export default function TemporaryLogin() {
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={handleEmailKeyDown}
                   disabled={loginMutation.isPending}
-                  required
                 />
               </div>
 
@@ -133,7 +127,6 @@ export default function TemporaryLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loginMutation.isPending}
-                  required
                 />
               </div>
             </div>
@@ -141,7 +134,7 @@ export default function TemporaryLogin() {
             <button
               type="submit"
               className="temp-login-button"
-              disabled={loginMutation.isPending || !email.trim() || !password.trim()}
+              disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? (
                 <span className="temp-loading-spinner"></span>

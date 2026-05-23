@@ -1,0 +1,118 @@
+.toast-wrapper {
+  position: fixed;
+  top: 76px;
+  left: 50%;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  z-index: 9999;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.toast-wrapper-visible {
+  animation: toast-slide-down 220ms ease forwards;
+}
+
+.toast-wrapper-hidden {
+  animation: toast-slide-up 200ms ease forwards;
+}
+
+.toast-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: 100%;
+  min-height: 56px;
+  padding: 12px 18px 12px 12px;
+  border-radius: 999px;
+  background-color: #ffffff;
+  border: 1px solid rgba(109, 35, 237, 0.14);
+  box-shadow: none;
+  color: #0f0f10;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0;
+  word-break: keep-all;
+}
+
+.toast-icon-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.toast-success {
+  background-color: #f4efff;
+  color: #6d23ed;
+}
+
+.toast-error {
+  background-color: #f4efff;
+  color: #6d23ed;
+}
+
+.toast-warning {
+  background-color: #f4efff;
+  color: #6d23ed;
+}
+
+.toast-message {
+  min-width: 0;
+  color: #1b1b1d;
+  overflow-wrap: break-word;
+}
+
+@keyframes toast-slide-down {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes toast-slide-up {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+@media (max-width: 640px) {
+  .toast-wrapper {
+    top: 72px;
+    max-width: calc(100vw - 28px);
+  }
+
+  .toast-box {
+    width: max-content;
+    max-width: 100%;
+    min-height: 52px;
+    padding: 10px 16px 10px 10px;
+    font-size: 13px;
+  }
+
+  .toast-icon-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+}

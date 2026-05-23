@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { authService } from '../services/auth.service';
+import { authService, STUDENT_LOGIN_DENIED_MESSAGE } from '../services/auth.service';
+import { useToast } from '../hooks/useToast';
 import '../styles/Login.css';
 
 function LogoIcon() {
@@ -43,8 +44,8 @@ function HeaderLogoIcon() {
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const toast = useToast();
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
@@ -56,21 +57,36 @@ export default function Login() {
       // Clear form and error
       setEmail('');
       setPassword('');
-      setError('');
+      toast.success('로그인 완료');
       
       // Navigate to dashboard
       navigate('/');
     },
     onError: (error: Error) => {
       console.error('Login error:', error);
-      setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
+      if (error.message === STUDENT_LOGIN_DENIED_MESSAGE) {
+        toast.error('학생 계정 이용 불가');
+        return;
+      }
+
+      toast.error('로그인 실패');
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    loginMutation.mutate({ email, password });
+
+    if (!email.trim() || !password.trim()) {
+      toast.warning('입력값 확인 필요');
+      return;
+    }
+
+    loginMutation.mutate({ email: email.trim(), password });
+  };
+
+  const handleSignupClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    toast.warning('접근 불가');
   };
 
   return (
@@ -85,7 +101,7 @@ export default function Login() {
       </header>
 
       <div className="login-content">
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={handleSubmit} noValidate>
           <div className="form-header">
             <div className="logo-icon-large">
               <LogoIcon />
@@ -95,8 +111,6 @@ export default function Login() {
           </div>
 
           <div className="form-body">
-            {error && <div className="error-message">{error}</div>}
-            
             <div className="input-group">
               <div className="login-input-wrapper">
                 <label className="input-label">이메일</label>
@@ -106,7 +120,6 @@ export default function Login() {
                   placeholder="example@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                 />
               </div>
 
@@ -118,7 +131,6 @@ export default function Login() {
                   placeholder="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                 />
               </div>
             </div>
@@ -131,7 +143,7 @@ export default function Login() {
 
         <div className="signup-link">
           <span className="signup-text">계정이 없다면?</span>
-          <Link to="/register" className="signup-action">회원가입</Link>
+          <Link to="/register" className="signup-action" onClick={handleSignupClick}>회원가입</Link>
         </div>
       </div>
     </div>

@@ -23,8 +23,13 @@ export default function ConfirmationModal({
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
+  const handleCancel = () => {
+    if (isConfirming) return;
+    onCancel();
+  };
+
   return (
-    <div className="confirmation-modal-backdrop" onClick={onCancel}>
+    <div className="confirmation-modal-backdrop" onClick={handleCancel}>
       <div
         className="confirmation-modal"
         onClick={(e) => e.stopPropagation()}
@@ -33,7 +38,7 @@ export default function ConfirmationModal({
           <h2 className="confirmation-modal-title">{title}</h2>
           <button
             className="confirmation-modal-close-button"
-            onClick={onCancel}
+            onClick={handleCancel}
             disabled={isConfirming}
           >
             ✕
@@ -46,7 +51,7 @@ export default function ConfirmationModal({
           {cancelText && (
             <button
               className="confirmation-modal-button cancel"
-              onClick={onCancel}
+              onClick={handleCancel}
               disabled={isConfirming}
             >
               {cancelText}

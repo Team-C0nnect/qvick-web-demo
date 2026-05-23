@@ -7,6 +7,7 @@ import { scheduleService } from '../services/schedule.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import {
   exportMergedAttendanceToExcel,
+  type AttendanceExportMode,
   type MergedAttendanceMember,
 } from '../services/excel.service';
 import { CheckTableSkeleton } from '../components/Skeleton';
@@ -208,9 +209,9 @@ export default function Check() {
     [currentDate, updateAttendancesMutation],
   );
 
-  // 엑셀 내보내기 (성별, 미출석만 여부 선택)
+  // 엑셀 내보내기 (성별, 출력 유형 선택)
   const handleExportExcel = useCallback(
-    (gender: '남' | '여' | null, onlyAbsent: boolean = false) => {
+    (gender: '남' | '여' | null, exportMode: AttendanceExportMode = 'all') => {
       setIsExporting(true);
       setShowExcelMenu(false);
       setSelectedGender(null);
@@ -223,9 +224,10 @@ export default function Check() {
           exportStudents = exportStudents.filter((s) => s.gender === gender);
         }
 
-        // 미출석만 필터링
-        if (onlyAbsent) {
+        if (exportMode === 'absent') {
           exportStudents = exportStudents.filter((s) => s.status === '미출석');
+        } else if (exportMode === 'sleepover') {
+          exportStudents = exportStudents.filter((s) => s.status === '외박');
         }
 
         const mergedData: MergedAttendanceMember[] = exportStudents.map(
@@ -240,7 +242,7 @@ export default function Check() {
           }),
         );
 
-        exportMergedAttendanceToExcel(mergedData, gender, onlyAbsent);
+        exportMergedAttendanceToExcel(mergedData, gender, exportMode);
       } catch (error) {
         console.error('엑셀 내보내기 실패:', error);
         alert('엑셀 내보내기에 실패했습니다.');
@@ -729,19 +731,47 @@ export default function Check() {
                 ) : (
                   <>
                     <div className="excel-menu-header">
-                      {selectedGender === '남' ? '남학생' : '여학생'} 선택
+                      <span>{selectedGender === '남' ? '남학생' : '여학생'}</span>
+                      <button
+                        type="button"
+                        className="excel-menu-header-action"
+                        onClick={() => setSelectedGender(null)}
+                      >
+                        변경
+                      </button>
                     </div>
                     <button
                       className="excel-menu-item"
-                      onClick={() => handleExportExcel(selectedGender)}
+                      onClick={() => handleExportExcel(selectedGender, 'all')}
                     >
-                      전체 다운로드
+                      <span className="excel-menu-item-title">전체 명단</span>
+                      <span className="excel-menu-item-desc">
+                        출석부 전체 양식 다운로드
+                      </span>
                     </button>
                     <button
                       className="excel-menu-item absent-only"
-                      onClick={() => handleExportExcel(selectedGender, true)}
+                      onClick={() => handleExportExcel(selectedGender, 'absent')}
                     >
-                      미출석 명단<br></br>다운로드
+                      <span className="excel-menu-item-title">
+                        미출석 명단
+                      </span>
+                      <span className="excel-menu-item-desc">
+                        A4 체크리스트 다운로드
+                      </span>
+                    </button>
+                    <button
+                      className="excel-menu-item sleepover-only"
+                      onClick={() =>
+                        handleExportExcel(selectedGender, 'sleepover')
+                      }
+                    >
+                      <span className="excel-menu-item-title">
+                        외박자 명단
+                      </span>
+                      <span className="excel-menu-item-desc">
+                        외박자 A4 명단 다운로드
+                      </span>
                     </button>
                     <button
                       className="excel-menu-item back-button"

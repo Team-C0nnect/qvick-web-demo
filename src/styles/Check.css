@@ -155,60 +155,106 @@
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 4px;
+  margin-top: 8px;
+  padding: 8px;
   background: #ffffff;
-  border: 1px solid #d1d5db;
+  border: 1px solid #e6e6e7;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 16px 36px rgba(15, 15, 16, 0.16);
   z-index: 10;
-  overflow: hidden;
-  min-width: 120px;
+  min-width: 220px;
 }
 
 .excel-menu-header {
-  padding: 8px 16px;
-  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px 10px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 800;
   color: #6d23ed;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.excel-menu-item {
-  display: block;
-  width: 100%;
-  padding: 10px 16px;
-  background: none;
+.excel-menu-header-action {
   border: none;
-  font-size: 15px;
-  font-weight: 500;
+  background: transparent;
+  color: #747678;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.excel-menu-header-action:hover {
+  color: #6d23ed;
+}
+
+.excel-menu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
   color: #1f2937;
   cursor: pointer;
   text-align: left;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .excel-menu-item:hover {
-  background: #f3f4f6;
+  border-color: rgba(109, 35, 237, 0.18);
+  background: rgba(109, 35, 237, 0.06);
 }
 
 .excel-menu-item + .excel-menu-item {
-  border-top: 1px solid #e5e7eb;
+  margin-top: 6px;
 }
 
 .excel-menu-item.absent-only {
   color: #e1322e;
-  font-weight: 600;
 }
 
 .excel-menu-item.absent-only:hover {
+  border-color: rgba(225, 50, 46, 0.2);
   background: rgba(225, 50, 46, 0.08);
 }
 
+.excel-menu-item.sleepover-only {
+  color: #6d23ed;
+}
+
+.excel-menu-item.sleepover-only:hover {
+  border-color: rgba(109, 35, 237, 0.22);
+  background: rgba(109, 35, 237, 0.08);
+}
+
+.excel-menu-item-title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.excel-menu-item-desc {
+  color: #747678;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 .excel-menu-item.back-button {
-  color: #9e9e9f;
+  align-items: center;
+  color: #747678;
   font-size: 13px;
-  padding: 8px 16px;
-  background: #f9fafb;
+  padding: 9px 12px;
+  background: #f7f7f8;
 }
 
 .excel-icon {

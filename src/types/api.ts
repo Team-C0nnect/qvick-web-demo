@@ -82,6 +82,40 @@ export interface PageStudentResponse {
   empty: boolean;
 }
 
+// Sleepover Types
+export interface SleepoverResponse {
+  student: StudentResponse;
+  date: string; // format: date
+  sleepoverReason: string;
+}
+
+export interface PageSleepoverResponse {
+  totalElements: number;
+  totalPages: number;
+  pageable: PageableObject;
+  numberOfElements: number;
+  size: number;
+  content: SleepoverResponse[];
+  number: number;
+  sort: SortObject;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export interface CreateSleepoverRequest {
+  studentId: number;
+  date: string; // format: date
+  sleepoverReason: string;
+}
+
+export interface SyncSleepoversResponse {
+  createdCount: number;
+  updatedCount: number;
+  skippedNotFoundCount: number;
+  skippedAlreadyAttendedCount: number;
+}
+
 // Attendance Types
 export interface AttendanceResponse {
   student: Student;

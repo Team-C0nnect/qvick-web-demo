@@ -408,7 +408,14 @@ export default function Check() {
     }
 
     setStudents(mappedStudents);
-  }, [attendancesData, studentsData, scheduleCache, maleSchedule, femaleSchedule]);
+  }, [
+    attendancesData,
+    studentsData,
+    scheduleCache,
+    currentDate,
+    maleSchedule,
+    femaleSchedule,
+  ]);
 
   // Sort function
   const handleSort = (key: SortKey) => {
@@ -814,10 +821,13 @@ export default function Check() {
                           | '출석'
                           | '미출석'
                           | '외박'
-                          | '지연출석',
+                        | '지연출석',
                       )
                     }
-                    disabled={updateAttendancesMutation.isPending}
+                    disabled={
+                      updateAttendancesMutation.isPending ||
+                      student.status === '외박'
+                    }
                     className={`status-select ${
                       student.status === '출석'
                         ? 'status-present'
@@ -831,7 +841,9 @@ export default function Check() {
                     <option value="출석">출석</option>
                     <option value="지연출석">지연출석</option>
                     <option value="미출석">미출석</option>
-                    <option value="외박">외박</option>
+                    {student.status === '외박' && (
+                      <option value="외박">외박</option>
+                    )}
                   </select>
                 </td>
                 <td data-label="성별">{student.gender}</td>

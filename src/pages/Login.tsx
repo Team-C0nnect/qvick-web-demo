@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { authService } from '../services/auth.service';
+import { authService, STUDENT_LOGIN_DENIED_MESSAGE } from '../services/auth.service';
 import '../styles/Login.css';
 
 function LogoIcon() {
@@ -63,6 +63,11 @@ export default function Login() {
     },
     onError: (error: Error) => {
       console.error('Login error:', error);
+      if (error.message === STUDENT_LOGIN_DENIED_MESSAGE) {
+        setError('학생 계정은 로그인할 수 없습니다.');
+        return;
+      }
+
       setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
     },
   });

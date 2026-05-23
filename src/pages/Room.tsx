@@ -1,8 +1,60 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import ConfirmationModal from '../components/ConfirmationModal';
+import FloorSection from '../components/room/FloorSection';
+import RoomCreateModal from '../components/room/RoomCreateModal';
+import RoomToolbar from '../components/room/RoomToolbar';
+import SelectionBar from '../components/room/SelectionBar';
 import { roomService } from '../services/room.service';
-import Header from '../components/Header';
 import '../styles/Room.css';
+import type { RoomResponse } from '../types/api';
+
+type DeleteTarget =
+  | {
+      type: 'single';
+      roomIds: number[];
+      roomName: string;
+    }
+  | {
+      type: 'selected';
+      roomIds: number[];
+    };
+
+const getRoomFloor = (roomName: string) => roomName.charAt(0) || '-';
+
+const sortRooms = (rooms: RoomResponse[]) =>
+  [...rooms].sort((a, b) =>
+    a.room.localeCompare(b.room, 'ko-KR', { numeric: true }),
+  );
+
+const parseRoomsToCreate = (input: string) => {
+  const roomsToCreate: string[] = [];
+  const parts = input
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  for (const part of parts) {
+    const rangeMatch = part.match(/^(\d+)\s*[~-]\s*(\d+)$/);
+
+    if (rangeMatch) {
+      const start = Number(rangeMatch[1]);
+      const end = Number(rangeMatch[2]);
+
+      if (start > end) {
+        return { roomsToCreate: [], errorMessage: `잘못된 범위입니다: ${part}` };
+      }
+
+      for (let room = start; room <= end; room++) {
+        roomsToCreate.push(String(room));
+      }
+    } else {
+      roomsToCreate.push(part);
+    }
+  }
+
+  return { roomsToCreate, errorMessage: '' };
+};
 
 export default function Room() {
   const queryClient = useQueryClient();
@@ -10,82 +62,112 @@ export default function Room() {
   const [newRoomName, setNewRoomName] = useState('');
   const [error, setError] = useState('');
   const [selectedRooms, setSelectedRooms] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFloor, setSelectedFloor] = useState('전체');
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
 
-  // 방 목록 조회
   const { data: rooms = [], isLoading } = useQuery({
     queryKey: ['rooms'],
     queryFn: roomService.getRooms,
   });
 
-  // 방 생성
   const createMutation = useMutation({
-    mutationFn: roomService.createRoom,
+    mutationFn: async (roomsToCreate: string[]) => {
+      await Promise.all(
+        roomsToCreate.map((room) => roomService.createRoom({ room })),
+      );
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] });
-      setIsCreateModalOpen(false);
-      setNewRoomName('');
-      setError('');
+      resetCreateModal();
     },
     onError: (error: Error) => {
-      console.error('Create room error:', error);
-      setError('방 생성에 실패했습니다. 다시 시도해주세요.');
+      console.error('Create rooms error:', error);
+      setError('일부 방 생성에 실패했습니다. 다시 시도해주세요.');
     },
   });
 
-  // 방 삭제
   const deleteMutation = useMutation({
     mutationFn: async (roomIds: number[]) => {
-      // 모든 삭제 요청을 병렬로 실행
-      await Promise.all(roomIds.map(id => roomService.deleteRoom(id)));
+      await Promise.all(roomIds.map((id) => roomService.deleteRoom(id)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] });
       setSelectedRooms([]);
+      setDeleteTarget(null);
     },
     onError: (error: Error) => {
       console.error('Delete room error:', error);
-      alert('방 삭제에 실패했습니다. 다시 시도해주세요.');
     },
   });
 
+  const sortedRooms = useMemo(() => sortRooms(rooms), [rooms]);
+
+  const floors = useMemo(
+    () =>
+      Array.from(new Set(sortedRooms.map((room) => getRoomFloor(room.room))))
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, 'ko-KR', { numeric: true })),
+    [sortedRooms],
+  );
+
+  const filteredRooms = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+
+    return sortedRooms.filter((room) => {
+      const matchesSearch = !query || room.room.toLowerCase().includes(query);
+      const matchesFloor =
+        selectedFloor === '전체' || getRoomFloor(room.room) === selectedFloor;
+      return matchesSearch && matchesFloor;
+    });
+  }, [searchTerm, selectedFloor, sortedRooms]);
+
+  const floorGroups = useMemo(() => {
+    const grouped = filteredRooms.reduce(
+      (acc, room) => {
+        const floor = getRoomFloor(room.room);
+        if (!acc[floor]) acc[floor] = [];
+        acc[floor].push(room);
+        return acc;
+      },
+      {} as Record<string, RoomResponse[]>,
+    );
+
+    return Object.keys(grouped)
+      .sort((a, b) => a.localeCompare(b, 'ko-KR', { numeric: true }))
+      .map((floor) => ({
+        floor,
+        rooms: sortRooms(grouped[floor]),
+      }));
+  }, [filteredRooms]);
+
+  const selectedRoomSet = useMemo(
+    () => new Set(selectedRooms),
+    [selectedRooms],
+  );
+
+  const resetCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setNewRoomName('');
+    setError('');
+  };
+
   const handleCreateRoom = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newRoomName.trim()) {
       setError('방 번호를 입력해주세요.');
       return;
     }
 
-    setError('');
-    
-    // 입력값 파싱: 쉼표로 구분된 여러 방 또는 범위
-    const input = newRoomName.trim();
-    const roomsToCreate: string[] = [];
+    const { roomsToCreate, errorMessage } = parseRoomsToCreate(
+      newRoomName.trim(),
+    );
 
-    // 쉼표로 분리
-    const parts = input.split(',').map(p => p.trim()).filter(p => p);
-
-    for (const part of parts) {
-      // 범위 형식 확인 (예: 301~303, 101-105)
-      const rangeMatch = part.match(/^(\d+)\s*[~-]\s*(\d+)$/);
-      
-      if (rangeMatch) {
-        const start = parseInt(rangeMatch[1]);
-        const end = parseInt(rangeMatch[2]);
-        
-        if (start > end) {
-          setError(`잘못된 범위입니다: ${part}`);
-          return;
-        }
-        
-        // 범위 내의 모든 방 번호 생성
-        for (let i = start; i <= end; i++) {
-          roomsToCreate.push(i.toString());
-        }
-      } else {
-        // 단일 방 번호
-        roomsToCreate.push(part);
-      }
+    if (errorMessage) {
+      setError(errorMessage);
+      return;
     }
 
     if (roomsToCreate.length === 0) {
@@ -93,267 +175,165 @@ export default function Room() {
       return;
     }
 
-    // 20개 제한
     if (roomsToCreate.length > 20) {
       setError('한 번에 최대 20개의 방까지만 생성할 수 있습니다.');
       return;
     }
 
-    // 각 방을 순차적으로 생성
-    const createRooms = async () => {
-      for (const room of roomsToCreate) {
-        await roomService.createRoom({ room });
-      }
-    };
-
-    createRooms()
-      .then(() => {
-        queryClient.invalidateQueries({ queryKey: ['rooms'] });
-        setIsCreateModalOpen(false);
-        setNewRoomName('');
-        setError('');
-      })
-      .catch((error) => {
-        console.error('Create rooms error:', error);
-        setError('일부 방 생성에 실패했습니다. 다시 시도해주세요.');
-      });
+    setError('');
+    createMutation.mutate(roomsToCreate);
   };
 
-  const handleDeleteRoom = (roomId: number, roomName: string) => {
-    if (window.confirm(`${roomName} 호실을 삭제하시겠습니까?`)) {
-      deleteMutation.mutate([roomId]);
-    }
-  };
+  const handleCloseModal = () => {
+    if (createMutation.isPending) return;
 
-  const handleDeleteSelected = () => {
-    if (selectedRooms.length === 0) {
-      alert('삭제할 방을 선택해주세요.');
+    if (newRoomName.trim()) {
+      setIsDiscardConfirmOpen(true);
       return;
     }
-    
-    if (window.confirm(`선택한 ${selectedRooms.length}개의 호실을 삭제하시겠습니까?`)) {
-      deleteMutation.mutate(selectedRooms);
+
+    resetCreateModal();
+  };
+
+  const handleConfirmDiscard = () => {
+    setIsDiscardConfirmOpen(false);
+    resetCreateModal();
+  };
+
+  const handleSelectAll = (floorRooms: RoomResponse[]) => {
+    const floorRoomIds = floorRooms.map((room) => room.id);
+    const allSelected = floorRoomIds.every((id) => selectedRoomSet.has(id));
+
+    if (allSelected) {
+      setSelectedRooms((prev) =>
+        prev.filter((id) => !floorRoomIds.includes(id)),
+      );
+    } else {
+      setSelectedRooms((prev) => [...new Set([...prev, ...floorRoomIds])]);
     }
   };
 
   const handleToggleRoom = (roomId: number) => {
-    setSelectedRooms(prev => 
-      prev.includes(roomId) 
-        ? prev.filter(id => id !== roomId)
-        : [...prev, roomId]
+    setSelectedRooms((prev) =>
+      prev.includes(roomId)
+        ? prev.filter((id) => id !== roomId)
+        : [...prev, roomId],
     );
   };
 
-  const handleSelectAll = (floorRooms: typeof rooms) => {
-    const floorRoomIds = floorRooms.map(r => r.id);
-    const allSelected = floorRoomIds.every(id => selectedRooms.includes(id));
-    
-    if (allSelected) {
-      // 현재 층의 방들을 선택 해제
-      setSelectedRooms(prev => prev.filter(id => !floorRoomIds.includes(id)));
-    } else {
-      // 현재 층의 방들을 선택
-      setSelectedRooms(prev => [...new Set([...prev, ...floorRoomIds])]);
-    }
+  const requestDeleteRoom = (roomId: number, roomName: string) => {
+    setDeleteTarget({ type: 'single', roomIds: [roomId], roomName });
   };
 
-  const handleCloseModal = () => {
-    if (newRoomName) {
-      if (window.confirm('작성 중인 내용이 있습니다. 취소하시겠습니까?')) {
-        setIsCreateModalOpen(false);
-        setNewRoomName('');
-        setError('');
-      }
-    } else {
-      setIsCreateModalOpen(false);
-      setNewRoomName('');
-      setError('');
-    }
+  const requestDeleteSelected = () => {
+    if (selectedRooms.length === 0) return;
+    setDeleteTarget({ type: 'selected', roomIds: selectedRooms });
   };
 
-  // 방을 층별로 그룹핑
-  const groupRoomsByFloor = () => {
-    const grouped = rooms.reduce((acc, room) => {
-      // 방 번호에서 첫 글자를 층으로 사용
-      const floor = room.room.charAt(0);
-      if (!acc[floor]) {
-        acc[floor] = [];
-      }
-      acc[floor].push(room);
-      return acc;
-    }, {} as Record<string, typeof rooms>);
-
-    // 층을 오름차순으로 정렬
-    return Object.keys(grouped)
-      .sort((a, b) => a.localeCompare(b))
-      .map(floor => ({
-        floor,
-        rooms: grouped[floor].sort((a, b) => a.room.localeCompare(b.room))
-      }));
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteMutation.mutate(deleteTarget.roomIds);
   };
 
-  const floorGroups = groupRoomsByFloor();
+  const handleRoomNameChange = (value: string) => {
+    setNewRoomName(value);
+    if (error) setError('');
+  };
+
+  const deleteMessage =
+    deleteTarget?.type === 'single'
+      ? `${deleteTarget.roomName} 호실을 삭제하시겠습니까?`
+      : `선택한 ${deleteTarget?.roomIds.length ?? 0}개 호실을 삭제하시겠습니까?`;
 
   return (
     <div className="room-page">
-      <Header />
-      
       <div className="room-container">
-        <div className="room-header">
-          <h1 className="room-title">방 관리</h1>
-          <div className="header-actions">
-            {selectedRooms.length > 0 && (
-              <button
-                className="delete-selected-button"
-                onClick={handleDeleteSelected}
-                disabled={deleteMutation.isPending}
-              >
-                선택 삭제 ({selectedRooms.length})
-              </button>
-            )}
-            <button
-              className="create-room-button"
-              onClick={() => setIsCreateModalOpen(true)}
-            >
-              + 방 추가
-            </button>
+        <RoomToolbar
+          floors={floors}
+          searchTerm={searchTerm}
+          selectedFloor={selectedFloor}
+          onSearchChange={setSearchTerm}
+          onFloorChange={setSelectedFloor}
+          onCreateRoom={() => setIsCreateModalOpen(true)}
+        />
+
+        <SelectionBar
+          selectedCount={selectedRooms.length}
+          isDeleting={deleteMutation.isPending}
+          onClearSelection={() => setSelectedRooms([])}
+          onDeleteSelected={requestDeleteSelected}
+        />
+
+        {deleteMutation.isError && (
+          <div className="room-error-banner">
+            방 삭제에 실패했습니다. 다시 시도해주세요.
           </div>
-        </div>
+        )}
 
         {isLoading ? (
-          <div className="loading">로딩 중...</div>
+          <div className="room-loading">로딩 중...</div>
         ) : rooms.length === 0 ? (
-          <div className="empty-state">
-            <p>등록된 방이 없습니다.</p>
-            <p>방을 추가하여 학생들을 배정하세요.</p>
+          <div className="room-empty-state">
+            <strong>등록된 방이 없습니다.</strong>
+            <span>방을 추가하여 학생들을 배정하세요.</span>
+          </div>
+        ) : filteredRooms.length === 0 ? (
+          <div className="room-empty-state">
+            <strong>조건에 맞는 방이 없습니다.</strong>
+            <span>검색어나 층 필터를 다시 확인해주세요.</span>
           </div>
         ) : (
           <div className="floor-sections">
             {floorGroups.map((group) => (
-              <div key={group.floor} className="floor-section">
-                <div className="floor-header">
-                  <h2 className="floor-title">{group.floor}층</h2>
-                  <button
-                    className="select-all-button"
-                    onClick={() => handleSelectAll(group.rooms)}
-                  >
-                    {group.rooms.every(r => selectedRooms.includes(r.id)) ? '전체 해제' : '전체 선택'}
-                  </button>
-                </div>
-                <div className="room-grid">
-                  {group.rooms.map((room) => (
-                    <div 
-                      key={room.id} 
-                      className={`room-card ${selectedRooms.includes(room.id) ? 'selected' : ''}`}
-                      onClick={() => handleToggleRoom(room.id)}
-                    >
-                      <div className="room-card-header">
-                        <input
-                          type="checkbox"
-                          className="room-checkbox"
-                          checked={selectedRooms.includes(room.id)}
-                          onChange={() => {}}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <h3 className="room-name">{room.room}</h3>
-                        <button
-                          className="delete-room-button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteRoom(room.id, room.room);
-                          }}
-                          disabled={deleteMutation.isPending}
-                        >
-                          삭제
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <FloorSection
+                key={group.floor}
+                floor={group.floor}
+                rooms={group.rooms}
+                selectedRoomSet={selectedRoomSet}
+                onSelectAll={handleSelectAll}
+                onToggleRoom={handleToggleRoom}
+                onDeleteRoom={requestDeleteRoom}
+              />
             ))}
           </div>
         )}
       </div>
 
-      {/* 방 생성 모달 */}
       {isCreateModalOpen && (
-        <div 
-          className="modal-backdrop"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
-              e.currentTarget.setAttribute('data-backdrop-mousedown', 'true');
-            }
-          }}
-          onMouseUp={(e) => {
-            if (
-              e.target === e.currentTarget &&
-              e.currentTarget.getAttribute('data-backdrop-mousedown') === 'true'
-            ) {
-              handleCloseModal();
-            }
-            e.currentTarget.removeAttribute('data-backdrop-mousedown');
-          }}
-        >
-          <div className="modal-container room-modal">
-            <div className="modal-header">
-              <h2 className="modal-title">방 추가</h2>
-              <button
-                className="modal-close-button"
-                onClick={handleCloseModal}
-                disabled={createMutation.isPending}
-                type="button"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form className="modal-form" onSubmit={handleCreateRoom}>
-              <div className="form-group">
-                <label className="form-label" htmlFor="room-name">
-                  방 번호 <span className="required">*</span>
-                </label>
-                <input
-                  id="room-name"
-                  type="text"
-                  className="form-input"
-                  placeholder="예: 101, 102, 103 또는 301~305"
-                  value={newRoomName}
-                  onChange={(e) => setNewRoomName(e.target.value)}
-                  maxLength={100}
-                  autoFocus
-                  required
-                />
-                <div className="input-helper">
-                  여러 방을 쉼표(,)로 구분하거나 범위(~)로 입력하세요
-                </div>
-                <div className="input-footer">
-                  {error && <span className="error-text">{error}</span>}
-                  <span className="char-count">{newRoomName.length}/100</span>
-                </div>
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={handleCloseModal}
-                  disabled={createMutation.isPending}
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  className="submit-button"
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending ? '추가 중...' : '추가'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <RoomCreateModal
+          roomName={newRoomName}
+          error={error}
+          isPending={createMutation.isPending}
+          onRoomNameChange={handleRoomNameChange}
+          onClose={handleCloseModal}
+          onSubmit={handleCreateRoom}
+        />
       )}
+
+      <ConfirmationModal
+        isOpen={!!deleteTarget}
+        eyebrow="Confirm action"
+        title="삭제 확인"
+        message={deleteMessage}
+        confirmText="삭제"
+        cancelText="취소"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+        isConfirming={deleteMutation.isPending}
+        confirmVariant="danger"
+      />
+
+      <ConfirmationModal
+        isOpen={isDiscardConfirmOpen}
+        eyebrow="Unsaved changes"
+        title="작성 취소"
+        message="작성 중인 내용이 있습니다. 취소하시겠습니까?"
+        confirmText="취소하기"
+        cancelText="계속 작성"
+        onConfirm={handleConfirmDiscard}
+        onCancel={() => setIsDiscardConfirmOpen(false)}
+        isConfirming={createMutation.isPending}
+      />
     </div>
   );
 }

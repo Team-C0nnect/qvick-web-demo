@@ -11,8 +11,8 @@
 }
 
 .confirmation-modal {
-  width: min(400px, 100%);
-  max-height: min(90vh, 640px);
+  width: min(520px, 100%);
+  max-height: min(90vh, 760px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -27,14 +27,23 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 20px 24px;
+  padding: 22px 24px;
   border-bottom: 1px solid #e6e6e7;
+}
+
+.confirmation-modal-eyebrow {
+  margin: 0 0 4px;
+  color: #6d23ed;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 .confirmation-modal-title {
   margin: 0;
   color: #0f0f10;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
   line-height: 1.25;
   letter-spacing: 0;
@@ -74,12 +83,12 @@
 }
 
 .confirmation-modal-content {
-  padding: 24px 28px;
+  padding: 28px 24px;
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .confirmation-modal-content p {
@@ -94,21 +103,23 @@
 
 .confirmation-modal-footer {
   display: flex;
-  gap: 12px;
-  padding: 16px 28px;
+  gap: 10px;
+  padding: 0 24px 24px;
   border-top: 1px solid #e6e6e7;
   justify-content: flex-end;
+  border-top: none;
 }
 
 .confirmation-modal-button {
-  padding: 10px 20px;
+  min-width: 92px;
+  min-height: 42px;
+  padding: 0 20px;
   border: none;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  min-width: 80px;
   letter-spacing: -0.3px;
 }
 
@@ -131,16 +142,28 @@
 }
 
 .confirmation-modal-button.confirm {
-  background: #0f0f10;
+  background: #6d23ed;
   color: #ffffff;
 }
 
 .confirmation-modal-button.confirm:hover:not(:disabled) {
-  background: #2a2a2c;
+  background: #5919c7;
 }
 
 .confirmation-modal-button.confirm:active:not(:disabled) {
-  background: #1a1a1c;
+  background: #4c13b4;
+}
+
+.confirmation-modal-button.confirm.danger {
+  background: #ff4242;
+}
+
+.confirmation-modal-button.confirm.danger:hover:not(:disabled) {
+  background: #e63939;
+}
+
+.confirmation-modal-button.confirm.danger:active:not(:disabled) {
+  background: #d92f2f;
 }
 
 @media (max-width: 480px) {

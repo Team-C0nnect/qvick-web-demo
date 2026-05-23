@@ -27,7 +27,6 @@ export default function Dashboard() {
   const presentCount = attendancesData?.filter((a) => a.status === 'PRESENT').length || 0;
   const absentCount = attendancesData?.filter((a) => a.status === 'ABSENT').length || 0;
   const totalCount = attendancesData?.length || 0;
-  const attendanceRate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
 
   // 남/여 기숙사 미출석 계산
   const maleAbsent = attendancesData?.filter((a) => a.status === 'ABSENT' && a.student.gender === 'MALE').length || 0;
@@ -36,6 +35,11 @@ export default function Dashboard() {
   // 오늘 외박 인원 (SLEEPOVER 상태)
   const todaySleepover = attendancesData?.filter((a) => a.status === 'SLEEPOVER').length || 0;
   const lateCount = attendancesData?.filter((a) => a.status === 'LATE').length || 0;
+  const attendanceTargetCount = Math.max(0, totalCount - todaySleepover);
+  const attendanceRate =
+    attendanceTargetCount > 0
+      ? Math.round((presentCount / attendanceTargetCount) * 100)
+      : 0;
 
   // 공지사항 목록
   const announcements: AnnouncementResponse[] = announcementsData?.content || [];
@@ -70,7 +74,13 @@ export default function Dashboard() {
   ];
 
   const getMetricRate = (value: number) => (
-    totalCount > 0 ? Math.min(100, Math.round((value / totalCount) * 100)) : 0
+    attendanceTargetCount > 0
+      ? Math.min(100, Math.round((value / attendanceTargetCount) * 100))
+      : 0
+  );
+
+  const getSleepoverRate = () => (
+    totalCount > 0 ? Math.min(100, Math.round((todaySleepover / totalCount) * 100)) : 0
   );
 
   if (isLoading) {
@@ -105,7 +115,7 @@ export default function Dashboard() {
               <strong>{attendanceRate}%</strong>
             </div>
             <span className="summary-count">
-              {presentCount}/{totalCount || 0}명
+              {presentCount}/{attendanceTargetCount}명
             </span>
           </div>
           <div className="summary-progress" aria-label={`출석률 ${attendanceRate}%`}>
@@ -119,7 +129,10 @@ export default function Dashboard() {
 
         <section className="metrics-strip" aria-label="오늘 출결 요약">
           {metricCards.map((metric) => {
-            const metricRate = getMetricRate(metric.value);
+            const metricRate =
+              metric.tone === 'sleepover'
+                ? getSleepoverRate()
+                : getMetricRate(metric.value);
             return (
               <div className={`metric-card ${metric.tone}`} key={metric.label}>
                 <div className="metric-card-top">

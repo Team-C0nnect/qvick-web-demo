@@ -42,6 +42,10 @@ export default function Header() {
     navigate('/login', { replace: true });
   };
 
+  const displayName = user?.roles?.includes('TEACHER')
+    ? `${user.name} 선생님`
+    : user?.name;
+
   return (
     <header className="header">
       <Link to="/" className="logo-container">
@@ -53,7 +57,7 @@ export default function Header() {
       
       {user && (
         <div className="header-user">
-          <span className="user-name">{user.name}</span>
+          <span className="user-name">{displayName}</span>
           <button className="logout-button" onClick={handleLogout}>
             로그아웃
           </button>

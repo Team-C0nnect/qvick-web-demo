@@ -228,28 +228,9 @@ function isLateAttendance(timeStr: string, endTime?: string): boolean {
   return totalMinutes > endTotalMinutes;
 }
 
-/**
- * 미출석만 워크시트 생성 (간단한 레이아웃)
- */
 function createAbsentOnlyWorksheet(
   data: MergedAttendanceMember[],
 ): XLSX.WorkSheet {
-  const aoa: (string | number)[][] = [
-    ['저녁 점호 체크리스트 - 미출석자'],
-    ['호실', '학번', '성명', '출석 여부'],
-  ];
-
-  const merges: XLSX.Range[] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cellStyles: Record<string, any> = {};
-
-  cellStyles['A1'] = {
-    font: { sz: 16, bold: true, name: '맑은 고딕' },
-    alignment: { vertical: 'center', horizontal: 'center' },
-  };
-
-  // 미출석자만 필터링 및 정렬
   const absentMembers = [...data].sort((a, b) => {
     const aRoomNum = parseInt(a.room.replace(/\D/g, '')) || 0;
     const bRoomNum = parseInt(b.room.replace(/\D/g, '')) || 0;
@@ -257,58 +238,107 @@ function createAbsentOnlyWorksheet(
     return a.stdId.localeCompare(b.stdId);
   });
 
-  let rowIndex = 2;
+  const today = new Date();
+  const dateText = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 ${DAY_NAMES[today.getDay()]}요일`;
+  const aoa: (string | number)[][] = [
+    ['저녁 점호 미출석자 명단', '', '', '', '', '', ''],
+    [dateText, '', '', '', `총 ${absentMembers.length}명`, '', ''],
+    ['', '', '', '', '', '', ''],
+    ['번호', '호실', '학번', '성명', '상태', '확인', '비고'],
+  ];
 
-  absentMembers.forEach((member) => {
-    aoa.push([member.room, member.stdId, member.name, '미출석']);
-    rowIndex++;
+  const merges: XLSX.Range[] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
+    { s: { r: 1, c: 4 }, e: { r: 1, c: 6 } },
+  ];
+
+  absentMembers.forEach((member, index) => {
+    aoa.push([index + 1, member.room, member.stdId, member.name, '미출석', '', '']);
   });
 
-  const totalRows = rowIndex;
+  const footerStartRow = aoa.length + 1;
+  aoa.push(['', '', '', '', '', '', '']);
+  aoa.push(['확인 교사', '', '', '', '', '', '']);
+  merges.push(
+    { s: { r: footerStartRow, c: 0 }, e: { r: footerStartRow, c: 2 } },
+    { s: { r: footerStartRow, c: 3 }, e: { r: footerStartRow, c: 6 } },
+  );
 
-  // 워크시트 생성
   const worksheet = XLSX.utils.aoa_to_sheet(aoa);
   worksheet['!merges'] = merges;
   worksheet['!cols'] = [
-    { width: 8 },
-    { width: 15 },
-    { width: 15 },
-    { width: 15 },
+    { width: 7 },
+    { width: 10 },
+    { width: 12 },
+    { width: 14 },
+    { width: 12 },
+    { width: 13 },
+    { width: 22 },
   ];
-  worksheet['!rows'] = Array.from({ length: totalRows }, (_, i) =>
-    i === 0 ? { hpx: 25 } : { hpx: 18 },
-  );
+  worksheet['!rows'] = aoa.map((_, i) => {
+    if (i === 0) return { hpx: 34 };
+    if (i === 1) return { hpx: 24 };
+    if (i === 2) return { hpx: 10 };
+    if (i === 3) return { hpx: 24 };
+    if (i === footerStartRow) return { hpx: 38 };
+    return { hpx: 26 };
+  });
+  worksheet['!margins'] = {
+    left: 0.35,
+    right: 0.35,
+    top: 0.45,
+    bottom: 0.45,
+    header: 0.2,
+    footer: 0.2,
+  };
+  worksheet['!pageSetup'] = {
+    paperSize: 9,
+    orientation: 'portrait',
+    fitToWidth: 1,
+    fitToHeight: 1,
+  };
 
-  // 간단한 스타일 적용
   for (let r = 0; r < aoa.length; r++) {
-    for (let c = 0; c < 4; c++) {
+    for (let c = 0; c < 7; c++) {
       const cellRef = XLSX.utils.encode_cell({ r, c });
       if (!worksheet[cellRef]) worksheet[cellRef] = { v: '' };
 
-      const top = r === 0 || r === 1 ? BORDER_THICK : BORDER_THIN;
+      const isTitle = r === 0;
+      const isMeta = r === 1;
+      const isSpacer = r === 2;
+      const isHeader = r === 3;
+      const isFooter = r === footerStartRow;
+      const isDataRow = r > 3 && r < footerStartRow - 1;
+
+      if (isSpacer) continue;
+
+      const top = isTitle || isHeader || isFooter ? BORDER_THICK : BORDER_THIN;
       const left = c === 0 ? BORDER_THICK : BORDER_THIN;
-      const right = c === 3 ? BORDER_THICK : BORDER_THIN;
-      const bottom = r === aoa.length - 1 ? BORDER_THICK : BORDER_THIN;
-
-      let fontBold = false;
-      let fontSize = 12;
-
-      if (r === 0) {
-        fontBold = true;
-        fontSize = 16;
-      } else if (r === 1) {
-        fontBold = true;
-        fontSize = 12;
-      }
+      const right = c === 6 ? BORDER_THICK : BORDER_THIN;
+      const bottom =
+        isTitle || isHeader || isFooter || r === footerStartRow
+          ? BORDER_THICK
+          : BORDER_THIN;
+      const fill = isHeader
+        ? { fgColor: { rgb: 'EEF2FF' } }
+        : isDataRow && c === 4
+          ? { fgColor: { rgb: 'FFECEC' } }
+          : undefined;
 
       worksheet[cellRef].s = {
-        ...(cellStyles[cellRef] || {}),
         border: { top, left, bottom, right },
-        alignment: { vertical: 'center', horizontal: 'center' },
+        alignment: {
+          vertical: 'center',
+          horizontal: c === 6 && isDataRow ? 'left' : 'center',
+          wrapText: true,
+        },
+        ...(fill ? { fill } : {}),
         font: {
-          sz: fontSize,
-          bold: fontBold,
+          sz: isTitle ? 18 : isMeta ? 11 : 12,
+          bold: isTitle || isMeta || isHeader || isFooter,
           name: '맑은 고딕',
+          ...(isDataRow && c === 4 ? { color: { rgb: 'E1322E' } } : {}),
         },
       };
     }

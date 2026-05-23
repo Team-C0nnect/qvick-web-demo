@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService, STUDENT_LOGIN_DENIED_MESSAGE } from '../services/auth.service';
 import { useToast } from '../hooks/useToast';
 import '../styles/Login.css';
@@ -46,6 +46,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
@@ -53,6 +54,7 @@ export default function Login() {
       // Store tokens
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
+      queryClient.clear();
       
       // Clear form and error
       setEmail('');

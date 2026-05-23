@@ -695,6 +695,28 @@
     padding: 16px;
   }
 
+  .floor-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .floor-title {
+    font-size: 17px;
+  }
+
+  .floor-count {
+    white-space: nowrap;
+  }
+
+  .select-all-button {
+    width: 112px;
+    min-height: 38px;
+    padding: 0 10px;
+    justify-self: end;
+  }
+
   .room-grid {
     grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
   }

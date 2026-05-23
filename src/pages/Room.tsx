@@ -257,21 +257,6 @@ export default function Room() {
             </button>
           </div>
 
-          <div className="room-summary-grid">
-            <div className="room-summary-item">
-              <span className="summary-label">전체 방</span>
-              <strong>{rooms.length}</strong>
-            </div>
-            <div className="room-summary-item">
-              <span className="summary-label">선택됨</span>
-              <strong>{selectedRooms.length}</strong>
-            </div>
-            <div className="room-summary-item">
-              <span className="summary-label">층</span>
-              <strong>{floors.length}</strong>
-            </div>
-          </div>
-
           <div className="room-control-row">
             <label className="room-search-box" htmlFor="room-search">
               <SearchIcon className="room-search-icon" />

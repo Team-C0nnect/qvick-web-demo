@@ -72,35 +72,6 @@
   transform: translateY(1px);
 }
 
-.room-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.room-summary-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-  padding: 12px 14px;
-  border-radius: 8px;
-  background: #f8f9fa;
-}
-
-.summary-label {
-  color: #747678;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.room-summary-item strong {
-  color: #0f0f10;
-  font-size: 18px;
-  font-weight: 800;
-}
-
 .room-control-row {
   display: grid;
   grid-template-columns: minmax(240px, 360px) 1fr;
@@ -693,10 +664,6 @@
 
   .create-room-button {
     width: 100%;
-  }
-
-  .room-summary-grid {
-    grid-template-columns: 1fr;
   }
 
   .room-floor-filters {

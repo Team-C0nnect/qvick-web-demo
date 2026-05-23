@@ -73,9 +73,9 @@ export default function Room() {
 
   const createMutation = useMutation({
     mutationFn: async (roomsToCreate: string[]) => {
-      for (const room of roomsToCreate) {
-        await roomService.createRoom({ room });
-      }
+      await Promise.all(
+        roomsToCreate.map((room) => roomService.createRoom({ room })),
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rooms'] });

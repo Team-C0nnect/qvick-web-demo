@@ -37,9 +37,11 @@ export default function ConfirmationModal({
         <div className="confirmation-modal-header">
           <h2 className="confirmation-modal-title">{title}</h2>
           <button
+            type="button"
             className="confirmation-modal-close-button"
             onClick={handleCancel}
             disabled={isConfirming}
+            aria-label="모달 닫기"
           >
             ✕
           </button>

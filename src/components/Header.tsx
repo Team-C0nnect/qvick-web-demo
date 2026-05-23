@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../lib/api-client';
 import { authService } from '../services/auth.service';
 import '../styles/Header.css';

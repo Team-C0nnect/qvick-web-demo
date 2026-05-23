@@ -2,6 +2,7 @@ import '../styles/ConfirmationModal.css';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
+  eyebrow?: string;
   title: string;
   message: string;
   confirmText?: string;
@@ -9,10 +10,12 @@ interface ConfirmationModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   isConfirming?: boolean;
+  confirmVariant?: 'default' | 'danger';
 }
 
 export default function ConfirmationModal({
   isOpen,
+  eyebrow,
   title,
   message,
   confirmText = '확인',
@@ -20,6 +23,7 @@ export default function ConfirmationModal({
   onConfirm,
   onCancel,
   isConfirming = false,
+  confirmVariant = 'default',
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -35,7 +39,12 @@ export default function ConfirmationModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="confirmation-modal-header">
-          <h2 className="confirmation-modal-title">{title}</h2>
+          <div>
+            {eyebrow && (
+              <p className="confirmation-modal-eyebrow">{eyebrow}</p>
+            )}
+            <h2 className="confirmation-modal-title">{title}</h2>
+          </div>
           <button
             type="button"
             className="confirmation-modal-close-button"
@@ -60,7 +69,7 @@ export default function ConfirmationModal({
             </button>
           )}
           <button
-            className="confirmation-modal-button confirm"
+            className={`confirmation-modal-button confirm ${confirmVariant}`}
             onClick={onConfirm}
             disabled={isConfirming}
           >

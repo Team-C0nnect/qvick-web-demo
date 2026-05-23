@@ -65,6 +65,7 @@ export default function Room() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFloor, setSelectedFloor] = useState('전체');
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
 
   const { data: rooms = [], isLoading } = useQuery({
     queryKey: ['rooms'],
@@ -187,12 +188,15 @@ export default function Room() {
     if (createMutation.isPending) return;
 
     if (newRoomName.trim()) {
-      if (window.confirm('작성 중인 내용이 있습니다. 취소하시겠습니까?')) {
-        resetCreateModal();
-      }
+      setIsDiscardConfirmOpen(true);
       return;
     }
 
+    resetCreateModal();
+  };
+
+  const handleConfirmDiscard = () => {
+    setIsDiscardConfirmOpen(false);
     resetCreateModal();
   };
 
@@ -308,6 +312,7 @@ export default function Room() {
 
       <ConfirmationModal
         isOpen={!!deleteTarget}
+        eyebrow="Confirm action"
         title="삭제 확인"
         message={deleteMessage}
         confirmText="삭제"
@@ -315,6 +320,19 @@ export default function Room() {
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteTarget(null)}
         isConfirming={deleteMutation.isPending}
+        confirmVariant="danger"
+      />
+
+      <ConfirmationModal
+        isOpen={isDiscardConfirmOpen}
+        eyebrow="Unsaved changes"
+        title="작성 취소"
+        message="작성 중인 내용이 있습니다. 취소하시겠습니까?"
+        confirmText="취소하기"
+        cancelText="계속 작성"
+        onConfirm={handleConfirmDiscard}
+        onCancel={() => setIsDiscardConfirmOpen(false)}
+        isConfirming={createMutation.isPending}
       />
     </div>
   );

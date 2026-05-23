@@ -24,15 +24,15 @@ export default function ConfirmationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
+    <div className="confirmation-modal-backdrop" onClick={onCancel}>
       <div
-        className="modal-container confirmation-modal"
+        className="confirmation-modal"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-header">
-          <h2 className="modal-title">{title}</h2>
+        <div className="confirmation-modal-header">
+          <h2 className="confirmation-modal-title">{title}</h2>
           <button
-            className="modal-close-button"
+            className="confirmation-modal-close-button"
             onClick={onCancel}
             disabled={isConfirming}
           >

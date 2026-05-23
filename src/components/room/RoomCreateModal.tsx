@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import '../../styles/RoomModal.css';
 
 interface RoomCreateModalProps {
@@ -17,24 +18,21 @@ export default function RoomCreateModal({
   onClose,
   onSubmit,
 }: RoomCreateModalProps) {
+  const backdropMouseDownRef = useRef(false);
+
   return (
     <div
       className="room-modal-backdrop"
       onMouseDown={(e) => {
         if (isPending) return;
-        if (e.target === e.currentTarget) {
-          e.currentTarget.setAttribute('data-backdrop-mousedown', 'true');
-        }
+        backdropMouseDownRef.current = e.target === e.currentTarget;
       }}
       onMouseUp={(e) => {
         if (isPending) return;
-        if (
-          e.target === e.currentTarget &&
-          e.currentTarget.getAttribute('data-backdrop-mousedown') === 'true'
-        ) {
+        if (e.target === e.currentTarget && backdropMouseDownRef.current) {
           onClose();
         }
-        e.currentTarget.removeAttribute('data-backdrop-mousedown');
+        backdropMouseDownRef.current = false;
       }}
     >
       <div className="room-modal">

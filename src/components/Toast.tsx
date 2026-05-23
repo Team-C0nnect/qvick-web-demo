@@ -81,6 +81,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       {mounted && toastItem && (
         <div
+          key={toastItem.id}
           className={`toast-wrapper ${visible ? 'toast-wrapper-visible' : 'toast-wrapper-hidden'}`}
           aria-live="polite"
           aria-relevant="additions"

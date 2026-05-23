@@ -124,6 +124,8 @@ export default function Sleepover() {
 
   const isActionPending =
     createMutation.isPending || syncMutation.isPending || deleteMutation.isPending;
+  const hasRequestError =
+    syncMutation.isError || createMutation.isError || deleteMutation.isError;
 
   return (
     <div className="check-page sleepover-page">
@@ -180,13 +182,11 @@ export default function Sleepover() {
         </div>
       </div>
 
-      {(syncMessage || syncMutation.isError || createMutation.isError) && (
+      {(syncMessage || hasRequestError) && (
         <div
-          className={`sleepover-message ${
-            syncMutation.isError || createMutation.isError ? 'error' : ''
-          }`}
+          className={`sleepover-message ${hasRequestError ? 'error' : ''}`}
         >
-          {syncMutation.isError || createMutation.isError
+          {hasRequestError
             ? '요청 처리에 실패했습니다. 다시 시도해주세요.'
             : syncMessage}
         </div>

@@ -7,6 +7,7 @@ import { scheduleService } from '../services/schedule.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import {
   exportMergedAttendanceToExcel,
+  type AttendanceExportMode,
   type MergedAttendanceMember,
 } from '../services/excel.service';
 import { CheckTableSkeleton } from '../components/Skeleton';
@@ -208,9 +209,9 @@ export default function Check() {
     [currentDate, updateAttendancesMutation],
   );
 
-  // 엑셀 내보내기 (성별, 미출석만 여부 선택)
+  // 엑셀 내보내기 (성별, 출력 유형 선택)
   const handleExportExcel = useCallback(
-    (gender: '남' | '여' | null, onlyAbsent: boolean = false) => {
+    (gender: '남' | '여' | null, exportMode: AttendanceExportMode = 'all') => {
       setIsExporting(true);
       setShowExcelMenu(false);
       setSelectedGender(null);
@@ -223,9 +224,10 @@ export default function Check() {
           exportStudents = exportStudents.filter((s) => s.gender === gender);
         }
 
-        // 미출석만 필터링
-        if (onlyAbsent) {
+        if (exportMode === 'absent') {
           exportStudents = exportStudents.filter((s) => s.status === '미출석');
+        } else if (exportMode === 'sleepover') {
+          exportStudents = exportStudents.filter((s) => s.status === '외박');
         }
 
         const mergedData: MergedAttendanceMember[] = exportStudents.map(
@@ -240,7 +242,7 @@ export default function Check() {
           }),
         );
 
-        exportMergedAttendanceToExcel(mergedData, gender, onlyAbsent);
+        exportMergedAttendanceToExcel(mergedData, gender, exportMode);
       } catch (error) {
         console.error('엑셀 내보내기 실패:', error);
         alert('엑셀 내보내기에 실패했습니다.');
@@ -408,7 +410,14 @@ export default function Check() {
     }
 
     setStudents(mappedStudents);
-  }, [attendancesData, studentsData, scheduleCache, maleSchedule, femaleSchedule]);
+  }, [
+    attendancesData,
+    studentsData,
+    scheduleCache,
+    currentDate,
+    maleSchedule,
+    femaleSchedule,
+  ]);
 
   // Sort function
   const handleSort = (key: SortKey) => {
@@ -539,6 +548,7 @@ export default function Check() {
     present: filteredStudents.filter((s) => s.status === '출석').length,
     absent: filteredStudents.filter((s) => s.status === '미출석').length,
     late: filteredStudents.filter((s) => s.status === '지연출석').length,
+    sleepover: filteredStudents.filter((s) => s.status === '외박').length,
   };
 
   if (attendancesLoading) {
@@ -581,59 +591,8 @@ export default function Check() {
           <div className="stat-box late">
             지연출석 : <span className="warning">{stats.late}</span>명
           </div>
-          <div className="excel-dropdown" ref={excelMenuRef}>
-            <button
-              className="excel-button"
-              onClick={() => setShowExcelMenu(!showExcelMenu)}
-              disabled={isExporting}
-            >
-              <ExcelIcon className="excel-icon" />
-              {isExporting ? '다운로드 중...' : 'Excel ▾'}
-            </button>
-            {showExcelMenu && (
-              <div className="excel-menu">
-                {selectedGender === null ? (
-                  <>
-                    <button
-                      className="excel-menu-item"
-                      onClick={() => setSelectedGender('남')}
-                    >
-                      남학생
-                    </button>
-                    <button
-                      className="excel-menu-item"
-                      onClick={() => setSelectedGender('여')}
-                    >
-                      여학생
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div className="excel-menu-header">
-                      {selectedGender === '남' ? '남학생' : '여학생'} 선택
-                    </div>
-                    <button
-                      className="excel-menu-item"
-                      onClick={() => handleExportExcel(selectedGender)}
-                    >
-                      전체 다운로드
-                    </button>
-                    <button
-                      className="excel-menu-item absent-only"
-                      onClick={() => handleExportExcel(selectedGender, true)}
-                    >
-                      미출석 명단<br></br>다운로드
-                    </button>
-                    <button
-                      className="excel-menu-item back-button"
-                      onClick={() => setSelectedGender(null)}
-                    >
-                      ← 뒤로가기
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
+          <div className="stat-box sleepover">
+            외박 : <span className="sleepover-count">{stats.sleepover}</span>명
           </div>
         </div>
       </div>
@@ -740,6 +699,92 @@ export default function Check() {
             </button>
           </div>
         </div>
+
+        <div className="filter-actions">
+          <div className="excel-dropdown" ref={excelMenuRef}>
+            <button
+              className="excel-button"
+              onClick={() => setShowExcelMenu(!showExcelMenu)}
+              disabled={isExporting}
+            >
+              <ExcelIcon className="excel-icon" />
+              {isExporting ? '다운로드 중...' : 'Excel'}
+              <span className="excel-caret">▾</span>
+            </button>
+            {showExcelMenu && (
+              <div className="excel-menu">
+                {selectedGender === null ? (
+                  <>
+                    <button
+                      className="excel-menu-item"
+                      onClick={() => setSelectedGender('남')}
+                    >
+                      남학생
+                    </button>
+                    <button
+                      className="excel-menu-item"
+                      onClick={() => setSelectedGender('여')}
+                    >
+                      여학생
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="excel-menu-header">
+                      <span>{selectedGender === '남' ? '남학생' : '여학생'}</span>
+                      <button
+                        type="button"
+                        className="excel-menu-header-action"
+                        onClick={() => setSelectedGender(null)}
+                      >
+                        변경
+                      </button>
+                    </div>
+                    <button
+                      className="excel-menu-item"
+                      onClick={() => handleExportExcel(selectedGender, 'all')}
+                    >
+                      <span className="excel-menu-item-title">전체 명단</span>
+                      <span className="excel-menu-item-desc">
+                        출석부 전체 양식 다운로드
+                      </span>
+                    </button>
+                    <button
+                      className="excel-menu-item absent-only"
+                      onClick={() => handleExportExcel(selectedGender, 'absent')}
+                    >
+                      <span className="excel-menu-item-title">
+                        미출석 명단
+                      </span>
+                      <span className="excel-menu-item-desc">
+                        A4 체크리스트 다운로드
+                      </span>
+                    </button>
+                    <button
+                      className="excel-menu-item sleepover-only"
+                      onClick={() =>
+                        handleExportExcel(selectedGender, 'sleepover')
+                      }
+                    >
+                      <span className="excel-menu-item-title">
+                        외박자 명단
+                      </span>
+                      <span className="excel-menu-item-desc">
+                        외박자 A4 명단 다운로드
+                      </span>
+                    </button>
+                    <button
+                      className="excel-menu-item back-button"
+                      onClick={() => setSelectedGender(null)}
+                    >
+                      ← 뒤로가기
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="table-container">
@@ -795,7 +840,6 @@ export default function Check() {
                 )}
               </th>
               <th>연락처</th>
-              <th></th>
               <th>정보 수정</th>
             </tr>
           </thead>
@@ -805,40 +849,40 @@ export default function Check() {
                 <td className="room-cell" data-label="호실">{student.room}</td>
                 <td data-label="이름">{student.name}</td>
                 <td data-label="상태">
-                  <select
-                    value={student.status}
-                    onChange={(e) =>
-                      handleStatusChange(
-                        student,
-                        e.target.value as
-                          | '출석'
-                          | '미출석'
-                          | '외박'
-                          | '지연출석',
-                      )
-                    }
-                    disabled={updateAttendancesMutation.isPending}
-                    className={`status-select ${
-                      student.status === '출석'
-                        ? 'status-present'
-                        : student.status === '지연출석'
-                          ? 'status-late'
-                          : student.status === '외박'
-                            ? 'status-sleepover'
+                  {student.status === '외박' ? (
+                    <span className="status-sleepover">외박</span>
+                  ) : (
+                    <select
+                      value={student.status}
+                      onChange={(e) =>
+                        handleStatusChange(
+                          student,
+                          e.target.value as
+                            | '출석'
+                            | '미출석'
+                            | '외박'
+                            | '지연출석',
+                        )
+                      }
+                      disabled={updateAttendancesMutation.isPending}
+                      className={`status-select ${
+                        student.status === '출석'
+                          ? 'status-present'
+                          : student.status === '지연출석'
+                            ? 'status-late'
                             : 'status-absent'
-                    }`}
-                  >
-                    <option value="출석">출석</option>
-                    <option value="지연출석">지연출석</option>
-                    <option value="미출석">미출석</option>
-                    <option value="외박">외박</option>
-                  </select>
+                      }`}
+                    >
+                      <option value="출석">출석</option>
+                      <option value="지연출석">지연출석</option>
+                      <option value="미출석">미출석</option>
+                    </select>
+                  )}
                 </td>
                 <td data-label="성별">{student.gender}</td>
                 <td data-label="학번">{student.studentId}</td>
                 <td data-label="출석 시간">{student.time}</td>
                 <td data-label="연락처">{student.phone}</td>
-                <td className="table-spacer"></td>
                 <td data-label="정보 수정">
                   <button
                     type="button"

@@ -44,6 +44,26 @@ function StudentIcon({ className }: { className?: string }) {
   );
 }
 
+// 외박 아이콘
+function MoonIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path
+        d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 // 계정 관리 아이콘
 function AccountIcon({ className }: { className?: string }) {
   return (
@@ -77,6 +97,7 @@ export default function Sidebar() {
   const menuItems = [
     { path: '/', label: '대시 보드', icon: 'dashboard' },
     { path: '/check', label: '인원 확인', icon: 'check' },
+    { path: '/sleepovers', label: '외박 확인', icon: 'sleepover' },
     { path: '/notice', label: '공지사항', icon: 'notice' },
     { path: '/schedule', label: '일정 관리', icon: 'schedule' },
     { path: '/room', label: '방 관리', icon: 'room' },
@@ -95,6 +116,8 @@ export default function Sidebar() {
         return <DashboardIcon className="menu-icon" />;
       case 'check':
         return <DocumentIcon className="menu-icon" />;
+      case 'sleepover':
+        return <MoonIcon className="menu-icon" />;
       case 'notice':
         return <NoticeIcon className="menu-icon" />;
       case 'schedule':

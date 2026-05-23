@@ -3,6 +3,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Check from './pages/Check';
+import Sleepover from './pages/Sleepover';
 import Notice from './pages/Notice';
 import NoticeDetail from './pages/NoticeDetail';
 import Schedule from './pages/Schedule';
@@ -45,6 +46,7 @@ function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="check" element={<Check />} />
+          <Route path="sleepovers" element={<Sleepover />} />
           <Route path="notice" element={<Notice />} />
           <Route path="notice/:id" element={<NoticeDetail />} />
           <Route path="schedule" element={<Schedule />} />

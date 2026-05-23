@@ -1,0 +1,180 @@
+.sleepover-page .sleepover-primary-button,
+.sleepover-page .sleepover-secondary-button {
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    opacity 0.2s;
+  white-space: nowrap;
+}
+
+.sleepover-page .sleepover-primary-button {
+  border: none;
+  background: #6d23ed;
+  color: #ffffff;
+}
+
+.sleepover-page .sleepover-primary-button:hover:not(:disabled) {
+  background: #5919c7;
+}
+
+.sleepover-page .sleepover-secondary-button {
+  border: 1px solid #6d23ed;
+  background: #ffffff;
+  color: #6d23ed;
+}
+
+.sleepover-page .sleepover-secondary-button:hover:not(:disabled) {
+  background: rgba(109, 35, 237, 0.08);
+}
+
+.sleepover-page .sleepover-primary-button:disabled,
+.sleepover-page .sleepover-secondary-button:disabled,
+.sleepover-delete-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sleepover-message {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid rgba(109, 35, 237, 0.2);
+  border-radius: 8px;
+  background: #f6f2ff;
+  color: #4a19a8;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sleepover-message.error {
+  border-color: rgba(255, 66, 66, 0.22);
+  background: rgba(255, 66, 66, 0.08);
+  color: #e1322e;
+}
+
+.sleepover-reason-cell {
+  max-width: 280px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+.sleepover-empty-cell {
+  height: 180px;
+  color: #747678;
+  font-weight: 600;
+}
+
+.sleepover-delete-button {
+  border: 1px solid #ff4242;
+  background: transparent;
+  color: #ff4242;
+  padding: 4.5px 12px;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    opacity 0.2s;
+}
+
+.sleepover-delete-button:hover:not(:disabled) {
+  background: #ff4242;
+  color: #ffffff;
+}
+
+.sleepover-modal {
+  width: min(620px, 100%);
+}
+
+.sleepover-student-list {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 2px;
+}
+
+.sleepover-student-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e6e6e7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f0f10;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.sleepover-student-option:hover:not(:disabled),
+.sleepover-student-option.selected {
+  border-color: #6d23ed;
+  background: rgba(109, 35, 237, 0.06);
+}
+
+.sleepover-student-option:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sleepover-student-main {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.sleepover-student-meta {
+  color: #747678;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sleepover-empty-option {
+  padding: 14px;
+  border: 1px dashed #d6d6d8;
+  border-radius: 8px;
+  color: #747678;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.sleepover-reason-input {
+  min-height: 92px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+@media (max-width: 1200px) {
+  .sleepover-page .sleepover-primary-button,
+  .sleepover-page .sleepover-secondary-button {
+    flex: 1 1 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sleepover-reason-cell {
+    max-width: none;
+  }
+
+  .sleepover-student-option {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

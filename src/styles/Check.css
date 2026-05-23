@@ -86,6 +86,9 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .check-page .stat-box {
@@ -109,23 +112,39 @@
   color: #f59e0b;
 }
 
+.check-page .stat-box .sleepover-count {
+  color: #8b5cf6;
+}
+
 .check-page .excel-button {
+  min-height: 38px;
   background: #164e8d;
   color: #ffffff;
-  border: none;
+  border: 1px solid #164e8d;
   border-radius: 8px;
-  padding: 7px 12px;
+  padding: 0 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  font-weight: 500;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    opacity 0.2s;
+  white-space: nowrap;
 }
 
 .check-page .excel-button:hover {
   background: #1a5aa1;
+  border-color: #1a5aa1;
+}
+
+.check-page .excel-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .check-page .excel-dropdown {
@@ -136,67 +155,118 @@
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 4px;
+  margin-top: 8px;
+  padding: 8px;
   background: #ffffff;
-  border: 1px solid #d1d5db;
+  border: 1px solid #e6e6e7;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 16px 36px rgba(15, 15, 16, 0.16);
   z-index: 10;
-  overflow: hidden;
-  min-width: 120px;
+  min-width: 220px;
 }
 
 .excel-menu-header {
-  padding: 8px 16px;
-  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px 10px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 800;
   color: #6d23ed;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.excel-menu-item {
-  display: block;
-  width: 100%;
-  padding: 10px 16px;
-  background: none;
+.excel-menu-header-action {
   border: none;
-  font-size: 15px;
-  font-weight: 500;
+  background: transparent;
+  color: #747678;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.excel-menu-header-action:hover {
+  color: #6d23ed;
+}
+
+.excel-menu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
   color: #1f2937;
   cursor: pointer;
   text-align: left;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .excel-menu-item:hover {
-  background: #f3f4f6;
+  border-color: rgba(109, 35, 237, 0.18);
+  background: rgba(109, 35, 237, 0.06);
 }
 
 .excel-menu-item + .excel-menu-item {
-  border-top: 1px solid #e5e7eb;
+  margin-top: 6px;
 }
 
 .excel-menu-item.absent-only {
   color: #e1322e;
-  font-weight: 600;
 }
 
 .excel-menu-item.absent-only:hover {
+  border-color: rgba(225, 50, 46, 0.2);
   background: rgba(225, 50, 46, 0.08);
 }
 
+.excel-menu-item.sleepover-only {
+  color: #6d23ed;
+}
+
+.excel-menu-item.sleepover-only:hover {
+  border-color: rgba(109, 35, 237, 0.22);
+  background: rgba(109, 35, 237, 0.08);
+}
+
+.excel-menu-item-title {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.excel-menu-item-desc {
+  color: #747678;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 .excel-menu-item.back-button {
-  color: #9e9e9f;
+  align-items: center;
+  color: #747678;
   font-size: 13px;
-  padding: 8px 16px;
-  background: #f9fafb;
+  padding: 9px 12px;
+  background: #f7f7f8;
 }
 
 .excel-icon {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   color: #ffffff;
+}
+
+.excel-caret {
+  font-size: 11px;
+  line-height: 1;
 }
 
 /* Filter Section */
@@ -208,6 +278,12 @@
   background: #ffffff;
   border-radius: 12px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.check-page .filter-actions {
+  margin-left: auto;
+  display: flex;
   align-items: center;
 }
 
@@ -285,6 +361,7 @@
   user-select: none;
   position: relative;
   transition: background-color 0.2s;
+  padding-left: 24px;
   padding-right: 24px;
 }
 
@@ -351,6 +428,8 @@
   border-radius: 4px;
   outline: none;
   appearance: auto;
+  text-align: center;
+  text-align-last: center;
 }
 
 .check-page .status-select:disabled {
@@ -391,7 +470,7 @@
 }
 
 /* 반응형 디자인 */
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
   .check-page {
     padding: 24px 20px;
   }
@@ -423,15 +502,6 @@
     text-align: center;
   }
 
-  .check-page .excel-dropdown {
-    flex: 1 1 160px;
-  }
-
-  .check-page .excel-button {
-    width: 100%;
-    justify-content: center;
-  }
-
   .check-page .filter-section {
     flex-direction: column;
     align-items: stretch;
@@ -450,6 +520,15 @@
   .check-page .filter-btn {
     flex: 1;
   }
+
+  .check-page .filter-actions {
+    margin-left: 0;
+  }
+
+  .check-page .filter-actions .excel-dropdown,
+  .check-page .filter-actions .excel-button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
@@ -466,10 +545,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
     gap: 8px;
-  }
-
-  .check-page .excel-dropdown {
-    grid-column: 1 / -1;
   }
 
   .check-page .filter-section {

@@ -30,7 +30,7 @@ export default function Sleepover() {
 
   const { data: sleepoversData, isLoading } = useQuery({
     queryKey: ['sleepovers', currentDate],
-    queryFn: () => sleepoverService.getSleepovers(currentDate),
+    queryFn: () => sleepoverService.getAllSleepovers(currentDate),
   });
 
   const { data: studentsData } = useQuery({
@@ -65,7 +65,7 @@ export default function Sleepover() {
     onSuccess: async () => {
       const refreshedData = await queryClient.fetchQuery({
         queryKey: ['sleepovers', currentDate],
-        queryFn: () => sleepoverService.getSleepovers(currentDate),
+        queryFn: () => sleepoverService.getAllSleepovers(currentDate),
       });
 
       setSyncMessage(

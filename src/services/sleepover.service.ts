@@ -5,15 +5,57 @@ import type {
   SyncSleepoversResponse,
 } from '../types/api';
 
+type SleepoverQueryParams = {
+  page?: number;
+  size?: number;
+};
+
 export const sleepoverService = {
-  getSleepovers: async (date: string): Promise<PageSleepoverResponse> => {
+  getSleepovers: async (
+    date: string,
+    params?: SleepoverQueryParams,
+  ): Promise<PageSleepoverResponse> => {
     const response = await apiClient.get<PageSleepoverResponse>(
       '/teacher/sleepovers',
       {
-        params: { date },
+        params: { date, ...params },
       },
     );
     return response.data;
+  },
+
+  getAllSleepovers: async (date: string): Promise<PageSleepoverResponse> => {
+    const firstPage = await sleepoverService.getSleepovers(date, {
+      page: 0,
+      size: 1000,
+    });
+
+    if (firstPage.last || firstPage.totalPages <= 1) {
+      return firstPage;
+    }
+
+    const remainingPages = await Promise.all(
+      Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+        sleepoverService.getSleepovers(date, {
+          page: index + 1,
+          size: firstPage.size,
+        }),
+      ),
+    );
+
+    return {
+      ...firstPage,
+      content: [
+        ...firstPage.content,
+        ...remainingPages.flatMap((page) => page.content),
+      ],
+      numberOfElements:
+        firstPage.numberOfElements +
+        remainingPages.reduce((total, page) => total + page.numberOfElements, 0),
+      last: remainingPages.at(-1)?.last ?? firstPage.last,
+      empty:
+        firstPage.empty && remainingPages.every((page) => page.empty),
+    };
   },
 
   createSleepover: async (data: CreateSleepoverRequest): Promise<void> => {

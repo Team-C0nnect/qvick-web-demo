@@ -36,9 +36,18 @@ export default function Dashboard() {
   const todaySleepover = attendancesData?.filter((a) => a.status === 'SLEEPOVER').length || 0;
   const lateCount = attendancesData?.filter((a) => a.status === 'LATE').length || 0;
   const attendanceTargetCount = Math.max(0, totalCount - todaySleepover);
+  const attendedCount = presentCount + lateCount;
   const attendanceRate =
     attendanceTargetCount > 0
-      ? Math.round((presentCount / attendanceTargetCount) * 100)
+      ? Math.round((attendedCount / attendanceTargetCount) * 100)
+      : 0;
+  const presentRate =
+    attendanceTargetCount > 0
+      ? Math.min(100, (presentCount / attendanceTargetCount) * 100)
+      : 0;
+  const lateRate =
+    attendanceTargetCount > 0
+      ? Math.min(100 - presentRate, (lateCount / attendanceTargetCount) * 100)
       : 0;
 
   // 공지사항 목록
@@ -115,15 +124,22 @@ export default function Dashboard() {
               <strong>{attendanceRate}%</strong>
             </div>
             <span className="summary-count">
-              {presentCount}/{attendanceTargetCount}명
+              {attendedCount}/{attendanceTargetCount}명
             </span>
           </div>
           <div className="summary-progress" aria-label={`출석률 ${attendanceRate}%`}>
-            <span style={{ width: `${attendanceRate}%` }} />
+            <span
+              className="summary-progress-present"
+              style={{ width: `${presentRate}%` }}
+            />
+            <span
+              className="summary-progress-late"
+              style={{ width: `${lateRate}%` }}
+            />
           </div>
           <div className="summary-meta">
             <span>미출석 {absentCount}명</span>
-            <span>확인 필요 {absentCount + lateCount}명</span>
+            <span>지연출석 {lateCount}명</span>
           </div>
         </section>
 

@@ -142,6 +142,7 @@
 }
 
 .summary-progress {
+  display: flex;
   height: 10px;
 }
 
@@ -149,8 +150,28 @@
 .metric-bar span {
   display: block;
   height: 100%;
-  border-radius: inherit;
   background: #6d23ed;
+}
+
+.summary-progress span:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.summary-progress span:last-child {
+  border-radius: 0 999px 999px 0;
+}
+
+.summary-progress span:only-child,
+.metric-bar span {
+  border-radius: inherit;
+}
+
+.summary-progress .summary-progress-present {
+  background: #6d23ed;
+}
+
+.summary-progress .summary-progress-late {
+  background: #f59e0b;
 }
 
 .summary-meta {

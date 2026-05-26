@@ -846,9 +846,9 @@ export default function Schedule() {
           </div>
         ) : (
           <div className="no-selection">
-            <p>캘린더에서 날짜를 선택해주세요.</p>
+            <p>날짜를 선택해주세요.</p>
             <p className="hint">
-              날짜 하나를 클릭하면 해당 날짜의 남/여 기숙사 시간을 설정할 수 있습니다.
+              날짜를 클릭하면 남/여 시간을 설정할 수 있습니다.
             </p>
           </div>
         )}

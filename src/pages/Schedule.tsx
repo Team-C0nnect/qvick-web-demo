@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { scheduleService } from '../services/schedule.service';
 import ConfirmationModal from '../components/ConfirmationModal';
 import '../styles/Schedule.css';
@@ -81,18 +81,6 @@ export default function Schedule() {
   const { data: schedulesData, isLoading } = useQuery({
     queryKey: ['schedules', 'month', currentYear, currentMonth],
     queryFn: () => scheduleService.getMonthSchedules(currentYear, currentMonth),
-  });
-
-  // Delete schedule mutation
-  const deleteScheduleMutation = useMutation({
-    mutationFn: ({ date, gender }: { date: string; gender: Gender }) =>
-      scheduleService.deleteSchedule(date, gender),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['schedules'] });
-    },
-    onError: (error) => {
-      console.error('스케줄 삭제 오류:', error);
-    },
   });
 
   const days = ['일', '월', '화', '수', '목', '금', '토'];
@@ -258,6 +246,40 @@ export default function Schedule() {
     });
   };
 
+  const selectDateGroup = (dayMatcher: (day: CalendarDay) => boolean) => {
+    const dates = calendarDays
+      .filter((day) => day.isCurrentMonth && dayMatcher(day))
+      .map((day) => day.fullDate);
+
+    const nextDateSet = new Set(dates);
+    const isSameSelection =
+      dates.length > 0 &&
+      selectedDates.length === dates.length &&
+      selectedDates.every((date) => nextDateSet.has(date));
+
+    if (isSameSelection) {
+      setSelectedDates([]);
+      return;
+    }
+
+    setSelectedDates(dates);
+
+    const firstDay = calendarDays.find((day) => day.fullDate === dates[0]);
+    if (firstDay) {
+      const defaults = getDefaultTimeByDay(firstDay.dayOfWeek);
+      resetMaleTime(defaults);
+      resetFemaleTime(defaults);
+    }
+  };
+
+  const handleSelectSundays = () => {
+    selectDateGroup((day) => day.dayOfWeek === 0);
+  };
+
+  const handleSelectSchoolWeekdays = () => {
+    selectDateGroup((day) => day.dayOfWeek >= 1 && day.dayOfWeek <= 4);
+  };
+
   // 시간 초기화 함수
   const resetMaleTime = (defaults = getDefaultTimeForSelection()) => {
     setMaleStartHour(defaults.startHour);
@@ -402,23 +424,80 @@ export default function Schedule() {
   };
 
   // 단일 스케줄 삭제
-  const handleSingleDelete = (gender: Gender) => {
-    if (selectedDates.length !== 1) {
+  const handleDeleteSchedules = (gender: Gender) => {
+    if (selectedDates.length === 0) {
       showSelectDateAlert();
       return;
     }
 
     const genderName = gender === 'MALE' ? '남기숙사' : '여기숙사';
+    const targetDates = selectedDates.filter((date) => hasSchedule(date, gender));
+
+    if (targetDates.length === 0) {
+      setConfirmModal({
+        isOpen: true,
+        title: '삭제할 일정 없음',
+        message: `선택한 날짜에 ${genderName} 일정이 없습니다.`,
+        confirmText: '확인',
+        onConfirm: () =>
+          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+      });
+      return;
+    }
 
     setConfirmModal({
       isOpen: true,
       title: '삭제 확인',
-      message: `${genderName} 스케줄을 삭제하시겠습니까?`,
+      message:
+        targetDates.length === 1
+          ? `${genderName} 스케줄을 삭제하시겠습니까?`
+          : `선택한 ${targetDates.length}일의 ${genderName} 스케줄을 삭제하시겠습니까?`,
       confirmText: '삭제',
       cancelText: '취소',
-      onConfirm: () => {
+      onConfirm: async () => {
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        deleteScheduleMutation.mutate({ date: selectedDates[0], gender });
+
+        setLoadingModal({
+          isOpen: true,
+          title: `${genderName} 일정 삭제 중...`,
+          current: 0,
+          total: targetDates.length,
+          action: 'delete',
+        });
+
+        let completedCount = 0;
+        let failCount = 0;
+
+        await Promise.all(
+          targetDates.map(async (date) => {
+            try {
+              await scheduleService.deleteSchedule(date, gender);
+            } catch {
+              failCount++;
+            } finally {
+              completedCount++;
+              setLoadingModal((prev) => ({
+                ...prev,
+                current: completedCount,
+              }));
+            }
+          }),
+        );
+
+        setLoadingModal((prev) => ({ ...prev, isOpen: false }));
+        queryClient.invalidateQueries({ queryKey: ['schedules'] });
+
+        setConfirmModal({
+          isOpen: true,
+          title: '삭제 완료',
+          message:
+            failCount > 0
+              ? `${targetDates.length - failCount}개 삭제 완료\n${failCount}개 실패`
+              : `${targetDates.length}개 삭제 완료`,
+          confirmText: '확인',
+          onConfirm: () =>
+            setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+        });
       },
     });
   };
@@ -515,44 +594,29 @@ export default function Schedule() {
     return `${year}. ${month}. ${day}.`;
   };
 
-  const isPending = deleteScheduleMutation.isPending;
-
-  // 통계 계산
-  const stats = useMemo(() => {
-    const currentMonthDays = calendarDays.filter((d) => d.isCurrentMonth);
-    const maleCount = currentMonthDays.filter((d) => d.maleSchedule).length;
-    const femaleCount = currentMonthDays.filter((d) => d.femaleSchedule).length;
-    const weekdaysCount = currentMonthDays.filter((d) => !d.isWeekend).length;
-    return {
-      maleCount,
-      femaleCount,
-      weekdaysCount,
-      totalDays: currentMonthDays.length,
-    };
-  }, [calendarDays]);
-
-  const scheduleStatItems = [
-    {
-      label: '남기숙사',
-      value: `${stats.maleCount}/${stats.weekdaysCount}`,
-      tone: 'male',
-    },
-    {
-      label: '여기숙사',
-      value: `${stats.femaleCount}/${stats.weekdaysCount}`,
-      tone: 'female',
-    },
-    {
-      label: '선택 날짜',
-      value: `${selectedDates.length}일`,
-      tone: 'selected',
-    },
-  ];
-
+  const sundayDates = calendarDays
+    .filter((day) => day.isCurrentMonth && day.dayOfWeek === 0)
+    .map((day) => day.fullDate);
+  const schoolWeekdayDates = calendarDays
+    .filter(
+      (day) => day.isCurrentMonth && day.dayOfWeek >= 1 && day.dayOfWeek <= 4,
+    )
+    .map((day) => day.fullDate);
+  const selectedDateSet = new Set(selectedDates);
+  const isSundaySelectionActive =
+    sundayDates.length > 0 &&
+    sundayDates.every((date) => selectedDateSet.has(date)) &&
+    selectedDates.length === sundayDates.length;
+  const isSchoolWeekdaySelectionActive =
+    schoolWeekdayDates.length > 0 &&
+    schoolWeekdayDates.every((date) => selectedDateSet.has(date)) &&
+    selectedDates.length === schoolWeekdayDates.length;
   const selectionTitle =
     selectedDates.length === 0
       ? '날짜를 선택해주세요'
-      : formatDisplayDate(selectedDates[0]);
+      : selectedDates.length === 1
+        ? formatDisplayDate(selectedDates[0])
+        : `${selectedDates.length}일 선택됨`;
 
   // 스켈레톤 캘린더 그리드 생성 (42개 셀)
   const renderSkeletonCalendar = () => (
@@ -603,13 +667,35 @@ export default function Schedule() {
           </div>
         </div>
 
-        <div className="schedule-stats">
-          {scheduleStatItems.map((item) => (
-            <div key={item.label} className={`stat-item ${item.tone}`}>
-              <span className="stat-label">{item.label}</span>
-              <span className={`stat-value ${item.tone}`}>{item.value}</span>
-            </div>
-          ))}
+        <div className="calendar-quick-select">
+          <div className="quick-select-copy">
+            <span className="quick-select-label">빠른 선택</span>
+            <strong>{selectedDates.length}일 선택</strong>
+          </div>
+          <div className="quick-select-actions">
+            <button
+              type="button"
+              className={`quick-select-btn ${
+                isSundaySelectionActive ? 'active sunday' : ''
+              }`}
+              onClick={handleSelectSundays}
+              disabled={isLoading}
+              aria-pressed={isSundaySelectionActive}
+            >
+              일요일 전체
+            </button>
+            <button
+              type="button"
+              className={`quick-select-btn ${
+                isSchoolWeekdaySelectionActive ? 'active' : ''
+              }`}
+              onClick={handleSelectSchoolWeekdays}
+              disabled={isLoading}
+              aria-pressed={isSchoolWeekdaySelectionActive}
+            >
+              월~목 전체
+            </button>
+          </div>
         </div>
 
         <div className="calendar">
@@ -782,14 +868,14 @@ export default function Schedule() {
                   <button
                     className="row-apply-btn"
                     onClick={() => handleApplySchedules(['MALE'])}
-                    disabled={isPending || loadingModal.isOpen}
+                    disabled={loadingModal.isOpen}
                   >
                     적용
                   </button>
                   <button
                     className="row-delete-btn"
-                    onClick={() => handleSingleDelete('MALE')}
-                    disabled={isPending || loadingModal.isOpen}
+                    onClick={() => handleDeleteSchedules('MALE')}
+                    disabled={loadingModal.isOpen}
                   >
                     삭제
                   </button>
@@ -829,14 +915,14 @@ export default function Schedule() {
                   <button
                     className="row-apply-btn"
                     onClick={() => handleApplySchedules(['FEMALE'])}
-                    disabled={isPending || loadingModal.isOpen}
+                    disabled={loadingModal.isOpen}
                   >
                     적용
                   </button>
                   <button
                     className="row-delete-btn"
-                    onClick={() => handleSingleDelete('FEMALE')}
-                    disabled={isPending || loadingModal.isOpen}
+                    onClick={() => handleDeleteSchedules('FEMALE')}
+                    disabled={loadingModal.isOpen}
                   >
                     삭제
                   </button>

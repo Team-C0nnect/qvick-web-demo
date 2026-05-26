@@ -1,4 +1,4 @@
-import { useState, useMemo, type MouseEvent } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { scheduleService } from '../services/schedule.service';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -75,10 +75,6 @@ export default function Schedule() {
     useState(DEFAULT_START_MINUTE);
   const [femaleEndHour, setFemaleEndHour] = useState(WEEKDAY_END_HOUR);
   const [femaleEndMinute, setFemaleEndMinute] = useState(WEEKDAY_END_MINUTE);
-
-  // 요일 선택 (월별 일괄 등록용)
-  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]); // 초기값: 아무것도 선택 안 함
-
   const queryClient = useQueryClient();
 
   // Fetch month schedules
@@ -206,19 +202,7 @@ export default function Schedule() {
   });
 
   const getDefaultTimeForSelection = () => {
-    if (selectedWeekdays.length === 1 && selectedWeekdays[0] === 0) {
-      return getDefaultTimeByDay(0);
-    }
-
-    if (selectedDates.length > 0) {
-      const selectedDays = selectedDates
-        .map((date) => calendarDays.find((day) => day.fullDate === date))
-        .filter(Boolean);
-      const isOnlySunday = selectedDays.every((day) => day?.dayOfWeek === 0);
-      return getDefaultTimeByDay(isOnlySunday ? 0 : 1);
-    }
-
-    return getDefaultTimeByDay(1);
+    return getDefaultTimeByDay(selectedDayData?.dayOfWeek);
   };
 
   const applyDefaultTime = () => {
@@ -266,23 +250,11 @@ export default function Schedule() {
 
     setSelectedDates((prev) => {
       if (prev.includes(day.fullDate)) {
-        const nextDates = prev.filter((date) => date !== day.fullDate);
-        if (nextDates.length === 1) {
-          const remainingDay = calendarDays.find(
-            (calendarDay) => calendarDay.fullDate === nextDates[0],
-          );
-          if (remainingDay) {
-            applyDayScheduleTime(remainingDay);
-          }
-        }
-        return nextDates;
+        return [];
       }
 
-      const nextDates = [...prev, day.fullDate];
-      if (nextDates.length === 1) {
-        applyDayScheduleTime(day);
-      }
-      return nextDates;
+      applyDayScheduleTime(day);
+      return [day.fullDate];
     });
   };
 
@@ -319,50 +291,6 @@ export default function Schedule() {
       setCurrentMonth(currentMonth + 1);
     }
     setSelectedDates([]);
-  };
-
-  // 요일 토글 (월별 일괄 등록용)
-  const toggleWeekday = (dayIndex: number) => {
-    setSelectedWeekdays((prev) => {
-      if (prev.includes(dayIndex)) {
-        return prev.filter((d) => d !== dayIndex);
-      } else {
-        return [...prev, dayIndex].sort();
-      }
-    });
-  };
-
-  // 월별 요일 선택 적용
-  const applyWeekdaySelection = () => {
-    const dates = calendarDays
-      .filter((d) => d.isCurrentMonth && selectedWeekdays.includes(d.dayOfWeek))
-      .map((d) => d.fullDate);
-    setSelectedDates(dates);
-
-    const isOnlySunday = selectedWeekdays.length === 1 && selectedWeekdays[0] === 0;
-    const defaults = getDefaultTimeByDay(isOnlySunday ? 0 : 1);
-    resetMaleTime(defaults);
-    resetFemaleTime(defaults);
-  };
-
-  // 요일 선택 헬퍼 함수
-  const selectWeekdaysOnly = () => {
-    setSelectedWeekdays([1, 2, 3, 4, 5]); // 월~금
-    const defaults = getDefaultTimeByDay(1);
-    resetMaleTime(defaults);
-    resetFemaleTime(defaults);
-  };
-
-  const selectSundayOnly = () => {
-    setSelectedWeekdays([0]); // 일요일
-    const defaults = getDefaultTimeByDay(0);
-    resetMaleTime(defaults);
-    resetFemaleTime(defaults);
-  };
-
-  const clearWeekdaySelection = () => {
-    setSelectedWeekdays([]); // 요일 선택 해제
-    setSelectedDates([]); // 선택된 날짜도 함께 해제
   };
 
   const showSelectDateAlert = () => {
@@ -473,92 +401,12 @@ export default function Schedule() {
     });
   };
 
-  // 일괄 스케줄 삭제 (병렬 처리)
-  const handleBulkDelete = async (gender: Gender) => {
-    if (selectedDates.length === 0) {
+  // 단일 스케줄 삭제
+  const handleSingleDelete = (gender: Gender) => {
+    if (selectedDates.length !== 1) {
       showSelectDateAlert();
       return;
     }
-
-    const genderName = gender === 'MALE' ? '남기숙사' : '여기숙사';
-
-    // 삭제 확인 모달 표시
-    setConfirmModal({
-      isOpen: true,
-      title: '삭제 확인',
-      message: `선택된 ${selectedDates.length}개 날짜의\n${genderName} 스케줄을 삭제하시겠습니까?`,
-      confirmText: '삭제',
-      cancelText: '취소',
-      onConfirm: async () => {
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        await performBulkDelete(gender, genderName);
-      },
-    });
-  };
-
-  // 실제 삭제 수행
-  const performBulkDelete = async (gender: Gender, genderName: string) => {
-    const total = selectedDates.length;
-    let completedCount = 0;
-    let successCount = 0;
-    let failCount = 0;
-
-    // 로딩 모달 표시
-    setLoadingModal({
-      isOpen: true,
-      title: `${genderName} 스케줄 삭제 중...`,
-      current: 0,
-      total,
-      action: 'delete',
-    });
-
-    // 병렬 처리
-    const promises = selectedDates.map(async (date) => {
-      try {
-        await scheduleService.deleteSchedule(date, gender);
-        successCount++;
-      } catch {
-        failCount++;
-      } finally {
-        completedCount++;
-        setLoadingModal((prev) => ({
-          ...prev,
-          current: completedCount,
-        }));
-      }
-    });
-
-    await Promise.all(promises);
-
-    // 로딩 모달 닫기
-    setLoadingModal((prev) => ({ ...prev, isOpen: false }));
-
-    queryClient.invalidateQueries({ queryKey: ['schedules'] });
-
-    if (failCount > 0) {
-      setConfirmModal({
-        isOpen: true,
-        title: '삭제 완료',
-        message: `${successCount}개 삭제 완료\n${failCount}개 실패`,
-        confirmText: '확인',
-        onConfirm: () =>
-          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
-      });
-    } else {
-      setConfirmModal({
-        isOpen: true,
-        title: '삭제 완료',
-        message: `${successCount}개 삭제 완료`,
-        confirmText: '확인',
-        onConfirm: () =>
-          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
-      });
-    }
-  };
-
-  // 단일 스케줄 삭제
-  const handleSingleDelete = (gender: Gender) => {
-    if (selectedDates.length !== 1) return;
 
     const genderName = gender === 'MALE' ? '남기숙사' : '여기숙사';
 
@@ -578,20 +426,88 @@ export default function Schedule() {
   const formatTimeInputValue = (hour: string, minute: string) =>
     `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
 
-  const applyTimeInputValue = (
+  const formatManualTimeValue = (hour: string, minute: string) => {
+    if (!hour && !minute) return '';
+    if (hour.length < 2 && !minute) return hour;
+    return `${hour}:${minute}`;
+  };
+
+  const setTimeValue = (
+    time: string,
+    setHour: (value: string) => void,
+    setMinute: (value: string) => void,
+  ) => {
+    const [hour, minute] = time.split(':');
+    setHour(hour);
+    setMinute(minute);
+  };
+
+  const handleManualTimeChange = (
     value: string,
     setHour: (value: string) => void,
     setMinute: (value: string) => void,
   ) => {
-    const [hour, minute] = value.split(':');
-    setHour(hour || '00');
-    setMinute(minute || '00');
+    const normalized = value.replace(/[^\d:]/g, '').slice(0, 5);
+    const [rawHour = '', rawMinute = ''] = normalized.includes(':')
+      ? normalized.split(':')
+      : [normalized.slice(0, 2), normalized.slice(2, 4)];
+    const hour = rawHour.slice(0, 2);
+    const minute = rawMinute.slice(0, 2);
+
+    setHour(hour);
+    setMinute(minute);
   };
 
-  const openTimePicker = (event: MouseEvent<HTMLInputElement>) => {
-    const input = event.currentTarget;
-    input.focus();
-    input.showPicker?.();
+  const normalizeManualTime = (
+    hour: string,
+    minute: string,
+    setHour: (value: string) => void,
+    setMinute: (value: string) => void,
+  ) => {
+    const nextHour = Math.min(23, Math.max(0, Number(hour) || 0));
+    const nextMinute = Math.min(59, Math.max(0, Number(minute) || 0));
+    setHour(String(nextHour).padStart(2, '0'));
+    setMinute(String(nextMinute).padStart(2, '0'));
+  };
+
+  const renderTimeControl = (
+    label: string,
+    hour: string,
+    minute: string,
+    setHour: (value: string) => void,
+    setMinute: (value: string) => void,
+  ) => {
+    const presets = label.includes('시작') ? ['16:00'] : ['21:10', '22:15'];
+
+    return (
+      <div className="time-control" aria-label={label}>
+        <input
+          className="time-manual-input"
+          value={formatManualTimeValue(hour, minute)}
+          inputMode="numeric"
+          placeholder="HH:MM"
+          onChange={(event) =>
+            handleManualTimeChange(event.target.value, setHour, setMinute)
+          }
+          onBlur={() => normalizeManualTime(hour, minute, setHour, setMinute)}
+          aria-label={`${label} 직접 입력`}
+        />
+        <div className="time-preset-row">
+          {presets.map((time) => (
+            <button
+              key={time}
+              type="button"
+              className={`time-preset-btn ${
+                formatTimeInputValue(hour, minute) === time ? 'active' : ''
+              }`}
+              onClick={() => setTimeValue(time, setHour, setMinute)}
+            >
+              {time}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const formatDisplayDate = (dateStr: string) => {
@@ -636,9 +552,7 @@ export default function Schedule() {
   const selectionTitle =
     selectedDates.length === 0
       ? '날짜를 선택해주세요'
-      : selectedDates.length === 1
-        ? formatDisplayDate(selectedDates[0])
-        : `${selectedDates.length}개 날짜 선택됨`;
+      : formatDisplayDate(selectedDates[0]);
 
   // 스켈레톤 캘린더 그리드 생성 (42개 셀)
   const renderSkeletonCalendar = () => (
@@ -782,16 +696,9 @@ export default function Schedule() {
 
       <div className="scheduler-panel">
         <div className="panel-header">
-          <span className="panel-kicker">Schedule editor</span>
-          <h3 className="scheduler-title">{selectionTitle}</h3>
-        </div>
-
-        <div className="selection-tools">
-          <div className="selection-summary">
-            <span className="selection-summary-label">날짜 선택</span>
-            <span className="selection-summary-value">
-              {selectedDates.length}일
-            </span>
+          <div>
+            <span className="panel-kicker">Schedule editor</span>
+            <h3 className="scheduler-title">{selectionTitle}</h3>
           </div>
           <button
             className="selection-tool-btn"
@@ -799,42 +706,6 @@ export default function Schedule() {
             disabled={selectedDates.length === 0}
           >
             선택 해제
-          </button>
-        </div>
-
-        <div className="weekday-selector">
-          <div className="panel-section-heading">
-            <p className="section-label">요일 빠른 선택</p>
-            <span>월 전체에 적용</span>
-          </div>
-          <div className="weekday-buttons">
-            {days.map((day, index) => (
-              <button
-                key={day}
-                className={`weekday-btn ${selectedWeekdays.includes(index) ? 'active' : ''} ${index === 0 ? 'sunday' : ''} ${index === 6 ? 'saturday' : ''}`}
-                onClick={() => toggleWeekday(index)}
-              >
-                {day}
-              </button>
-            ))}
-          </div>
-          <div className="weekday-quick-actions">
-            <button className="weekday-quick-btn" onClick={selectWeekdaysOnly}>
-              평일 전체 선택
-            </button>
-            <button className="weekday-quick-btn" onClick={selectSundayOnly}>
-              일요일 선택
-            </button>
-          </div>
-          <button
-            className="apply-weekday-btn"
-            onClick={applyWeekdaySelection}
-            disabled={selectedWeekdays.length === 0}
-          >
-            해당 요일 전체 선택
-          </button>
-          <button className="clear-weekday-btn" onClick={clearWeekdaySelection}>
-            요일 선택 해제
           </button>
         </div>
 
@@ -875,34 +746,23 @@ export default function Schedule() {
                       </small>
                     )}
                 </div>
-                <input
-                  type="time"
-                  value={formatTimeInputValue(maleStartHour, maleStartMinute)}
-                  onClick={openTimePicker}
-                  onChange={(e) =>
-                    applyTimeInputValue(
-                      e.target.value,
-                      setMaleStartHour,
-                      setMaleStartMinute,
-                    )
-                  }
-                  className="time-value-input"
-                  aria-label="남기숙사 시작 시간"
-                />
-                <input
-                  type="time"
-                  value={formatTimeInputValue(maleEndHour, maleEndMinute)}
-                  onClick={openTimePicker}
-                  onChange={(e) =>
-                    applyTimeInputValue(
-                      e.target.value,
-                      setMaleEndHour,
-                      setMaleEndMinute,
-                    )
-                  }
-                  className="time-value-input"
-                  aria-label="남기숙사 종료 시간"
-                />
+                <div className="time-range-cell">
+                  {renderTimeControl(
+                    '남기숙사 시작 시간',
+                    maleStartHour,
+                    maleStartMinute,
+                    setMaleStartHour,
+                    setMaleStartMinute,
+                  )}
+                  <span className="time-range-mark">~</span>
+                  {renderTimeControl(
+                    '남기숙사 종료 시간',
+                    maleEndHour,
+                    maleEndMinute,
+                    setMaleEndHour,
+                    setMaleEndMinute,
+                  )}
+                </div>
                 <div className="row-actions">
                   <button
                     className="row-apply-btn"
@@ -913,11 +773,7 @@ export default function Schedule() {
                   </button>
                   <button
                     className="row-delete-btn"
-                    onClick={() =>
-                      selectedDates.length === 1
-                        ? handleSingleDelete('MALE')
-                        : handleBulkDelete('MALE')
-                    }
+                    onClick={() => handleSingleDelete('MALE')}
                     disabled={isPending || loadingModal.isOpen}
                   >
                     삭제
@@ -937,37 +793,23 @@ export default function Schedule() {
                       </small>
                     )}
                 </div>
-                <input
-                  type="time"
-                  value={formatTimeInputValue(
+                <div className="time-range-cell">
+                  {renderTimeControl(
+                    '여기숙사 시작 시간',
                     femaleStartHour,
                     femaleStartMinute,
+                    setFemaleStartHour,
+                    setFemaleStartMinute,
                   )}
-                  onClick={openTimePicker}
-                  onChange={(e) =>
-                    applyTimeInputValue(
-                      e.target.value,
-                      setFemaleStartHour,
-                      setFemaleStartMinute,
-                    )
-                  }
-                  className="time-value-input"
-                  aria-label="여기숙사 시작 시간"
-                />
-                <input
-                  type="time"
-                  value={formatTimeInputValue(femaleEndHour, femaleEndMinute)}
-                  onClick={openTimePicker}
-                  onChange={(e) =>
-                    applyTimeInputValue(
-                      e.target.value,
-                      setFemaleEndHour,
-                      setFemaleEndMinute,
-                    )
-                  }
-                  className="time-value-input"
-                  aria-label="여기숙사 종료 시간"
-                />
+                  <span className="time-range-mark">~</span>
+                  {renderTimeControl(
+                    '여기숙사 종료 시간',
+                    femaleEndHour,
+                    femaleEndMinute,
+                    setFemaleEndHour,
+                    setFemaleEndMinute,
+                  )}
+                </div>
                 <div className="row-actions">
                   <button
                     className="row-apply-btn"
@@ -978,11 +820,7 @@ export default function Schedule() {
                   </button>
                   <button
                     className="row-delete-btn"
-                    onClick={() =>
-                      selectedDates.length === 1
-                        ? handleSingleDelete('FEMALE')
-                        : handleBulkDelete('FEMALE')
-                    }
+                    onClick={() => handleSingleDelete('FEMALE')}
                     disabled={isPending || loadingModal.isOpen}
                   >
                     삭제
@@ -995,7 +833,7 @@ export default function Schedule() {
           <div className="no-selection">
             <p>캘린더에서 날짜를 선택해주세요.</p>
             <p className="hint">
-              요일 빠른 선택을 쓰거나 캘린더의 날짜를 눌러 작업을 시작하세요.
+              날짜 하나를 클릭하면 해당 날짜의 남/여 기숙사 시간을 설정할 수 있습니다.
             </p>
           </div>
         )}

@@ -345,8 +345,16 @@
 }
 
 .panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid #e6e6e7;
+}
+
+.panel-header > div {
+  min-width: 0;
 }
 
 .scheduler-title {
@@ -645,33 +653,27 @@
 }
 
 .time-table {
-  overflow: hidden;
-  border: 1px solid #e6e6e7;
-  border-radius: 10px;
-  background: #ffffff;
-}
-
-.time-table-head,
-.time-table-row {
-  display: grid;
-  grid-template-columns:
-    minmax(110px, 0.95fr) minmax(0, 1fr) minmax(0, 1fr)
-    minmax(92px, auto);
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: center;
 }
 
 .time-table-head {
-  padding: 10px 12px;
-  background: #fafafa;
-  color: #747678;
-  font-size: 12px;
-  font-weight: 800;
+  display: none;
 }
 
 .time-table-row {
-  padding: 12px;
-  border-top: 1px solid #e6e6e7;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    'dormitory'
+    'range'
+    'actions';
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #e6e6e7;
+  border-radius: 10px;
+  background: #ffffff;
 }
 
 .time-table-row.male {
@@ -683,11 +685,12 @@
 }
 
 .dormitory-cell {
+  grid-area: dormitory;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .dormitory-cell small {
@@ -700,40 +703,87 @@
   white-space: nowrap;
 }
 
-.time-value-input {
-  width: 100%;
+.time-range-cell {
+  grid-area: range;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.time-range-mark {
+  color: #747678;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.time-control {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.time-manual-input {
+  width: 100%;
   min-height: 42px;
   padding: 0 10px;
   border: 1px solid #dfe0e2;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #ffffff;
   color: #0f0f10;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
   outline: none;
-  cursor: pointer;
 }
 
-.time-value-input:focus {
+.time-manual-input:focus {
   border-color: #6d23ed;
   box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
 }
 
-.time-value-input::-webkit-calendar-picker-indicator {
+.time-preset-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.time-preset-btn {
+  min-height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 7px;
+  background: #f6f4fa;
+  color: #4b4d50;
+  font-size: 11px;
+  font-weight: 800;
   cursor: pointer;
 }
 
+.time-preset-btn:hover {
+  background: #e7dcff;
+  color: #6d23ed;
+}
+
+.time-preset-btn.active {
+  background: #6d23ed;
+  color: #ffffff;
+}
+
 .row-actions {
+  grid-area: actions;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
 }
 
 .row-apply-btn,
 .row-delete-btn {
   min-height: 36px;
-  padding: 0 10px;
+  padding: 0 12px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 800;
@@ -754,6 +804,7 @@
   border: 1px solid #f0b8ba;
   background: #ffffff;
   color: #d83d40;
+  min-width: 68px;
 }
 
 .row-delete-btn:hover:not(:disabled) {
@@ -1314,11 +1365,6 @@
   .time-table-row {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-  }
-
-  .dormitory-cell,
-  .row-actions {
-    grid-column: 1 / -1;
   }
 
   .danger-zone div {

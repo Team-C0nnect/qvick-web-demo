@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type MouseEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { scheduleService } from '../services/schedule.service';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -198,7 +198,44 @@ export default function Schedule() {
     );
   }, [selectedDates, calendarDays]);
 
+  const getDefaultTimeByDay = (dayOfWeek?: number) => ({
+    startHour: DEFAULT_START_HOUR,
+    startMinute: DEFAULT_START_MINUTE,
+    endHour: dayOfWeek === 0 ? SUNDAY_END_HOUR : WEEKDAY_END_HOUR,
+    endMinute: dayOfWeek === 0 ? SUNDAY_END_MINUTE : WEEKDAY_END_MINUTE,
+  });
+
+  const getDefaultTimeForSelection = () => {
+    if (selectedWeekdays.length === 1 && selectedWeekdays[0] === 0) {
+      return getDefaultTimeByDay(0);
+    }
+
+    if (selectedDates.length > 0) {
+      const selectedDays = selectedDates
+        .map((date) => calendarDays.find((day) => day.fullDate === date))
+        .filter(Boolean);
+      const isOnlySunday = selectedDays.every((day) => day?.dayOfWeek === 0);
+      return getDefaultTimeByDay(isOnlySunday ? 0 : 1);
+    }
+
+    return getDefaultTimeByDay(1);
+  };
+
+  const applyDefaultTime = () => {
+    const defaults = getDefaultTimeForSelection();
+    setMaleStartHour(defaults.startHour);
+    setMaleStartMinute(defaults.startMinute);
+    setMaleEndHour(defaults.endHour);
+    setMaleEndMinute(defaults.endMinute);
+    setFemaleStartHour(defaults.startHour);
+    setFemaleStartMinute(defaults.startMinute);
+    setFemaleEndHour(defaults.endHour);
+    setFemaleEndMinute(defaults.endMinute);
+  };
+
   const applyDayScheduleTime = (day: CalendarDay) => {
+    const defaults = getDefaultTimeByDay(day.dayOfWeek);
+
     // 기존 스케줄이 있으면 해당 시간으로 설정
     if (day.maleSchedule) {
       const [sh, sm] = day.maleSchedule.startTime.split(':');
@@ -208,7 +245,7 @@ export default function Schedule() {
       setMaleEndHour(eh);
       setMaleEndMinute(em);
     } else {
-      resetMaleTime();
+      resetMaleTime(defaults);
     }
 
     if (day.femaleSchedule) {
@@ -219,7 +256,7 @@ export default function Schedule() {
       setFemaleEndHour(eh);
       setFemaleEndMinute(em);
     } else {
-      resetFemaleTime();
+      resetFemaleTime(defaults);
     }
   };
 
@@ -250,18 +287,18 @@ export default function Schedule() {
   };
 
   // 시간 초기화 함수
-  const resetMaleTime = () => {
-    setMaleStartHour(DEFAULT_START_HOUR);
-    setMaleStartMinute(DEFAULT_START_MINUTE);
-    setMaleEndHour(DEFAULT_END_HOUR);
-    setMaleEndMinute(DEFAULT_END_MINUTE);
+  const resetMaleTime = (defaults = getDefaultTimeForSelection()) => {
+    setMaleStartHour(defaults.startHour);
+    setMaleStartMinute(defaults.startMinute);
+    setMaleEndHour(defaults.endHour);
+    setMaleEndMinute(defaults.endMinute);
   };
 
-  const resetFemaleTime = () => {
-    setFemaleStartHour(DEFAULT_START_HOUR);
-    setFemaleStartMinute(DEFAULT_START_MINUTE);
-    setFemaleEndHour(DEFAULT_END_HOUR);
-    setFemaleEndMinute(DEFAULT_END_MINUTE);
+  const resetFemaleTime = (defaults = getDefaultTimeForSelection()) => {
+    setFemaleStartHour(defaults.startHour);
+    setFemaleStartMinute(defaults.startMinute);
+    setFemaleEndHour(defaults.endHour);
+    setFemaleEndMinute(defaults.endMinute);
   };
 
   const handlePrevMonth = () => {
@@ -301,15 +338,26 @@ export default function Schedule() {
       .filter((d) => d.isCurrentMonth && selectedWeekdays.includes(d.dayOfWeek))
       .map((d) => d.fullDate);
     setSelectedDates(dates);
+
+    const isOnlySunday = selectedWeekdays.length === 1 && selectedWeekdays[0] === 0;
+    const defaults = getDefaultTimeByDay(isOnlySunday ? 0 : 1);
+    resetMaleTime(defaults);
+    resetFemaleTime(defaults);
   };
 
   // 요일 선택 헬퍼 함수
   const selectWeekdaysOnly = () => {
-    setSelectedWeekdays([1, 2, 3, 4]); // 월~금
+    setSelectedWeekdays([1, 2, 3, 4, 5]); // 월~금
+    const defaults = getDefaultTimeByDay(1);
+    resetMaleTime(defaults);
+    resetFemaleTime(defaults);
   };
 
   const selectSundayOnly = () => {
     setSelectedWeekdays([0]); // 일요일
+    const defaults = getDefaultTimeByDay(0);
+    resetMaleTime(defaults);
+    resetFemaleTime(defaults);
   };
 
   const clearWeekdaySelection = () => {
@@ -527,11 +575,6 @@ export default function Schedule() {
     });
   };
 
-  // 남/여 동시 적용
-  const handleApplyBoth = async () => {
-    await handleApplySchedules(['MALE', 'FEMALE']);
-  };
-
   const formatTimeInputValue = (hour: string, minute: string) =>
     `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
 
@@ -543,6 +586,12 @@ export default function Schedule() {
     const [hour, minute] = value.split(':');
     setHour(hour || '00');
     setMinute(minute || '00');
+  };
+
+  const openTimePicker = (event: MouseEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    input.focus();
+    input.showPicker?.();
   };
 
   const formatDisplayDate = (dateStr: string) => {
@@ -799,8 +848,7 @@ export default function Schedule() {
               <button
                 className="ghost-reset-btn"
                 onClick={() => {
-                  resetMaleTime();
-                  resetFemaleTime();
+                  applyDefaultTime();
                 }}
                 type="button"
               >
@@ -813,6 +861,7 @@ export default function Schedule() {
                 <span>기숙사</span>
                 <span>시작</span>
                 <span>종료</span>
+                <span>작업</span>
               </div>
 
               <div className="time-table-row male">
@@ -829,6 +878,7 @@ export default function Schedule() {
                 <input
                   type="time"
                   value={formatTimeInputValue(maleStartHour, maleStartMinute)}
+                  onClick={openTimePicker}
                   onChange={(e) =>
                     applyTimeInputValue(
                       e.target.value,
@@ -842,6 +892,7 @@ export default function Schedule() {
                 <input
                   type="time"
                   value={formatTimeInputValue(maleEndHour, maleEndMinute)}
+                  onClick={openTimePicker}
                   onChange={(e) =>
                     applyTimeInputValue(
                       e.target.value,
@@ -852,6 +903,26 @@ export default function Schedule() {
                   className="time-value-input"
                   aria-label="남기숙사 종료 시간"
                 />
+                <div className="row-actions">
+                  <button
+                    className="row-apply-btn"
+                    onClick={() => handleApplySchedules(['MALE'])}
+                    disabled={isPending || loadingModal.isOpen}
+                  >
+                    적용
+                  </button>
+                  <button
+                    className="row-delete-btn"
+                    onClick={() =>
+                      selectedDates.length === 1
+                        ? handleSingleDelete('MALE')
+                        : handleBulkDelete('MALE')
+                    }
+                    disabled={isPending || loadingModal.isOpen}
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
 
               <div className="time-table-row female">
@@ -872,6 +943,7 @@ export default function Schedule() {
                     femaleStartHour,
                     femaleStartMinute,
                   )}
+                  onClick={openTimePicker}
                   onChange={(e) =>
                     applyTimeInputValue(
                       e.target.value,
@@ -885,6 +957,7 @@ export default function Schedule() {
                 <input
                   type="time"
                   value={formatTimeInputValue(femaleEndHour, femaleEndMinute)}
+                  onClick={openTimePicker}
                   onChange={(e) =>
                     applyTimeInputValue(
                       e.target.value,
@@ -895,58 +968,26 @@ export default function Schedule() {
                   className="time-value-input"
                   aria-label="여기숙사 종료 시간"
                 />
-              </div>
-            </div>
-
-            <div className="workbench-actions">
-              <button
-                className="action-button apply-both"
-                onClick={handleApplyBoth}
-                disabled={isPending || loadingModal.isOpen}
-              >
-                남/여 모두 적용
-              </button>
-              <button
-                className="action-button create male-only"
-                onClick={() => handleApplySchedules(['MALE'])}
-                disabled={isPending || loadingModal.isOpen}
-              >
-                남만 적용
-              </button>
-              <button
-                className="action-button create-female female-only"
-                onClick={() => handleApplySchedules(['FEMALE'])}
-                disabled={isPending || loadingModal.isOpen}
-              >
-                여만 적용
-              </button>
-            </div>
-
-            <div className="danger-zone">
-              <span>일정 삭제</span>
-              <div>
-                <button
-                  className="danger-text-btn"
-                  onClick={() =>
-                    selectedDates.length === 1
-                      ? handleSingleDelete('MALE')
-                      : handleBulkDelete('MALE')
-                  }
-                  disabled={isPending || loadingModal.isOpen}
-                >
-                  남 삭제
-                </button>
-                <button
-                  className="danger-text-btn"
-                  onClick={() =>
-                    selectedDates.length === 1
-                      ? handleSingleDelete('FEMALE')
-                      : handleBulkDelete('FEMALE')
-                  }
-                  disabled={isPending || loadingModal.isOpen}
-                >
-                  여 삭제
-                </button>
+                <div className="row-actions">
+                  <button
+                    className="row-apply-btn"
+                    onClick={() => handleApplySchedules(['FEMALE'])}
+                    disabled={isPending || loadingModal.isOpen}
+                  >
+                    적용
+                  </button>
+                  <button
+                    className="row-delete-btn"
+                    onClick={() =>
+                      selectedDates.length === 1
+                        ? handleSingleDelete('FEMALE')
+                        : handleBulkDelete('FEMALE')
+                    }
+                    disabled={isPending || loadingModal.isOpen}
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
             </div>
           </div>

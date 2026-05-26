@@ -654,7 +654,9 @@
 .time-table-head,
 .time-table-row {
   display: grid;
-  grid-template-columns: minmax(120px, 1.1fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns:
+    minmax(110px, 0.95fr) minmax(0, 1fr) minmax(0, 1fr)
+    minmax(92px, auto);
   gap: 10px;
   align-items: center;
 }
@@ -710,6 +712,7 @@
   font-size: 15px;
   font-weight: 800;
   outline: none;
+  cursor: pointer;
 }
 
 .time-value-input:focus {
@@ -717,18 +720,60 @@
   box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
 }
 
-.workbench-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+.time-value-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
 }
 
-.workbench-actions .apply-both {
-  grid-column: 1 / -1;
+.row-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.row-apply-btn,
+.row-delete-btn {
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.row-apply-btn {
+  border: 0;
+  background: #6d23ed;
+  color: #ffffff;
+}
+
+.row-apply-btn:hover:not(:disabled) {
+  background: #5919c7;
+}
+
+.row-delete-btn {
+  border: 1px solid #f0b8ba;
+  background: #ffffff;
+  color: #d83d40;
+}
+
+.row-delete-btn:hover:not(:disabled) {
+  border-color: #e77e81;
+  background: #fff1f1;
+}
+
+.row-apply-btn:disabled,
+.row-delete-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Legacy action styles kept for older states during hot reload. */
+.workbench-actions {
+  display: none;
 }
 
 .danger-zone {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -1271,12 +1316,9 @@
     gap: 8px;
   }
 
-  .dormitory-cell {
+  .dormitory-cell,
+  .row-actions {
     grid-column: 1 / -1;
-  }
-
-  .workbench-actions {
-    grid-template-columns: 1fr;
   }
 
   .danger-zone div {

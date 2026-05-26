@@ -22,6 +22,8 @@ interface CalendarDay {
   femaleSchedule?: AttendanceScheduleResponse;
 }
 
+type QuickSelectionMode = 'sunday' | 'redDay' | 'schoolWeekdays';
+
 // 시간 포맷 (HH:mm -> HH:mm, 초 제거)
 const formatTime = (time: string) => {
   const parts = time.split(':');
@@ -42,6 +44,8 @@ export default function Schedule() {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [activeQuickSelection, setActiveQuickSelection] =
+    useState<QuickSelectionMode | null>(null);
 
   // 로딩 모달 상태
   const [loadingModal, setLoadingModal] = useState<{
@@ -175,8 +179,7 @@ export default function Schedule() {
       const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
       const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
       const fullDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-      const totalDays = result.length;
-      const dayOfWeek = (totalDays + date - 1) % 7;
+      const dayOfWeek = result.length % 7;
       const holidayName = getKoreanHolidayName(fullDate);
       const isHoliday = !!holidayName;
       const isSaturday = dayOfWeek === 6;
@@ -266,6 +269,7 @@ export default function Schedule() {
   // 날짜 클릭 핸들러
   const handleDateClick = (day: CalendarDay) => {
     if (!day.isCurrentMonth) return;
+    setActiveQuickSelection(null);
 
     setSelectedDates((prev) => {
       if (prev.includes(day.fullDate)) {
@@ -277,7 +281,10 @@ export default function Schedule() {
     });
   };
 
-  const selectDateGroup = (dayMatcher: (day: CalendarDay) => boolean) => {
+  const selectDateGroup = (
+    mode: QuickSelectionMode,
+    dayMatcher: (day: CalendarDay) => boolean,
+  ) => {
     const dates = calendarDays
       .filter((day) => day.isCurrentMonth && dayMatcher(day))
       .map((day) => day.fullDate);
@@ -285,15 +292,18 @@ export default function Schedule() {
     const nextDateSet = new Set(dates);
     const isSameSelection =
       dates.length > 0 &&
+      activeQuickSelection === mode &&
       selectedDates.length === dates.length &&
       selectedDates.every((date) => nextDateSet.has(date));
 
     if (isSameSelection) {
       setSelectedDates([]);
+      setActiveQuickSelection(null);
       return;
     }
 
     setSelectedDates(dates);
+    setActiveQuickSelection(mode);
 
     const firstDay = calendarDays.find((day) => day.fullDate === dates[0]);
     if (firstDay) {
@@ -304,11 +314,18 @@ export default function Schedule() {
   };
 
   const handleSelectSundays = () => {
-    selectDateGroup((day) => day.dayOfWeek === 0);
+    selectDateGroup('sunday', (day) => day.dayOfWeek === 0);
   };
 
   const handleSelectSchoolWeekdays = () => {
-    selectDateGroup((day) => day.dayOfWeek >= 1 && day.dayOfWeek <= 4);
+    selectDateGroup(
+      'schoolWeekdays',
+      (day) => day.dayOfWeek >= 1 && day.dayOfWeek <= 4,
+    );
+  };
+
+  const handleSelectRedDays = () => {
+    selectDateGroup('redDay', (day) => day.isRedDay && day.dayOfWeek <= 4);
   };
 
   // 시간 초기화 함수
@@ -334,6 +351,7 @@ export default function Schedule() {
       setCurrentMonth(currentMonth - 1);
     }
     setSelectedDates([]);
+    setActiveQuickSelection(null);
   };
 
   const handleNextMonth = () => {
@@ -344,6 +362,7 @@ export default function Schedule() {
       setCurrentMonth(currentMonth + 1);
     }
     setSelectedDates([]);
+    setActiveQuickSelection(null);
   };
 
   const showSelectDateAlert = () => {
@@ -628,6 +647,11 @@ export default function Schedule() {
   const sundayDates = calendarDays
     .filter((day) => day.isCurrentMonth && day.dayOfWeek === 0)
     .map((day) => day.fullDate);
+  const redDayDates = calendarDays
+    .filter(
+      (day) => day.isCurrentMonth && day.isRedDay && day.dayOfWeek <= 4,
+    )
+    .map((day) => day.fullDate);
   const schoolWeekdayDates = calendarDays
     .filter(
       (day) =>
@@ -639,10 +663,17 @@ export default function Schedule() {
     .map((day) => day.fullDate);
   const selectedDateSet = new Set(selectedDates);
   const isSundaySelectionActive =
+    activeQuickSelection === 'sunday' &&
     sundayDates.length > 0 &&
     sundayDates.every((date) => selectedDateSet.has(date)) &&
     selectedDates.length === sundayDates.length;
+  const isRedDaySelectionActive =
+    activeQuickSelection === 'redDay' &&
+    redDayDates.length > 0 &&
+    redDayDates.every((date) => selectedDateSet.has(date)) &&
+    selectedDates.length === redDayDates.length;
   const isSchoolWeekdaySelectionActive =
+    activeQuickSelection === 'schoolWeekdays' &&
     schoolWeekdayDates.length > 0 &&
     schoolWeekdayDates.every((date) => selectedDateSet.has(date)) &&
     selectedDates.length === schoolWeekdayDates.length;
@@ -710,14 +741,25 @@ export default function Schedule() {
           <div className="quick-select-actions">
             <button
               type="button"
-              className={`quick-select-btn ${
-                isSundaySelectionActive ? 'active sunday' : ''
+              className={`quick-select-btn sunday ${
+                isSundaySelectionActive ? 'active' : ''
               }`}
               onClick={handleSelectSundays}
               disabled={isLoading}
               aria-pressed={isSundaySelectionActive}
             >
               일요일 전체
+            </button>
+            <button
+              type="button"
+              className={`quick-select-btn red-day ${
+                isRedDaySelectionActive ? 'active' : ''
+              }`}
+              onClick={handleSelectRedDays}
+              disabled={isLoading}
+              aria-pressed={isRedDaySelectionActive}
+            >
+              공휴일 전체
             </button>
             <button
               type="button"
@@ -844,7 +886,10 @@ export default function Schedule() {
           </div>
           <button
             className="selection-tool-btn"
-            onClick={() => setSelectedDates([])}
+            onClick={() => {
+              setSelectedDates([]);
+              setActiveQuickSelection(null);
+            }}
             disabled={selectedDates.length === 0}
           >
             선택 해제

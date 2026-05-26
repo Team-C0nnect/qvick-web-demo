@@ -186,16 +186,29 @@
   color: #6d23ed;
 }
 
+.quick-select-btn.sunday:hover:not(:disabled),
+.quick-select-btn.red-day:hover:not(:disabled) {
+  border-color: #ffb3b3;
+  background: rgba(224, 68, 70, 0.06);
+  color: #d83d40;
+}
+
 .quick-select-btn.active {
   border-color: #6d23ed;
   background: rgba(109, 35, 237, 0.08);
   color: #6d23ed;
 }
 
-.quick-select-btn.active.sunday {
+.quick-select-btn.sunday.active {
   border-color: #ffb3b3;
   background: rgba(255, 77, 79, 0.08);
   color: #e04446;
+}
+
+.quick-select-btn.red-day.active {
+  border-color: #ffb3b3;
+  background: rgba(224, 68, 70, 0.08);
+  color: #d83d40;
 }
 
 .quick-select-btn:disabled {
@@ -1382,7 +1395,7 @@
 
   .quick-select-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
   }
 
@@ -1465,6 +1478,10 @@
 
   .quick-select-copy {
     justify-content: space-between;
+  }
+
+  .quick-select-actions {
+    grid-template-columns: 1fr;
   }
 
   .calendar-cell {

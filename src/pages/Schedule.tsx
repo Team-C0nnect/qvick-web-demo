@@ -4,6 +4,7 @@ import { scheduleService } from '../services/schedule.service';
 import ConfirmationModal from '../components/ConfirmationModal';
 import '../styles/Schedule.css';
 import { CalendarIcon } from '../components/Icons';
+import { getKoreanHolidayName } from '../constants/koreanHolidays';
 import type { AttendanceScheduleResponse, Gender } from '../types/api';
 
 interface CalendarDay {
@@ -12,6 +13,10 @@ interface CalendarDay {
   isCurrentMonth: boolean;
   isToday: boolean;
   isWeekend: boolean;
+  isSaturday: boolean;
+  isHoliday: boolean;
+  isRedDay: boolean;
+  holidayName?: string;
   dayOfWeek: number; // 0=일요일, 6=토요일
   maleSchedule?: AttendanceScheduleResponse;
   femaleSchedule?: AttendanceScheduleResponse;
@@ -120,6 +125,9 @@ export default function Schedule() {
       const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
       const fullDate = `${prevYear}-${String(prevMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
       const dayOfWeek = (startDayOfWeek - i - 1 + 7) % 7;
+      const holidayName = getKoreanHolidayName(fullDate);
+      const isHoliday = !!holidayName;
+      const isSaturday = dayOfWeek === 6;
 
       result.push({
         date,
@@ -127,6 +135,10 @@ export default function Schedule() {
         isCurrentMonth: false,
         isToday: false,
         isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+        isSaturday,
+        isHoliday,
+        isRedDay: dayOfWeek === 0 || isHoliday,
+        holidayName: holidayName ?? undefined,
         dayOfWeek,
       });
     }
@@ -137,6 +149,9 @@ export default function Schedule() {
       const dayOfWeek = (startDayOfWeek + date - 1) % 7;
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
       const isToday = fullDate === todayStr;
+      const holidayName = getKoreanHolidayName(fullDate);
+      const isHoliday = !!holidayName;
+      const isSaturday = dayOfWeek === 6;
 
       result.push({
         date,
@@ -144,6 +159,10 @@ export default function Schedule() {
         isCurrentMonth: true,
         isToday,
         isWeekend,
+        isSaturday,
+        isHoliday,
+        isRedDay: dayOfWeek === 0 || isHoliday,
+        holidayName: holidayName ?? undefined,
         dayOfWeek,
         maleSchedule: maleScheduleMap.get(fullDate),
         femaleSchedule: femaleScheduleMap.get(fullDate),
@@ -158,6 +177,9 @@ export default function Schedule() {
       const fullDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
       const totalDays = result.length;
       const dayOfWeek = (totalDays + date - 1) % 7;
+      const holidayName = getKoreanHolidayName(fullDate);
+      const isHoliday = !!holidayName;
+      const isSaturday = dayOfWeek === 6;
 
       result.push({
         date,
@@ -165,6 +187,10 @@ export default function Schedule() {
         isCurrentMonth: false,
         isToday: false,
         isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+        isSaturday,
+        isHoliday,
+        isRedDay: dayOfWeek === 0 || isHoliday,
+        holidayName: holidayName ?? undefined,
         dayOfWeek,
       });
     }
@@ -182,15 +208,20 @@ export default function Schedule() {
     );
   }, [selectedDates, calendarDays]);
 
-  const getDefaultTimeByDay = (dayOfWeek?: number) => ({
+  const getDefaultTimeByDay = (dayOfWeek?: number, isRedDay = false) => ({
     startHour: DEFAULT_START_HOUR,
     startMinute: DEFAULT_START_MINUTE,
-    endHour: dayOfWeek === 0 ? SUNDAY_END_HOUR : WEEKDAY_END_HOUR,
-    endMinute: dayOfWeek === 0 ? SUNDAY_END_MINUTE : WEEKDAY_END_MINUTE,
+    endHour: isRedDay || dayOfWeek === 0 ? SUNDAY_END_HOUR : WEEKDAY_END_HOUR,
+    endMinute:
+      isRedDay || dayOfWeek === 0 ? SUNDAY_END_MINUTE : WEEKDAY_END_MINUTE,
   });
 
+  const getDefaultTimeByCalendarDay = (day?: CalendarDay | null) => {
+    return getDefaultTimeByDay(day?.dayOfWeek, !!day?.isRedDay);
+  };
+
   const getDefaultTimeForSelection = () => {
-    return getDefaultTimeByDay(selectedDayData?.dayOfWeek);
+    return getDefaultTimeByCalendarDay(selectedDayData);
   };
 
   const applyDefaultTime = () => {
@@ -206,7 +237,7 @@ export default function Schedule() {
   };
 
   const applyDayScheduleTime = (day: CalendarDay) => {
-    const defaults = getDefaultTimeByDay(day.dayOfWeek);
+    const defaults = getDefaultTimeByCalendarDay(day);
 
     // 기존 스케줄이 있으면 해당 시간으로 설정
     if (day.maleSchedule) {
@@ -266,7 +297,7 @@ export default function Schedule() {
 
     const firstDay = calendarDays.find((day) => day.fullDate === dates[0]);
     if (firstDay) {
-      const defaults = getDefaultTimeByDay(firstDay.dayOfWeek);
+      const defaults = getDefaultTimeByCalendarDay(firstDay);
       resetMaleTime(defaults);
       resetFemaleTime(defaults);
     }
@@ -423,7 +454,7 @@ export default function Schedule() {
     });
   };
 
-  // 단일 스케줄 삭제
+  // 선택 날짜 스케줄 삭제
   const handleDeleteSchedules = (gender: Gender) => {
     if (selectedDates.length === 0) {
       showSelectDateAlert();
@@ -599,7 +630,11 @@ export default function Schedule() {
     .map((day) => day.fullDate);
   const schoolWeekdayDates = calendarDays
     .filter(
-      (day) => day.isCurrentMonth && day.dayOfWeek >= 1 && day.dayOfWeek <= 4,
+      (day) =>
+        day.isCurrentMonth &&
+        !day.isRedDay &&
+        day.dayOfWeek >= 1 &&
+        day.dayOfWeek <= 4,
     )
     .map((day) => day.fullDate);
   const selectedDateSet = new Set(selectedDates);
@@ -719,6 +754,9 @@ export default function Schedule() {
                 const hasMaleSchedule = !!day.maleSchedule;
                 const hasFemaleSchedule = !!day.femaleSchedule;
                 const scheduleTooltip = [
+                  day.isHoliday && day.holidayName
+                    ? `공휴일 ${day.holidayName}`
+                    : '',
                   hasMaleSchedule
                     ? `남기숙사 ${formatTime(day.maleSchedule!.startTime)} ~ ${formatTime(day.maleSchedule!.endTime)}`
                     : '',
@@ -737,30 +775,37 @@ export default function Schedule() {
                       ${day.isToday ? 'today' : ''} 
                       ${isSelected ? 'selected' : ''} 
                       ${day.isWeekend && day.isCurrentMonth ? 'weekend' : ''}
+                      ${day.isRedDay ? 'red-day' : ''}
+                      ${day.isSaturday && !day.isRedDay ? 'saturday' : ''}
+                      ${day.isHoliday ? 'holiday' : ''}
                     `}
                     onClick={() => handleDateClick(day)}
                     data-schedule-tooltip={scheduleTooltip || undefined}
                     aria-label={`${day.fullDate} ${isSelected ? '선택됨' : ''} ${scheduleTooltip}`}
                   >
-                    {day.isCurrentMonth ? (
+                    <div className="calendar-cell-top">
+                      <span
+                        className={`date-number ${day.isToday ? 'today-number' : ''}`}
+                      >
+                        {day.date}
+                      </span>
+                      {day.isCurrentMonth &&
+                        (hasMaleSchedule || hasFemaleSchedule) && (
+                          <div className="schedule-dots">
+                            {hasMaleSchedule && (
+                              <span className="schedule-dot male"></span>
+                            )}
+                            {hasFemaleSchedule && (
+                              <span className="schedule-dot female"></span>
+                            )}
+                          </div>
+                        )}
+                    </div>
+                    {day.isHoliday && day.holidayName && (
+                      <span className="holiday-label">{day.holidayName}</span>
+                    )}
+                    {day.isCurrentMonth && (
                       <>
-                        <div className="calendar-cell-top">
-                          <span
-                            className={`date-number ${day.isToday ? 'today-number' : ''}`}
-                          >
-                            {day.date}
-                          </span>
-                          {(hasMaleSchedule || hasFemaleSchedule) && (
-                            <div className="schedule-dots">
-                              {hasMaleSchedule && (
-                                <span className="schedule-dot male"></span>
-                              )}
-                              {hasFemaleSchedule && (
-                                <span className="schedule-dot female"></span>
-                              )}
-                            </div>
-                          )}
-                        </div>
                         <div className="schedule-indicators">
                           {hasMaleSchedule && (
                             <div className="schedule-tag male">
@@ -782,10 +827,6 @@ export default function Schedule() {
                           )}
                         </div>
                       </>
-                    ) : (
-                      <span className="date-number inactive-date">
-                        {day.date}
-                      </span>
                     )}
                   </div>
                 );

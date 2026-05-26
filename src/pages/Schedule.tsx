@@ -632,6 +632,16 @@ export default function Schedule() {
                 const isSelected = selectedDates.includes(day.fullDate);
                 const hasMaleSchedule = !!day.maleSchedule;
                 const hasFemaleSchedule = !!day.femaleSchedule;
+                const scheduleTooltip = [
+                  hasMaleSchedule
+                    ? `남기숙사 ${formatTime(day.maleSchedule!.startTime)} ~ ${formatTime(day.maleSchedule!.endTime)}`
+                    : '',
+                  hasFemaleSchedule
+                    ? `여기숙사 ${formatTime(day.femaleSchedule!.startTime)} ~ ${formatTime(day.femaleSchedule!.endTime)}`
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join('\n');
 
                 return (
                   <div
@@ -643,7 +653,8 @@ export default function Schedule() {
                       ${day.isWeekend && day.isCurrentMonth ? 'weekend' : ''}
                     `}
                     onClick={() => handleDateClick(day)}
-                    aria-label={`${day.fullDate} ${isSelected ? '선택됨' : ''}`}
+                    data-schedule-tooltip={scheduleTooltip || undefined}
+                    aria-label={`${day.fullDate} ${isSelected ? '선택됨' : ''} ${scheduleTooltip}`}
                   >
                     {day.isCurrentMonth ? (
                       <>
@@ -668,15 +679,19 @@ export default function Schedule() {
                           {hasMaleSchedule && (
                             <div className="schedule-tag male">
                               <span>남</span>
-                              {formatTime(day.maleSchedule!.startTime)}-
-                              {formatTime(day.maleSchedule!.endTime)}
+                              <span className="schedule-tag-time">
+                                {formatTime(day.maleSchedule!.startTime)}~
+                                {formatTime(day.maleSchedule!.endTime)}
+                              </span>
                             </div>
                           )}
                           {hasFemaleSchedule && (
                             <div className="schedule-tag female">
                               <span>여</span>
-                              {formatTime(day.femaleSchedule!.startTime)}-
-                              {formatTime(day.femaleSchedule!.endTime)}
+                              <span className="schedule-tag-time">
+                                {formatTime(day.femaleSchedule!.startTime)}~
+                                {formatTime(day.femaleSchedule!.endTime)}
+                              </span>
                             </div>
                           )}
                         </div>

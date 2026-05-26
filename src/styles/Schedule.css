@@ -227,6 +227,56 @@
   background: #fbf9ff;
 }
 
+.calendar-cell[data-schedule-tooltip]:hover,
+.calendar-cell[data-schedule-tooltip]:focus-visible {
+  z-index: 20;
+}
+
+.calendar-cell[data-schedule-tooltip]::after {
+  content: attr(data-schedule-tooltip);
+  position: absolute;
+  left: 10px;
+  top: 38px;
+  z-index: 40;
+  min-width: 176px;
+  max-width: min(240px, calc(100vw - 48px));
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: #0f0f10;
+  color: #ffffff;
+  box-shadow: 0 14px 34px rgba(15, 15, 16, 0.18);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease,
+    visibility 0.14s ease;
+  visibility: hidden;
+  white-space: pre-line;
+}
+
+.calendar-cell:nth-child(7n + 6)[data-schedule-tooltip]::after,
+.calendar-cell:nth-child(7n)[data-schedule-tooltip]::after {
+  right: 10px;
+  left: auto;
+}
+
+.calendar-cell:nth-last-child(-n + 7)[data-schedule-tooltip]::after {
+  top: auto;
+  bottom: 34px;
+}
+
+.calendar-cell[data-schedule-tooltip]:hover::after,
+.calendar-cell[data-schedule-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
 .calendar-cell.inactive {
   background: #f7f7f8;
   cursor: default;
@@ -319,7 +369,12 @@
 }
 
 .schedule-tag span {
-  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.schedule-tag-time {
+  overflow-wrap: anywhere;
+  word-break: keep-all;
 }
 
 .schedule-tag.male,
@@ -614,9 +669,8 @@
   flex-direction: column;
   gap: 14px;
   padding: 16px;
-  border: 1px solid #e6e6e7;
   border-radius: 12px;
-  background: #ffffff;
+  background: #fbfbfc;
 }
 
 .workbench-heading {
@@ -670,18 +724,25 @@
     'range'
     'actions';
   gap: 10px;
-  padding: 14px;
-  border: 1px solid #e6e6e7;
-  border-radius: 10px;
+  padding: 14px 14px 14px 16px;
+  border: 0;
+  border-radius: 8px;
   background: #ffffff;
+  box-shadow: 0 1px 0 rgba(15, 15, 16, 0.06);
 }
 
 .time-table-row.male {
-  box-shadow: inset 4px 0 0 #1492fc;
+  background: #ffffff;
+  box-shadow:
+    inset 3px 0 0 #1492fc,
+    0 1px 0 rgba(15, 15, 16, 0.06);
 }
 
 .time-table-row.female {
-  box-shadow: inset 4px 0 0 #ed4ca4;
+  background: #ffffff;
+  box-shadow:
+    inset 3px 0 0 #ed4ca4,
+    0 1px 0 rgba(15, 15, 16, 0.06);
 }
 
 .dormitory-cell {
@@ -728,9 +789,9 @@
   width: 100%;
   min-height: 42px;
   padding: 0 10px;
-  border: 1px solid #dfe0e2;
-  border-radius: 10px;
-  background: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  background: #f7f7f8;
   color: #0f0f10;
   font-size: 15px;
   font-weight: 900;
@@ -740,8 +801,8 @@
 }
 
 .time-manual-input:focus {
-  border-color: #6d23ed;
-  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
+  background: #ffffff;
+  box-shadow: inset 0 0 0 2px #6d23ed;
 }
 
 .time-preset-row {
@@ -755,8 +816,8 @@
   min-height: 28px;
   padding: 0 8px;
   border: 0;
-  border-radius: 7px;
-  background: #f6f4fa;
+  border-radius: 6px;
+  background: #f0f1f2;
   color: #4b4d50;
   font-size: 11px;
   font-weight: 800;
@@ -801,15 +862,14 @@
 }
 
 .row-delete-btn {
-  border: 1px solid #f0b8ba;
-  background: #ffffff;
+  border: 0;
+  background: #fff1f1;
   color: #d83d40;
   min-width: 68px;
 }
 
 .row-delete-btn:hover:not(:disabled) {
-  border-color: #e77e81;
-  background: #fff1f1;
+  background: #ffe3e3;
 }
 
 .row-apply-btn:disabled,
@@ -1273,14 +1333,18 @@
   }
 
   .schedule-tag {
-    display: block;
+    grid-template-columns: 1fr;
     padding: 4px 3px;
     font-size: 10px;
     text-align: center;
   }
 
-  .schedule-tag span {
+  .schedule-tag > span:first-child {
     display: none;
+  }
+
+  .schedule-tag-time {
+    display: block;
   }
 
   .scheduler-panel {

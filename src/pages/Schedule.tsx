@@ -24,10 +24,12 @@ const formatTime = (time: string) => {
 };
 
 // 기본 시간 상수
-const DEFAULT_START_HOUR = '21';
+const DEFAULT_START_HOUR = '16';
 const DEFAULT_START_MINUTE = '00';
-const DEFAULT_END_HOUR = '22';
-const DEFAULT_END_MINUTE = '15';
+const WEEKDAY_END_HOUR = '22';
+const WEEKDAY_END_MINUTE = '15';
+const SUNDAY_END_HOUR = '21';
+const SUNDAY_END_MINUTE = '10';
 
 export default function Schedule() {
   const today = new Date();
@@ -64,15 +66,15 @@ export default function Schedule() {
   // 남기숙사 시간 상태
   const [maleStartHour, setMaleStartHour] = useState(DEFAULT_START_HOUR);
   const [maleStartMinute, setMaleStartMinute] = useState(DEFAULT_START_MINUTE);
-  const [maleEndHour, setMaleEndHour] = useState(DEFAULT_END_HOUR);
-  const [maleEndMinute, setMaleEndMinute] = useState(DEFAULT_END_MINUTE);
+  const [maleEndHour, setMaleEndHour] = useState(WEEKDAY_END_HOUR);
+  const [maleEndMinute, setMaleEndMinute] = useState(WEEKDAY_END_MINUTE);
 
   // 여기숙사 시간 상태
   const [femaleStartHour, setFemaleStartHour] = useState(DEFAULT_START_HOUR);
   const [femaleStartMinute, setFemaleStartMinute] =
     useState(DEFAULT_START_MINUTE);
-  const [femaleEndHour, setFemaleEndHour] = useState(DEFAULT_END_HOUR);
-  const [femaleEndMinute, setFemaleEndMinute] = useState(DEFAULT_END_MINUTE);
+  const [femaleEndHour, setFemaleEndHour] = useState(WEEKDAY_END_HOUR);
+  const [femaleEndMinute, setFemaleEndMinute] = useState(WEEKDAY_END_MINUTE);
 
   // 요일 선택 (월별 일괄 등록용)
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]); // 초기값: 아무것도 선택 안 함
@@ -83,36 +85,6 @@ export default function Schedule() {
   const { data: schedulesData, isLoading } = useQuery({
     queryKey: ['schedules', 'month', currentYear, currentMonth],
     queryFn: () => scheduleService.getMonthSchedules(currentYear, currentMonth),
-  });
-
-  // Create schedule mutation
-  const createScheduleMutation = useMutation({
-    mutationFn: scheduleService.createSchedule,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['schedules'] });
-    },
-    onError: (error) => {
-      console.error('스케줄 생성 오류:', error);
-    },
-  });
-
-  // Update schedule mutation
-  const updateScheduleMutation = useMutation({
-    mutationFn: ({
-      date,
-      gender,
-      data,
-    }: {
-      date: string;
-      gender: Gender;
-      data: { startTime?: string; endTime?: string };
-    }) => scheduleService.updateSchedule(date, gender, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['schedules'] });
-    },
-    onError: (error) => {
-      console.error('스케줄 수정 오류:', error);
-    },
   });
 
   // Delete schedule mutation
@@ -345,103 +317,118 @@ export default function Schedule() {
     setSelectedDates([]); // 선택된 날짜도 함께 해제
   };
 
-  // 일괄 스케줄 생성 (병렬 처리)
-  const handleBulkCreate = async (gender: Gender) => {
+  const showSelectDateAlert = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: '알림',
+      message: '날짜를 선택해주세요.',
+      confirmText: '확인',
+      onConfirm: () =>
+        setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+    });
+  };
+
+  const getGenderTime = (gender: Gender) => {
+    const isMALE = gender === 'MALE';
+    return {
+      startTime: isMALE
+        ? `${maleStartHour.padStart(2, '0')}:${maleStartMinute.padStart(2, '0')}`
+        : `${femaleStartHour.padStart(2, '0')}:${femaleStartMinute.padStart(2, '0')}`,
+      endTime: isMALE
+        ? `${maleEndHour.padStart(2, '0')}:${maleEndMinute.padStart(2, '0')}`
+        : `${femaleEndHour.padStart(2, '0')}:${femaleEndMinute.padStart(2, '0')}`,
+    };
+  };
+
+  const hasSchedule = (date: string, gender: Gender) => {
+    const day = calendarDays.find((calendarDay) => calendarDay.fullDate === date);
+    return gender === 'MALE' ? !!day?.maleSchedule : !!day?.femaleSchedule;
+  };
+
+  const handleApplySchedules = async (genders: Gender[]) => {
     if (selectedDates.length === 0) {
-      setConfirmModal({
-        isOpen: true,
-        title: '알림',
-        message: '날짜를 선택해주세요.',
-        confirmText: '확인',
-        onConfirm: () =>
-          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
-      });
+      showSelectDateAlert();
       return;
     }
 
-    const isMALE = gender === 'MALE';
-    const genderName = isMALE ? '남기숙사' : '여기숙사';
-    const startTime = isMALE
-      ? `${maleStartHour.padStart(2, '0')}:${maleStartMinute.padStart(2, '0')}`
-      : `${femaleStartHour.padStart(2, '0')}:${femaleStartMinute.padStart(2, '0')}`;
-    const endTime = isMALE
-      ? `${maleEndHour.padStart(2, '0')}:${maleEndMinute.padStart(2, '0')}`
-      : `${femaleEndHour.padStart(2, '0')}:${femaleEndMinute.padStart(2, '0')}`;
-
-    const total = selectedDates.length;
+    const total = selectedDates.length * genders.length;
     let completedCount = 0;
-    let successCount = 0;
+    let createdCount = 0;
+    let updatedCount = 0;
     let failCount = 0;
+    const genderName =
+      genders.length > 1
+        ? '남/여 기숙사'
+        : genders[0] === 'MALE'
+          ? '남기숙사'
+          : '여기숙사';
 
-    // 로딩 모달 표시
     setLoadingModal({
       isOpen: true,
-      title: `${genderName} 스케줄 생성 중...`,
+      title: `${genderName} 일정 적용 중...`,
       current: 0,
       total,
-      action: 'create',
+      action: 'update',
     });
 
-    // 병렬 처리
-    const promises = selectedDates.map(async (date) => {
-      try {
-        await scheduleService.createSchedule({
-          date,
-          gender,
-          startTime,
-          endTime,
-        });
-        successCount++;
-      } catch {
-        failCount++;
-      } finally {
-        completedCount++;
-        setLoadingModal((prev) => ({
-          ...prev,
-          current: completedCount,
-        }));
-      }
+    const promises = genders.flatMap((gender) => {
+      const { startTime, endTime } = getGenderTime(gender);
+
+      return selectedDates.map(async (date) => {
+        const shouldUpdate = hasSchedule(date, gender);
+
+        try {
+          if (shouldUpdate) {
+            await scheduleService.updateSchedule(date, gender, {
+              startTime,
+              endTime,
+            });
+            updatedCount++;
+          } else {
+            await scheduleService.createSchedule({
+              date,
+              gender,
+              startTime,
+              endTime,
+            });
+            createdCount++;
+          }
+        } catch {
+          failCount++;
+        } finally {
+          completedCount++;
+          setLoadingModal((prev) => ({
+            ...prev,
+            current: completedCount,
+          }));
+        }
+      });
     });
 
     await Promise.all(promises);
-
-    // 로딩 모달 닫기
     setLoadingModal((prev) => ({ ...prev, isOpen: false }));
 
     queryClient.invalidateQueries({ queryKey: ['schedules'] });
 
-    if (failCount > 0) {
-      setConfirmModal({
-        isOpen: true,
-        title: '생성 완료',
-        message: `${successCount}개 생성 완료 (max: ${failCount}개)\n(이미 존재하는 스케줄일 수 있습니다)`,
-        confirmText: '확인',
-        onConfirm: () =>
-          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
-      });
-    } else {
-      setConfirmModal({
-        isOpen: true,
-        title: '생성 완료',
-        message: `${successCount}개 스케줄이 생성되었습니다.`,
-        confirmText: '확인',
-        onConfirm: () =>
-          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
-      });
-    }
+    const resultMessage =
+      failCount > 0
+        ? `${createdCount}개 생성, ${updatedCount}개 수정 완료\n${failCount}개 실패`
+        : `${createdCount}개 생성, ${updatedCount}개 수정 완료`;
+
+    setConfirmModal({
+      isOpen: true,
+      title: '적용 완료',
+      message: resultMessage,
+      confirmText: '확인',
+      onConfirm: () =>
+        setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+    });
   };
 
   // 일괄 스케줄 삭제 (병렬 처리)
   const handleBulkDelete = async (gender: Gender) => {
     if (selectedDates.length === 0) {
-      setConfirmModal({
-        isOpen: true,
-        title: '알림',
-        message: '날짜를 선택해주세요.',
-        confirmText: '확인',
-        onConfirm: () =>
-          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
-      });
+      showSelectDateAlert();
       return;
     }
 
@@ -521,47 +508,6 @@ export default function Schedule() {
     }
   };
 
-  // 단일 스케줄 생성
-  const handleSingleCreate = (gender: Gender) => {
-    if (selectedDates.length !== 1) return;
-
-    const date = selectedDates[0];
-    const isMALE = gender === 'MALE';
-    const startTime = isMALE
-      ? `${maleStartHour.padStart(2, '0')}:${maleStartMinute.padStart(2, '0')}`
-      : `${femaleStartHour.padStart(2, '0')}:${femaleStartMinute.padStart(2, '0')}`;
-    const endTime = isMALE
-      ? `${maleEndHour.padStart(2, '0')}:${maleEndMinute.padStart(2, '0')}`
-      : `${femaleEndHour.padStart(2, '0')}:${femaleEndMinute.padStart(2, '0')}`;
-
-    createScheduleMutation.mutate({
-      date,
-      gender,
-      startTime,
-      endTime,
-    });
-  };
-
-  // 단일 스케줄 수정
-  const handleSingleUpdate = (gender: Gender) => {
-    if (selectedDates.length !== 1) return;
-
-    const date = selectedDates[0];
-    const isMALE = gender === 'MALE';
-    const startTime = isMALE
-      ? `${maleStartHour.padStart(2, '0')}:${maleStartMinute.padStart(2, '0')}`
-      : `${femaleStartHour.padStart(2, '0')}:${femaleStartMinute.padStart(2, '0')}`;
-    const endTime = isMALE
-      ? `${maleEndHour.padStart(2, '0')}:${maleEndMinute.padStart(2, '0')}`
-      : `${femaleEndHour.padStart(2, '0')}:${femaleEndMinute.padStart(2, '0')}`;
-
-    updateScheduleMutation.mutate({
-      date,
-      gender,
-      data: { startTime, endTime },
-    });
-  };
-
   // 단일 스케줄 삭제
   const handleSingleDelete = (gender: Gender) => {
     if (selectedDates.length !== 1) return;
@@ -583,8 +529,20 @@ export default function Schedule() {
 
   // 남/여 동시 적용
   const handleApplyBoth = async () => {
-    await handleBulkCreate('MALE');
-    await handleBulkCreate('FEMALE');
+    await handleApplySchedules(['MALE', 'FEMALE']);
+  };
+
+  const formatTimeInputValue = (hour: string, minute: string) =>
+    `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+
+  const applyTimeInputValue = (
+    value: string,
+    setHour: (value: string) => void,
+    setMinute: (value: string) => void,
+  ) => {
+    const [hour, minute] = value.split(':');
+    setHour(hour || '00');
+    setMinute(minute || '00');
   };
 
   const formatDisplayDate = (dateStr: string) => {
@@ -592,10 +550,7 @@ export default function Schedule() {
     return `${year}. ${month}. ${day}.`;
   };
 
-  const isPending =
-    createScheduleMutation.isPending ||
-    updateScheduleMutation.isPending ||
-    deleteScheduleMutation.isPending;
+  const isPending = deleteScheduleMutation.isPending;
 
   // 통계 계산
   const stats = useMemo(() => {
@@ -835,242 +790,166 @@ export default function Schedule() {
         </div>
 
         {selectedDates.length > 0 ? (
-          <>
-            <div className="gender-section male">
-              <div className="gender-header">
-                <span className="gender-badge male">남기숙사</span>
-                {selectedDates.length === 1 &&
-                  selectedDayData?.maleSchedule && (
-                    <span className="current-time">
-                      현재: {formatTime(selectedDayData.maleSchedule.startTime)}{' '}
-                      ~ {formatTime(selectedDayData.maleSchedule.endTime)}
-                    </span>
+          <div className="schedule-workbench">
+            <div className="workbench-heading">
+              <div>
+                <span className="quick-apply-label">시간 설정</span>
+                <p>남/여 기숙사 시간을 한 화면에서 조정합니다.</p>
+              </div>
+              <button
+                className="ghost-reset-btn"
+                onClick={() => {
+                  resetMaleTime();
+                  resetFemaleTime();
+                }}
+                type="button"
+              >
+                기본값
+              </button>
+            </div>
+
+            <div className="time-table">
+              <div className="time-table-head">
+                <span>기숙사</span>
+                <span>시작</span>
+                <span>종료</span>
+              </div>
+
+              <div className="time-table-row male">
+                <div className="dormitory-cell">
+                  <span className="gender-badge male">남기숙사</span>
+                  {selectedDates.length === 1 &&
+                    selectedDayData?.maleSchedule && (
+                      <small>
+                        현재 {formatTime(selectedDayData.maleSchedule.startTime)}
+                        -{formatTime(selectedDayData.maleSchedule.endTime)}
+                      </small>
+                    )}
+                </div>
+                <input
+                  type="time"
+                  value={formatTimeInputValue(maleStartHour, maleStartMinute)}
+                  onChange={(e) =>
+                    applyTimeInputValue(
+                      e.target.value,
+                      setMaleStartHour,
+                      setMaleStartMinute,
+                    )
+                  }
+                  className="time-value-input"
+                  aria-label="남기숙사 시작 시간"
+                />
+                <input
+                  type="time"
+                  value={formatTimeInputValue(maleEndHour, maleEndMinute)}
+                  onChange={(e) =>
+                    applyTimeInputValue(
+                      e.target.value,
+                      setMaleEndHour,
+                      setMaleEndMinute,
+                    )
+                  }
+                  className="time-value-input"
+                  aria-label="남기숙사 종료 시간"
+                />
+              </div>
+
+              <div className="time-table-row female">
+                <div className="dormitory-cell">
+                  <span className="gender-badge female">여기숙사</span>
+                  {selectedDates.length === 1 &&
+                    selectedDayData?.femaleSchedule && (
+                      <small>
+                        현재{' '}
+                        {formatTime(selectedDayData.femaleSchedule.startTime)}-
+                        {formatTime(selectedDayData.femaleSchedule.endTime)}
+                      </small>
+                    )}
+                </div>
+                <input
+                  type="time"
+                  value={formatTimeInputValue(
+                    femaleStartHour,
+                    femaleStartMinute,
                   )}
-              </div>
-
-              <div className="time-picker-row">
-                <div className="time-field">
-                  <span className="time-label">시작</span>
-                  <div className="time-input-group">
-                    <input
-                      type="number"
-                      min="0"
-                      max="23"
-                      value={maleStartHour}
-                      onChange={(e) => setMaleStartHour(e.target.value)}
-                      className="time-input"
-                      aria-label="남기숙사 시작 시"
-                    />
-                    <span className="time-separator">:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={maleStartMinute}
-                      onChange={(e) => setMaleStartMinute(e.target.value)}
-                      className="time-input"
-                      aria-label="남기숙사 시작 분"
-                    />
-                  </div>
-                </div>
-                <div className="time-field">
-                  <span className="time-label">종료</span>
-                  <div className="time-input-group">
-                    <input
-                      type="number"
-                      min="0"
-                      max="23"
-                      value={maleEndHour}
-                      onChange={(e) => setMaleEndHour(e.target.value)}
-                      className="time-input"
-                      aria-label="남기숙사 종료 시"
-                    />
-                    <span className="time-separator">:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={maleEndMinute}
-                      onChange={(e) => setMaleEndMinute(e.target.value)}
-                      className="time-input"
-                      aria-label="남기숙사 종료 분"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="gender-actions">
-                {selectedDates.length === 1 ? (
-                  selectedDayData?.maleSchedule ? (
-                    <>
-                      <button
-                        className="action-button update small"
-                        onClick={() => handleSingleUpdate('MALE')}
-                        disabled={isPending}
-                      >
-                        수정
-                      </button>
-                      <button
-                        className="action-button delete small"
-                        onClick={() => handleSingleDelete('MALE')}
-                        disabled={isPending}
-                      >
-                        삭제
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      className="action-button create"
-                      onClick={() => handleSingleCreate('MALE')}
-                      disabled={isPending}
-                    >
-                      생성
-                    </button>
-                  )
-                ) : (
-                  <>
-                    <button
-                      className="action-button create small"
-                      onClick={() => handleBulkCreate('MALE')}
-                      disabled={isPending}
-                    >
-                      일괄 생성
-                    </button>
-                    <button
-                      className="action-button delete small"
-                      onClick={() => handleBulkDelete('MALE')}
-                      disabled={isPending}
-                    >
-                      일괄 삭제
-                    </button>
-                  </>
-                )}
+                  onChange={(e) =>
+                    applyTimeInputValue(
+                      e.target.value,
+                      setFemaleStartHour,
+                      setFemaleStartMinute,
+                    )
+                  }
+                  className="time-value-input"
+                  aria-label="여기숙사 시작 시간"
+                />
+                <input
+                  type="time"
+                  value={formatTimeInputValue(femaleEndHour, femaleEndMinute)}
+                  onChange={(e) =>
+                    applyTimeInputValue(
+                      e.target.value,
+                      setFemaleEndHour,
+                      setFemaleEndMinute,
+                    )
+                  }
+                  className="time-value-input"
+                  aria-label="여기숙사 종료 시간"
+                />
               </div>
             </div>
 
-            <div className="gender-section female">
-              <div className="gender-header">
-                <span className="gender-badge female">여기숙사</span>
-                {selectedDates.length === 1 &&
-                  selectedDayData?.femaleSchedule && (
-                    <span className="current-time">
-                      현재:{' '}
-                      {formatTime(selectedDayData.femaleSchedule.startTime)} ~{' '}
-                      {formatTime(selectedDayData.femaleSchedule.endTime)}
-                    </span>
-                  )}
-              </div>
-
-              <div className="time-picker-row">
-                <div className="time-field">
-                  <span className="time-label">시작</span>
-                  <div className="time-input-group">
-                    <input
-                      type="number"
-                      min="0"
-                      max="23"
-                      value={femaleStartHour}
-                      onChange={(e) => setFemaleStartHour(e.target.value)}
-                      className="time-input"
-                      aria-label="여기숙사 시작 시"
-                    />
-                    <span className="time-separator">:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={femaleStartMinute}
-                      onChange={(e) => setFemaleStartMinute(e.target.value)}
-                      className="time-input"
-                      aria-label="여기숙사 시작 분"
-                    />
-                  </div>
-                </div>
-                <div className="time-field">
-                  <span className="time-label">종료</span>
-                  <div className="time-input-group">
-                    <input
-                      type="number"
-                      min="0"
-                      max="23"
-                      value={femaleEndHour}
-                      onChange={(e) => setFemaleEndHour(e.target.value)}
-                      className="time-input"
-                      aria-label="여기숙사 종료 시"
-                    />
-                    <span className="time-separator">:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={femaleEndMinute}
-                      onChange={(e) => setFemaleEndMinute(e.target.value)}
-                      className="time-input"
-                      aria-label="여기숙사 종료 분"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="gender-actions">
-                {selectedDates.length === 1 ? (
-                  selectedDayData?.femaleSchedule ? (
-                    <>
-                      <button
-                        className="action-button update small"
-                        onClick={() => handleSingleUpdate('FEMALE')}
-                        disabled={isPending}
-                      >
-                        수정
-                      </button>
-                      <button
-                        className="action-button delete small"
-                        onClick={() => handleSingleDelete('FEMALE')}
-                        disabled={isPending}
-                      >
-                        삭제
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      className="action-button create-female"
-                      onClick={() => handleSingleCreate('FEMALE')}
-                      disabled={isPending}
-                    >
-                      생성
-                    </button>
-                  )
-                ) : (
-                  <>
-                    <button
-                      className="action-button create-female small"
-                      onClick={() => handleBulkCreate('FEMALE')}
-                      disabled={isPending}
-                    >
-                      일괄 생성
-                    </button>
-                    <button
-                      className="action-button delete small"
-                      onClick={() => handleBulkDelete('FEMALE')}
-                      disabled={isPending}
-                    >
-                      일괄 삭제
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {selectedDates.length > 1 && (
+            <div className="workbench-actions">
               <button
                 className="action-button apply-both"
                 onClick={handleApplyBoth}
                 disabled={isPending || loadingModal.isOpen}
               >
-                남/여 기숙사 동시 일괄 생성
+                남/여 모두 적용
               </button>
-            )}
-          </>
+              <button
+                className="action-button create male-only"
+                onClick={() => handleApplySchedules(['MALE'])}
+                disabled={isPending || loadingModal.isOpen}
+              >
+                남만 적용
+              </button>
+              <button
+                className="action-button create-female female-only"
+                onClick={() => handleApplySchedules(['FEMALE'])}
+                disabled={isPending || loadingModal.isOpen}
+              >
+                여만 적용
+              </button>
+            </div>
+
+            <div className="danger-zone">
+              <span>일정 삭제</span>
+              <div>
+                <button
+                  className="danger-text-btn"
+                  onClick={() =>
+                    selectedDates.length === 1
+                      ? handleSingleDelete('MALE')
+                      : handleBulkDelete('MALE')
+                  }
+                  disabled={isPending || loadingModal.isOpen}
+                >
+                  남 삭제
+                </button>
+                <button
+                  className="danger-text-btn"
+                  onClick={() =>
+                    selectedDates.length === 1
+                      ? handleSingleDelete('FEMALE')
+                      : handleBulkDelete('FEMALE')
+                  }
+                  disabled={isPending || loadingModal.isOpen}
+                >
+                  여 삭제
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="no-selection">
             <p>캘린더에서 날짜를 선택해주세요.</p>

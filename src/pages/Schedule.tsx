@@ -31,6 +31,7 @@ const DEFAULT_END_MINUTE = '15';
 
 export default function Schedule() {
   const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -136,8 +137,6 @@ export default function Schedule() {
     const daysInMonth = lastDayOfMonth.getDate();
     const startDayOfWeek = firstDayOfMonth.getDay();
 
-    const todayStr = today.toISOString().split('T')[0];
-
     // Create schedule maps by date and gender
     const maleScheduleMap = new Map<string, AttendanceScheduleResponse>();
     const femaleScheduleMap = new Map<string, AttendanceScheduleResponse>();
@@ -215,7 +214,7 @@ export default function Schedule() {
     }
 
     return result;
-  }, [currentYear, currentMonth, schedulesData]);
+  }, [currentYear, currentMonth, schedulesData, todayStr]);
 
   // 선택된 첫번째 날짜의 스케줄 데이터
   const selectedDayData = useMemo(() => {
@@ -612,6 +611,31 @@ export default function Schedule() {
     };
   }, [calendarDays]);
 
+  const scheduleStatItems = [
+    {
+      label: '남기숙사',
+      value: `${stats.maleCount}/${stats.weekdaysCount}`,
+      tone: 'male',
+    },
+    {
+      label: '여기숙사',
+      value: `${stats.femaleCount}/${stats.weekdaysCount}`,
+      tone: 'female',
+    },
+    {
+      label: '선택 날짜',
+      value: `${selectedDates.length}일`,
+      tone: 'selected',
+    },
+  ];
+
+  const selectionTitle =
+    selectedDates.length === 0
+      ? '날짜를 선택해주세요'
+      : selectedDates.length === 1
+        ? formatDisplayDate(selectedDates[0])
+        : `${selectedDates.length}개 날짜 선택됨`;
+
   // 스켈레톤 캘린더 그리드 생성 (42개 셀)
   const renderSkeletonCalendar = () => (
     <div className="calendar-grid">
@@ -630,42 +654,44 @@ export default function Schedule() {
   return (
     <div className="schedule-page">
       <div className="calendar-container">
-        <div className="calendar-header">
+        <div className="schedule-hero">
           <div className="calendar-title-row">
-            <CalendarIcon className="calendar-title-icon" />
-            <h2 className="calendar-title">출석 스케줄 관리</h2>
+            <span className="calendar-title-icon-wrap">
+              <CalendarIcon className="calendar-title-icon" />
+            </span>
+            <div>
+              <span className="schedule-kicker">Attendance Schedule</span>
+              <h2 className="calendar-title">출석 스케줄 관리</h2>
+            </div>
           </div>
           <div className="month-selector">
-            <button className="nav-button prev" onClick={handlePrevMonth}>
+            <button
+              className="nav-button prev"
+              onClick={handlePrevMonth}
+              aria-label="이전 달"
+            >
               ←
             </button>
             <span className="month-text">
               {currentYear}년 {currentMonth}월
             </span>
-            <button className="nav-button next" onClick={handleNextMonth}>
+            <button
+              className="nav-button next"
+              onClick={handleNextMonth}
+              aria-label="다음 달"
+            >
               →
             </button>
           </div>
         </div>
 
-        {/* 통계 */}
         <div className="schedule-stats">
-          <div className="stat-item">
-            <span className="stat-label">남기숙사</span>
-            <span className="stat-value male">
-              {stats.maleCount}/{stats.weekdaysCount}
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">여기숙사</span>
-            <span className="stat-value female">
-              {stats.femaleCount}/{stats.weekdaysCount}
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">선택됨</span>
-            <span className="stat-value">{selectedDates.length}일</span>
-          </div>
+          {scheduleStatItems.map((item) => (
+            <div key={item.label} className={`stat-item ${item.tone}`}>
+              <span className="stat-label">{item.label}</span>
+              <span className={`stat-value ${item.tone}`}>{item.value}</span>
+            </div>
+          ))}
         </div>
 
         <div className="calendar">
@@ -699,24 +725,39 @@ export default function Schedule() {
                       ${day.isWeekend && day.isCurrentMonth ? 'weekend' : ''}
                     `}
                     onClick={() => handleDateClick(day)}
+                    aria-label={`${day.fullDate} ${isSelected ? '선택됨' : ''}`}
                   >
                     {day.isCurrentMonth ? (
                       <>
-                        <span
-                          className={`date-number ${day.isToday ? 'today-number' : ''}`}
-                        >
-                          {day.date}
-                        </span>
+                        <div className="calendar-cell-top">
+                          <span
+                            className={`date-number ${day.isToday ? 'today-number' : ''}`}
+                          >
+                            {day.date}
+                          </span>
+                          {(hasMaleSchedule || hasFemaleSchedule) && (
+                            <div className="schedule-dots">
+                              {hasMaleSchedule && (
+                                <span className="schedule-dot male"></span>
+                              )}
+                              {hasFemaleSchedule && (
+                                <span className="schedule-dot female"></span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                         <div className="schedule-indicators">
                           {hasMaleSchedule && (
-                            <div className="schedule-tag blue">
-                              {formatTime(day.maleSchedule!.startTime)}~
+                            <div className="schedule-tag male">
+                              <span>남</span>
+                              {formatTime(day.maleSchedule!.startTime)}-
                               {formatTime(day.maleSchedule!.endTime)}
                             </div>
                           )}
                           {hasFemaleSchedule && (
-                            <div className="schedule-tag pink">
-                              {formatTime(day.femaleSchedule!.startTime)}~
+                            <div className="schedule-tag female">
+                              <span>여</span>
+                              {formatTime(day.femaleSchedule!.startTime)}-
                               {formatTime(day.femaleSchedule!.endTime)}
                             </div>
                           )}
@@ -735,9 +776,12 @@ export default function Schedule() {
         </div>
       </div>
 
-      {/* Scheduler Panel */}
       <div className="scheduler-panel">
-        {/* 선택 도구 */}
+        <div className="panel-header">
+          <span className="panel-kicker">Schedule editor</span>
+          <h3 className="scheduler-title">{selectionTitle}</h3>
+        </div>
+
         <div className="selection-tools">
           <div className="selection-summary">
             <span className="selection-summary-label">날짜 선택</span>
@@ -754,9 +798,11 @@ export default function Schedule() {
           </button>
         </div>
 
-        {/* 요일별 선택 도구 */}
         <div className="weekday-selector">
-          <p className="section-label">요일 선택</p>
+          <div className="panel-section-heading">
+            <p className="section-label">요일 빠른 선택</p>
+            <span>월 전체에 적용</span>
+          </div>
           <div className="weekday-buttons">
             {days.map((day, index) => (
               <button
@@ -790,13 +836,6 @@ export default function Schedule() {
 
         {selectedDates.length > 0 ? (
           <>
-            <h3 className="scheduler-title">
-              {selectedDates.length === 1
-                ? formatDisplayDate(selectedDates[0])
-                : `${selectedDates.length}개 날짜 선택됨`}
-            </h3>
-
-            {/* 남기숙사 섹션 */}
             <div className="gender-section male">
               <div className="gender-header">
                 <span className="gender-badge male">남기숙사</span>
@@ -810,44 +849,53 @@ export default function Schedule() {
               </div>
 
               <div className="time-picker-row">
-                <div className="time-input-group">
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={maleStartHour}
-                    onChange={(e) => setMaleStartHour(e.target.value)}
-                    className="time-input"
-                  />
-                  <span className="time-separator">:</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={maleStartMinute}
-                    onChange={(e) => setMaleStartMinute(e.target.value)}
-                    className="time-input"
-                  />
+                <div className="time-field">
+                  <span className="time-label">시작</span>
+                  <div className="time-input-group">
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={maleStartHour}
+                      onChange={(e) => setMaleStartHour(e.target.value)}
+                      className="time-input"
+                      aria-label="남기숙사 시작 시"
+                    />
+                    <span className="time-separator">:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={maleStartMinute}
+                      onChange={(e) => setMaleStartMinute(e.target.value)}
+                      className="time-input"
+                      aria-label="남기숙사 시작 분"
+                    />
+                  </div>
                 </div>
-                <span className="time-range-separator">~</span>
-                <div className="time-input-group">
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={maleEndHour}
-                    onChange={(e) => setMaleEndHour(e.target.value)}
-                    className="time-input"
-                  />
-                  <span className="time-separator">:</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={maleEndMinute}
-                    onChange={(e) => setMaleEndMinute(e.target.value)}
-                    className="time-input"
-                  />
+                <div className="time-field">
+                  <span className="time-label">종료</span>
+                  <div className="time-input-group">
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={maleEndHour}
+                      onChange={(e) => setMaleEndHour(e.target.value)}
+                      className="time-input"
+                      aria-label="남기숙사 종료 시"
+                    />
+                    <span className="time-separator">:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={maleEndMinute}
+                      onChange={(e) => setMaleEndMinute(e.target.value)}
+                      className="time-input"
+                      aria-label="남기숙사 종료 분"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -900,7 +948,6 @@ export default function Schedule() {
               </div>
             </div>
 
-            {/* 여기숙사 섹션 */}
             <div className="gender-section female">
               <div className="gender-header">
                 <span className="gender-badge female">여기숙사</span>
@@ -915,44 +962,53 @@ export default function Schedule() {
               </div>
 
               <div className="time-picker-row">
-                <div className="time-input-group">
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={femaleStartHour}
-                    onChange={(e) => setFemaleStartHour(e.target.value)}
-                    className="time-input"
-                  />
-                  <span className="time-separator">:</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={femaleStartMinute}
-                    onChange={(e) => setFemaleStartMinute(e.target.value)}
-                    className="time-input"
-                  />
+                <div className="time-field">
+                  <span className="time-label">시작</span>
+                  <div className="time-input-group">
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={femaleStartHour}
+                      onChange={(e) => setFemaleStartHour(e.target.value)}
+                      className="time-input"
+                      aria-label="여기숙사 시작 시"
+                    />
+                    <span className="time-separator">:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={femaleStartMinute}
+                      onChange={(e) => setFemaleStartMinute(e.target.value)}
+                      className="time-input"
+                      aria-label="여기숙사 시작 분"
+                    />
+                  </div>
                 </div>
-                <span className="time-range-separator">~</span>
-                <div className="time-input-group">
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={femaleEndHour}
-                    onChange={(e) => setFemaleEndHour(e.target.value)}
-                    className="time-input"
-                  />
-                  <span className="time-separator">:</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={femaleEndMinute}
-                    onChange={(e) => setFemaleEndMinute(e.target.value)}
-                    className="time-input"
-                  />
+                <div className="time-field">
+                  <span className="time-label">종료</span>
+                  <div className="time-input-group">
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={femaleEndHour}
+                      onChange={(e) => setFemaleEndHour(e.target.value)}
+                      className="time-input"
+                      aria-label="여기숙사 종료 시"
+                    />
+                    <span className="time-separator">:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={femaleEndMinute}
+                      onChange={(e) => setFemaleEndMinute(e.target.value)}
+                      className="time-input"
+                      aria-label="여기숙사 종료 분"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1005,7 +1061,6 @@ export default function Schedule() {
               </div>
             </div>
 
-            {/* 남/여 동시 적용 */}
             {selectedDates.length > 1 && (
               <button
                 className="action-button apply-both"
@@ -1020,7 +1075,7 @@ export default function Schedule() {
           <div className="no-selection">
             <p>캘린더에서 날짜를 선택해주세요.</p>
             <p className="hint">
-              날짜를 다시 클릭하면 선택을 해제할 수 있습니다.
+              요일 빠른 선택을 쓰거나 캘린더의 날짜를 눌러 작업을 시작하세요.
             </p>
           </div>
         )}

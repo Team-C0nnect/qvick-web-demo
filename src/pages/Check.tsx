@@ -37,11 +37,69 @@ interface Student {
   dormitory: string;
 }
 
+type DisplayAttendanceStatus = Student['status'];
 type SortKey = 'room' | 'name' | 'status' | 'gender' | 'studentId' | 'time';
 type SortDirection = 'asc' | 'desc' | null;
 
 // 자동 새로고침 간격 (30초)
 const REFRESH_INTERVAL = 30 * 1000;
+
+const STATUS_MAP: Record<DisplayAttendanceStatus, AttendanceStatus> = {
+  출석: 'PRESENT',
+  미출석: 'ABSENT',
+  외박: 'SLEEPOVER',
+  지연출석: 'LATE',
+};
+
+const getCurrentTimeString = (): string => {
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+const getLocalDateString = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getMinutesFromTime = (time: string | undefined): number | null => {
+  if (!time || time === '-') return null;
+
+  // H:MM, HH:MM, HH:MM:SS 형식 모두 허용
+  const match = time.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+
+  return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+};
+
+// 스케줄 기반 지연출석 판별 (endTime 초과)
+const isLateAttendance = (
+  checkedTime: string,
+  endTime: string | undefined,
+): boolean => {
+  const checkedMinutes = getMinutesFromTime(checkedTime);
+  const endMinutes = getMinutesFromTime(endTime);
+
+  if (checkedMinutes === null || endMinutes === null) return false;
+
+  return checkedMinutes > endMinutes;
+};
+
+const hasAttendanceWindowEnded = (
+  attendanceDate: string,
+  endTime: string | undefined,
+): boolean => {
+  const today = getLocalDateString();
+
+  if (attendanceDate < today) return true;
+  if (attendanceDate > today) return false;
+
+  return isLateAttendance(getCurrentTimeString(), endTime);
+};
 
 export default function Check() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -176,20 +234,22 @@ export default function Check() {
         return;
       }
 
-      const statusMap: Record<
-        '출석' | '미출석' | '외박' | '지연출석',
-        AttendanceStatus
-      > = {
-        출석: 'PRESENT',
-        미출석: 'ABSENT',
-        외박: 'SLEEPOVER',
-        지연출석: 'LATE',
-      };
+      const dateSchedules = scheduleCache.get(currentDate);
+      const endTime =
+        student.gender === '남'
+          ? (dateSchedules?.maleSchedule?.endTime ?? maleSchedule?.endTime)
+          : (dateSchedules?.femaleSchedule?.endTime ??
+            femaleSchedule?.endTime);
+      const effectiveDisplayStatus: DisplayAttendanceStatus =
+        newDisplayStatus === '출석' &&
+        hasAttendanceWindowEnded(currentDate, endTime)
+          ? '지연출석'
+          : newDisplayStatus;
 
       updateAttendancesMutation.mutate({
         date: currentDate,
         attendances: [
-          { studentId: student.id, status: statusMap[newDisplayStatus] },
+          { studentId: student.id, status: STATUS_MAP[effectiveDisplayStatus] },
         ],
       });
 
@@ -199,14 +259,20 @@ export default function Check() {
           s.studentId === student.studentId
             ? {
                 ...s,
-                overnight: newDisplayStatus === '외박',
-                status: newDisplayStatus,
+                overnight: effectiveDisplayStatus === '외박',
+                status: effectiveDisplayStatus,
               }
             : s,
         ),
       );
     },
-    [currentDate, updateAttendancesMutation],
+    [
+      currentDate,
+      femaleSchedule?.endTime,
+      maleSchedule?.endTime,
+      scheduleCache,
+      updateAttendancesMutation,
+    ],
   );
 
   // 엑셀 내보내기 (성별, 출력 유형 선택)
@@ -252,28 +318,6 @@ export default function Check() {
     },
     [students],
   );
-
-  // 스케줄 기반 지연출석 판별 (endTime 초과)
-  const isLateAttendance = (
-    checkedTime: string,
-    endTime: string | undefined,
-  ): boolean => {
-    if (!checkedTime || checkedTime === '-' || !endTime) return false;
-
-    // H:MM, HH:MM, HH:MM:SS 형식 모두 허용
-    const checkedMatch = checkedTime.match(/^(\d{1,2}):(\d{2})/);
-    const endMatch = endTime.match(/^(\d{1,2}):(\d{2})/);
-
-    if (!checkedMatch || !endMatch) return false;
-
-    const checkedMinutes =
-      parseInt(checkedMatch[1], 10) * 60 + parseInt(checkedMatch[2], 10);
-    const endMinutes =
-      parseInt(endMatch[1], 10) * 60 + parseInt(endMatch[2], 10);
-
-    // endTime을 초과하면 지연출석
-    return checkedMinutes > endMinutes;
-  };
 
   // 출석 데이터의 각 날짜별 스케줄을 로드
   useEffect(() => {

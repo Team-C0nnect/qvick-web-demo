@@ -64,6 +64,23 @@ function MoonIcon({ className }: { className?: string }) {
   );
 }
 
+// 자치위원 아이콘
+function CouncilIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+    </svg>
+  );
+}
+
 // 계정 관리 아이콘
 function AccountIcon({ className }: { className?: string }) {
   return (
@@ -101,6 +118,7 @@ export default function Sidebar() {
     { path: '/notice', label: '공지사항', icon: 'notice' },
     { path: '/schedule', label: '일정 관리', icon: 'schedule' },
     { path: '/room', label: '방 관리', icon: 'room' },
+    { path: '/council', label: '자치위원', icon: 'council' },
     { path: '/teacher-patchnote', label: '패치노트', icon: 'patchnote' },
   ];
 
@@ -124,6 +142,8 @@ export default function Sidebar() {
         return <CalendarIcon className="menu-icon" />;
       case 'room':
         return <RoomIcon className="menu-icon" />;
+      case 'council':
+        return <CouncilIcon className="menu-icon" />;
       case 'student':
         return <StudentIcon className="menu-icon" />;
       case 'account':

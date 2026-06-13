@@ -1,0 +1,60 @@
+.council-page .council-add-button {
+  min-height: 38px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  background: #6d23ed;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    opacity 0.2s;
+  white-space: nowrap;
+}
+
+.council-page .council-add-button:hover:not(:disabled) {
+  background: #5919c7;
+}
+
+.council-page .council-add-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.council-revoke-button {
+  border: 1px solid #ff4242;
+  background: transparent;
+  color: #ff4242;
+  padding: 4.5px 12px;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    opacity 0.2s;
+}
+
+.council-revoke-button:hover:not(:disabled) {
+  background: #ff4242;
+  color: #ffffff;
+}
+
+.council-revoke-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.council-empty-cell {
+  height: 180px;
+  color: #747678;
+  font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+  .council-page .council-add-button {
+    flex: 1 1 160px;
+  }
+}

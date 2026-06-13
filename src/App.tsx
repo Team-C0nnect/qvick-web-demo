@@ -17,6 +17,7 @@ import TeacherPatchNote from './pages/TeacherPatchNote';
 import PatchNoteAdmin from './pages/PatchNoteAdmin';
 import InquiryForm from './pages/InquiryForm';
 import InquiryAdmin from './pages/InquiryAdmin';
+import Council from './pages/Council';
 import TemporaryLogin from './pages/TemporaryLogin';
 import TemporaryScan from './pages/TemporaryScan';
 import './App.css';
@@ -51,6 +52,7 @@ function App() {
           <Route path="notice/:id" element={<NoticeDetail />} />
           <Route path="schedule" element={<Schedule />} />
           <Route path="room" element={<Room />} />
+          <Route path="council" element={<Council />} />
           {/* Teacher 전용 패치노트 페이지 */}
           <Route path="teacher-patchnote" element={<TeacherPatchNote />} />
           <Route

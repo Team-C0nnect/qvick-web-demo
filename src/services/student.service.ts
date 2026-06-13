@@ -29,4 +29,12 @@ export const studentService = {
   deleteStudent: async (studentId: number): Promise<void> => {
     await apiClient.delete(`/teacher/students/${studentId}`);
   },
+
+  grantCouncil: async (studentId: number): Promise<void> => {
+    await apiClient.patch(`/teacher/students/${studentId}/roles/council`);
+  },
+
+  revokeCouncil: async (studentId: number): Promise<void> => {
+    await apiClient.delete(`/teacher/students/${studentId}/roles/council`);
+  },
 };

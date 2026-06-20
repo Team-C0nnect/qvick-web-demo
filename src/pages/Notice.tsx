@@ -68,6 +68,10 @@ export default function Notice() {
     }) => {
       if (pin) {
         const [noticeId] = noticeIds;
+        if (typeof noticeId !== 'number') {
+          throw new Error('고정할 공지사항 ID가 없습니다.');
+        }
+
         await announcementService.pinOnlyAnnouncement(noticeId);
         return;
       }

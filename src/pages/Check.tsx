@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
@@ -62,54 +62,6 @@ const STATUS_MAP: Record<DisplayAttendanceStatus, AttendanceStatus> = {
   외박: 'SLEEPOVER',
   지연출석: 'LATE',
 };
-
-const USE_DUMMY_ATTENDANCES = import.meta.env.DEV;
-
-const getDummyAttendances = (date: string): AttendanceResponse[] => [
-  {
-    student: {
-      id: 9001,
-      name: '김제출',
-      grade: 1,
-      classroom: 1,
-      number: 1,
-      gender: 'MALE',
-      room: '101',
-    },
-    date,
-    nightCheckedAt: `${date}T21:05:00.000+09:00`,
-    nightCheckStatus: 'PRESENT',
-    phoneSubmissionStatus: 'SUBMITTED',
-  },
-  {
-    student: {
-      id: 9002,
-      name: '이미제출',
-      grade: 1,
-      classroom: 1,
-      number: 2,
-      gender: 'MALE',
-      room: '102',
-    },
-    date,
-    nightCheckStatus: 'ABSENT',
-    phoneSubmissionStatus: 'NOT_SUBMITTED',
-  },
-  {
-    student: {
-      id: 9003,
-      name: '박외박',
-      grade: 2,
-      classroom: 2,
-      number: 3,
-      gender: 'FEMALE',
-      room: '201',
-    },
-    date,
-    nightCheckStatus: 'SLEEPOVER',
-    phoneSubmissionStatus: 'SLEEPOVER',
-  },
-];
 
 const getPrimaryAttendanceStatus = (
   attendance: AttendanceResponse,
@@ -254,22 +206,13 @@ export default function Check() {
     '전체' | '출석' | '미출석' | '외박' | '지연출석'
   >('전체');
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
-  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(
-    USE_DUMMY_ATTENDANCES ? '전체' : '남',
-  );
+  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
 
   const queryClient = useQueryClient();
 
   // 신버전 출석 데이터 (자동 새로고침)
   const { data: attendancesData, isLoading: attendancesLoading } =
     useAttendances(currentDate);
-  const displayedAttendancesData = useMemo(
-    () =>
-      USE_DUMMY_ATTENDANCES
-        ? getDummyAttendances(currentDate)
-        : attendancesData,
-    [attendancesData, currentDate],
-  );
 
   // 학생 목록 (ID 매핑용)
   const { data: studentsData } = useQuery({
@@ -431,11 +374,11 @@ export default function Check() {
 
   // 출석 데이터의 각 날짜별 스케줄을 로드
   useEffect(() => {
-    if (!displayedAttendancesData || displayedAttendancesData.length === 0) return;
+    if (!attendancesData || attendancesData.length === 0) return;
 
     // 고유한 날짜들 추출
     const uniqueDates = [
-      ...new Set(displayedAttendancesData.map((att) => att.date)),
+      ...new Set(attendancesData.map((att) => att.date)),
     ];
 
     // 이미 로드된 날짜는 스킵
@@ -482,7 +425,7 @@ export default function Check() {
 
       setScheduleCache(newCache);
     });
-  }, [displayedAttendancesData, scheduleCache]);
+  }, [attendancesData, scheduleCache]);
 
   // 신버전 출석 데이터 매핑
   useEffect(() => {
@@ -497,8 +440,8 @@ export default function Check() {
 
     const mappedStudents: Student[] = [];
 
-    if (displayedAttendancesData) {
-      displayedAttendancesData.forEach((att, index) => {
+    if (attendancesData) {
+      attendancesData.forEach((att, index) => {
         const student = att.student;
         const studentIdStr = `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
         const actualId = studentIdMap.get(studentIdStr) || null;
@@ -576,7 +519,7 @@ export default function Check() {
 
     setStudents(mappedStudents);
   }, [
-    displayedAttendancesData,
+    attendancesData,
     studentsData,
     scheduleCache,
     currentDate,
@@ -687,7 +630,7 @@ export default function Check() {
     ).length,
   };
 
-  if (!USE_DUMMY_ATTENDANCES && attendancesLoading) {
+  if (attendancesLoading) {
     return (
       <div className="check-page">
         <CheckTableSkeleton />

@@ -1,10 +1,15 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '');
+const DEFAULT_API_BASE_URL = 'https://devapi.qvick.xyz';
+const envApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 
-if (!API_BASE_URL) {
-  throw new Error('VITE_API_BASE_URL is not set.');
+if (!envApiBaseUrl) {
+  console.warn(
+    `VITE_API_BASE_URL is not set. Falling back to ${DEFAULT_API_BASE_URL}.`,
+  );
 }
+
+const API_BASE_URL = (envApiBaseUrl || DEFAULT_API_BASE_URL).replace(/\/$/, '');
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

@@ -353,7 +353,7 @@
 .check-page .student-table thead th {
   background: #ffffff;
   border-bottom: 1px solid #c4c5c6;
-  padding: 13.5px 8px;
+  padding: 13.5px 6px;
   font-size: 15px;
   font-weight: 600;
   color: #0f0f10;
@@ -365,8 +365,8 @@
   user-select: none;
   position: relative;
   transition: background-color 0.2s;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding-left: 18px;
+  padding-right: 18px;
 }
 
 .check-page .student-table thead th.sortable:hover {
@@ -387,11 +387,21 @@
 }
 
 .check-page .student-table tbody td {
-  padding: 12px 8px;
+  padding: 12px 6px;
   border-bottom: 1px solid #c4c5c6;
   font-size: 16px;
   text-align: center;
   color: #0f0f10;
+}
+
+.check-page .student-table thead th:first-child,
+.check-page .student-table tbody td:first-child {
+  padding-left: 16px;
+}
+
+.check-page .student-table thead th:last-child,
+.check-page .student-table tbody td:last-child {
+  padding-right: 16px;
 }
 
 .check-page .student-table tbody tr:last-child td {
@@ -481,22 +491,6 @@
 
 .phone-submission-badge.unknown {
   color: #747678;
-}
-
-.check-page .edit-button {
-  border: 1px solid #164e8d;
-  background: transparent;
-  color: #164e8d;
-  padding: 4.5px 12px;
-  border-radius: 4px;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.check-page .edit-button:hover {
-  background: #164e8d;
-  color: #ffffff;
 }
 
 /* 반응형 디자인 */
@@ -662,11 +656,6 @@
     text-align: right;
   }
 
-  .check-page .edit-button {
-    min-width: 86px;
-    padding: 8px 14px;
-    border-radius: 8px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -699,7 +688,4 @@
     max-width: 100%;
   }
 
-  .check-page .edit-button {
-    width: 100%;
-  }
 }

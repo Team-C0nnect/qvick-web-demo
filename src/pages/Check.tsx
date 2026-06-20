@@ -13,9 +13,7 @@ import {
 import { CheckTableSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
 import { SearchIcon, ExcelIcon } from '../components/Icons';
-import EditStudentModal from '../components/EditStudentModal';
 import type {
-  Gender,
   AttendanceStatus,
   AttendanceResponse,
   PhoneSubmissionStatus,
@@ -223,8 +221,6 @@ const hasAttendanceWindowEnded = (
 
 export default function Check() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [currentDate, setCurrentDate] = useState(
     () => new Date().toISOString().split('T')[0],
   );
@@ -310,21 +306,6 @@ export default function Check() {
       attendanceService.updateAttendances(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
-    },
-  });
-
-  // 학생 정보 수정 mutation
-  const updateStudentMutation = useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: number;
-      data: import('../types/api').TeacherUpdateStudentRequest;
-    }) => studentService.updateStudent(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendances'] });
-      queryClient.invalidateQueries({ queryKey: ['students-all'] });
     },
   });
 
@@ -693,44 +674,6 @@ export default function Check() {
 
   const filteredStudents = getFilteredStudents();
 
-  const handleEditClick = (student: Student) => {
-    setSelectedStudent(student);
-    setIsModalOpen(true);
-  };
-
-  const handleSaveStudent = (updatedStudent: Student) => {
-    if (!updatedStudent.id) {
-      console.error('학생 ID를 찾을 수 없습니다.');
-      return;
-    }
-
-    const gender: Gender = updatedStudent.gender === '남' ? 'MALE' : 'FEMALE';
-
-    updateStudentMutation.mutate({
-      id: updatedStudent.id,
-      data: {
-        grade: updatedStudent.grade,
-        classroom: updatedStudent.classroom,
-        number: updatedStudent.number,
-        room: updatedStudent.room,
-        phoneNumber: updatedStudent.phone,
-        gender,
-      },
-    });
-
-    setStudents(
-      students.map((s) =>
-        s.studentId === updatedStudent.studentId
-          ? {
-              ...updatedStudent,
-              nightAttendance: s.nightAttendance,
-              phoneSubmission: s.phoneSubmission,
-            }
-          : s,
-      ),
-    );
-  };
-
   // 기존 handleExportExcel은 위에서 useCallback으로 정의됨
 
   const stats = {
@@ -1062,7 +1005,6 @@ export default function Check() {
                 )}
               </th>
               <th>연락처</th>
-              <th>정보 수정</th>
             </tr>
           </thead>
           <tbody>
@@ -1124,28 +1066,12 @@ export default function Check() {
                     </span>
                   </td>
                   <td data-label="연락처">{student.phone}</td>
-                  <td data-label="정보 수정">
-                    <button
-                      type="button"
-                      className="edit-button"
-                      onClick={() => handleEditClick(student)}
-                    >
-                      수정
-                    </button>
-                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-
-      <EditStudentModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        student={selectedStudent}
-        onSave={handleSaveStudent}
-      />
     </div>
   );
 }

@@ -348,6 +348,57 @@
 .check-page .student-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.check-page .student-table th,
+.check-page .student-table td {
+  box-sizing: border-box;
+}
+
+.check-page .student-table th:nth-child(1),
+.check-page .student-table td:nth-child(1) {
+  width: 9%;
+}
+
+.check-page .student-table th:nth-child(2),
+.check-page .student-table td:nth-child(2) {
+  width: 11%;
+}
+
+.check-page .student-table th:nth-child(3),
+.check-page .student-table td:nth-child(3) {
+  width: 11%;
+}
+
+.check-page .student-table th:nth-child(4),
+.check-page .student-table td:nth-child(4) {
+  width: 8%;
+}
+
+.check-page .student-table th:nth-child(5),
+.check-page .student-table td:nth-child(5) {
+  width: 12%;
+}
+
+.check-page .student-table th:nth-child(6),
+.check-page .student-table td:nth-child(6) {
+  width: 11%;
+}
+
+.check-page .student-table th:nth-child(7),
+.check-page .student-table td:nth-child(7) {
+  width: 11%;
+}
+
+.check-page .student-table th:nth-child(8),
+.check-page .student-table td:nth-child(8) {
+  width: 12%;
+}
+
+.check-page .student-table th:nth-child(9),
+.check-page .student-table td:nth-child(9) {
+  width: 15%;
 }
 
 .check-page .student-table thead th {
@@ -397,11 +448,13 @@
 .check-page .student-table thead th:first-child,
 .check-page .student-table tbody td:first-child {
   padding-left: 16px;
+  padding-right: 16px;
 }
 
 .check-page .student-table thead th:last-child,
 .check-page .student-table tbody td:last-child {
   padding-right: 16px;
+  white-space: nowrap;
 }
 
 .check-page .student-table tbody tr:last-child td {

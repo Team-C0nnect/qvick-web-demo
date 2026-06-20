@@ -64,6 +64,44 @@ function MoonIcon({ className }: { className?: string }) {
   );
 }
 
+// 심자 확인 아이콘
+function BookIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15Z" />
+    </svg>
+  );
+}
+
+// 제출 확인 아이콘
+function PhoneIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="6.5" y="2.5" width="11" height="19" rx="2.6" />
+      <path d="M10 5.5h4" />
+      <path d="M9 17.5h6" />
+      <circle cx="12" cy="19.5" r="0.35" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 // 자치위원 아이콘
 function CouncilIcon({ className }: { className?: string }) {
   return (
@@ -114,15 +152,17 @@ export default function Sidebar() {
   const menuItems = [
     { path: '/', label: '대시 보드', icon: 'dashboard' },
     { path: '/check', label: '인원 확인', icon: 'check' },
+    { path: '/night-study', label: '심자 확인', icon: 'book' },
+    { path: '/phone-submissions', label: '휴대폰 제출 확인', icon: 'phone' },
     { path: '/sleepovers', label: '외박 확인', icon: 'sleepover' },
     { path: '/notice', label: '공지사항', icon: 'notice' },
     { path: '/schedule', label: '일정 관리', icon: 'schedule' },
     { path: '/room', label: '방 관리', icon: 'room' },
-    { path: '/council', label: '자치위원', icon: 'council' },
     { path: '/teacher-patchnote', label: '패치노트', icon: 'patchnote' },
   ];
 
   const adminMenuItems = [
+    { path: '/admin/council', label: '자치위원', icon: 'council' },
     { path: '/admin/patchnote', label: '패치노트 관리', icon: 'patchnote' },
     { path: '/admin/inquiry', label: '문의 관리', icon: 'inquiry' },
     { path: '/admin/account-management', label: '계정 관리', icon: 'account' },
@@ -136,6 +176,10 @@ export default function Sidebar() {
         return <DocumentIcon className="menu-icon" />;
       case 'sleepover':
         return <MoonIcon className="menu-icon" />;
+      case 'book':
+        return <BookIcon className="menu-icon" />;
+      case 'phone':
+        return <PhoneIcon className="menu-icon" />;
       case 'notice':
         return <NoticeIcon className="menu-icon" />;
       case 'schedule':

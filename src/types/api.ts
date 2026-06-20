@@ -6,6 +6,8 @@ export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'SLEEPOVER' | 'LATE';
 
 export type PhoneSubmissionStatus = 'SUBMITTED' | 'NOT_SUBMITTED' | 'SLEEPOVER';
 
+export type AttendanceType = 'MORNING' | 'NIGHT';
+
 export type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | 'MANAGER';
 
 // Auth Types
@@ -122,6 +124,15 @@ export interface SyncSleepoversResponse {
   skippedAlreadyAttendedCount: number;
 }
 
+export interface NightStudySyncResponse {
+  date: string; // format: date
+  fetchedAt: string; // format: date-time
+  attendedCaptured: boolean;
+  targetCount: number;
+  attendedCount: number;
+  skippedNotFoundCount: number;
+}
+
 // Attendance Types
 export interface AttendanceResponse {
   student: Student;
@@ -132,13 +143,32 @@ export interface AttendanceResponse {
   morningCheckStatus?: AttendanceStatus;
   nightCheckedAt?: string; // format: date-time
   nightCheckStatus?: AttendanceStatus;
-  nightStudyAttendance?: AttendanceStatus | null;
+  nightStudyAttendance?: boolean | null;
   phoneSubmissionStatus?: PhoneSubmissionStatus;
+}
+
+export interface PhoneSubmissionResponse {
+  student: Student;
+  date: string; // format: date
+  status: PhoneSubmissionStatus;
+  checkedAt?: string; // format: date-time
+}
+
+export interface UpdatePhoneSubmissionRequest {
+  studentId: number;
+  status: PhoneSubmissionStatus;
+}
+
+export interface UpdatePhoneSubmissionsRequest {
+  date: string; // format: date
+  submissions: UpdatePhoneSubmissionRequest[];
 }
 
 export interface UpdateAttendanceRequest {
   studentId: number;
   status: AttendanceStatus;
+  attendanceType: AttendanceType;
+  sleepoverReason?: string | null;
 }
 
 export interface UpdateAttendancesRequest {
@@ -159,6 +189,10 @@ export interface AttendanceScheduleResponse {
   gender: Gender; // 남/여 기숙사 구분
   startTime: string;
   endTime: string;
+  morningStartTime?: string;
+  morningEndTime?: string;
+  nightStartTime?: string;
+  nightEndTime?: string;
 }
 
 export interface TeacherCreateAttendanceScheduleRequest {

@@ -4,6 +4,8 @@ export type Gender = 'MALE' | 'FEMALE';
 
 export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'SLEEPOVER' | 'LATE';
 
+export type PhoneSubmissionStatus = 'SUBMITTED' | 'NOT_SUBMITTED' | 'SLEEPOVER';
+
 export type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | 'MANAGER';
 
 // Auth Types
@@ -41,12 +43,14 @@ export interface UpdateMyUserPasswordRequest {
 
 // Student Types
 export interface Student {
+  id?: number;
   name: string;
   grade: number;
   classroom: number;
   number: number;
   room: string;
   gender: Gender;
+  phoneNumber?: string;
 }
 
 export interface StudentResponse {
@@ -58,6 +62,7 @@ export interface StudentResponse {
   name: string;
   gender: Gender;
   isCouncil?: boolean;
+  phoneNumber?: string;
 }
 
 export interface TeacherUpdateStudentRequest {
@@ -121,8 +126,13 @@ export interface SyncSleepoversResponse {
 export interface AttendanceResponse {
   student: Student;
   date: string; // format: date (YYYY-MM-DD)
-  checkedAt?: string; // format: date-time
-  status: AttendanceStatus;
+  checkedAt?: string; // legacy format: date-time
+  status?: AttendanceStatus; // legacy attendance status
+  morningCheckedAt?: string; // format: date-time
+  morningCheckStatus?: AttendanceStatus;
+  nightCheckedAt?: string; // format: date-time
+  nightCheckStatus?: AttendanceStatus;
+  phoneSubmissionStatus?: PhoneSubmissionStatus;
 }
 
 export interface UpdateAttendanceRequest {

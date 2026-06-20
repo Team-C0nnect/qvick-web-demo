@@ -116,6 +116,10 @@
   color: #8b5cf6;
 }
 
+.check-page .stat-box .phone-submission-count {
+  color: #e1322e;
+}
+
 .check-page .excel-button {
   min-height: 38px;
   background: #164e8d;
@@ -344,12 +348,63 @@
 .check-page .student-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.check-page .student-table th,
+.check-page .student-table td {
+  box-sizing: border-box;
+}
+
+.check-page .student-table th:nth-child(1),
+.check-page .student-table td:nth-child(1) {
+  width: 9%;
+}
+
+.check-page .student-table th:nth-child(2),
+.check-page .student-table td:nth-child(2) {
+  width: 11%;
+}
+
+.check-page .student-table th:nth-child(3),
+.check-page .student-table td:nth-child(3) {
+  width: 11%;
+}
+
+.check-page .student-table th:nth-child(4),
+.check-page .student-table td:nth-child(4) {
+  width: 8%;
+}
+
+.check-page .student-table th:nth-child(5),
+.check-page .student-table td:nth-child(5) {
+  width: 12%;
+}
+
+.check-page .student-table th:nth-child(6),
+.check-page .student-table td:nth-child(6) {
+  width: 11%;
+}
+
+.check-page .student-table th:nth-child(7),
+.check-page .student-table td:nth-child(7) {
+  width: 11%;
+}
+
+.check-page .student-table th:nth-child(8),
+.check-page .student-table td:nth-child(8) {
+  width: 12%;
+}
+
+.check-page .student-table th:nth-child(9),
+.check-page .student-table td:nth-child(9) {
+  width: 15%;
 }
 
 .check-page .student-table thead th {
   background: #ffffff;
   border-bottom: 1px solid #c4c5c6;
-  padding: 13.5px 8px;
+  padding: 13.5px 6px;
   font-size: 15px;
   font-weight: 600;
   color: #0f0f10;
@@ -361,8 +416,8 @@
   user-select: none;
   position: relative;
   transition: background-color 0.2s;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding-left: 18px;
+  padding-right: 18px;
 }
 
 .check-page .student-table thead th.sortable:hover {
@@ -383,11 +438,23 @@
 }
 
 .check-page .student-table tbody td {
-  padding: 12px 8px;
+  padding: 12px 6px;
   border-bottom: 1px solid #c4c5c6;
   font-size: 16px;
   text-align: center;
   color: #0f0f10;
+}
+
+.check-page .student-table thead th:first-child,
+.check-page .student-table tbody td:first-child {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.check-page .student-table thead th:last-child,
+.check-page .student-table tbody td:last-child {
+  padding-right: 16px;
+  white-space: nowrap;
 }
 
 .check-page .student-table tbody tr:last-child td {
@@ -453,20 +520,30 @@
   color: #f59e0b;
 }
 
-.check-page .edit-button {
-  border: 1px solid #164e8d;
-  background: transparent;
-  color: #164e8d;
-  padding: 4.5px 12px;
-  border-radius: 4px;
+.phone-submission-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.check-page .edit-button:hover {
-  background: #164e8d;
-  color: #ffffff;
+.phone-submission-badge.submitted {
+  color: #00a83a;
+}
+
+.phone-submission-badge.not-submitted {
+  color: #e1322e;
+}
+
+.phone-submission-badge.sleepover {
+  color: #6d23ed;
+}
+
+.phone-submission-badge.unknown {
+  color: #747678;
 }
 
 /* 반응형 디자인 */
@@ -632,11 +709,6 @@
     text-align: right;
   }
 
-  .check-page .edit-button {
-    min-width: 86px;
-    padding: 8px 14px;
-    border-radius: 8px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -669,7 +741,4 @@
     max-width: 100%;
   }
 
-  .check-page .edit-button {
-    width: 100%;
-  }
 }

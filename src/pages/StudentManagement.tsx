@@ -6,7 +6,8 @@ import apiClient from '../lib/api-client';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { SearchIcon } from '../components/Icons';
 import DeleteStudentModal from '../components/DeleteStudentModal';
-import type { MyUserResponse } from '../types/api';
+import EditStudentModal from '../components/EditStudentModal';
+import type { MyUserResponse, TeacherUpdateStudentRequest } from '../types/api';
 import type {
   Student,
   StudentWithPhone,
@@ -14,6 +15,23 @@ import type {
   SortDirection,
 } from '../types/student-management';
 import '../styles/StudentManagement.css';
+
+interface EditableStudent {
+  id: number | null;
+  index: number;
+  room: string;
+  overnight: boolean;
+  name: string;
+  status: '출석' | '미출석' | '외박' | '지연출석';
+  gender: '남' | '여';
+  studentId: string;
+  grade: number;
+  classroom: number;
+  number: number;
+  time: string;
+  phone: string;
+  dormitory: string;
+}
 
 export default function StudentManagement() {
   const queryClient = useQueryClient();
@@ -30,6 +48,7 @@ export default function StudentManagement() {
     confirmName: '',
     error: '',
   });
+  const [editModal, setEditModal] = useState<EditableStudent | null>(null);
   const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
 
   // 학생 목록 조회
@@ -47,6 +66,28 @@ export default function StudentManagement() {
   });
 
   const allStudents = (studentsData?.content || []) as StudentWithPhone[];
+
+  // 학생 정보 수정
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      studentId,
+      data,
+    }: {
+      studentId: number;
+      data: TeacherUpdateStudentRequest;
+    }) => {
+      await studentService.updateStudent(studentId, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['students-all'] });
+      queryClient.invalidateQueries({ queryKey: ['attendances'] });
+      setEditModal(null);
+    },
+    onError: (error: Error) => {
+      console.error('Update student error:', error);
+      alert('학생 정보 수정에 실패했습니다.');
+    },
+  });
 
   // 학생 삭제
   const deleteMutation = useMutation({
@@ -165,12 +206,58 @@ export default function StudentManagement() {
 
   const filteredStudents = getFilteredStudents();
 
+  const getStudentId = (student: Pick<Student, 'grade' | 'classroom' | 'number'>) =>
+    `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
+
+  const toEditableStudent = (
+    student: StudentWithPhone,
+    index: number,
+  ): EditableStudent => ({
+    id: student.id,
+    index,
+    room: student.room,
+    overnight: false,
+    name: student.name,
+    status: '출석',
+    gender: student.gender === 'MALE' ? '남' : '여',
+    studentId: getStudentId(student),
+    grade: student.grade,
+    classroom: student.classroom,
+    number: student.number,
+    time: '',
+    phone: student.phoneNumber ?? '',
+    dormitory: student.room.startsWith('2') ? '여기숙사' : '남기숙사',
+  });
+
+  const handleEditClick = (student: StudentWithPhone, index: number) => {
+    setEditModal(toEditableStudent(student, index));
+  };
+
   const handleDeleteClick = (student: Student) => {
     setDeleteModal({
       student,
       password: '',
       confirmName: '',
       error: '',
+    });
+  };
+
+  const handleSaveStudent = (student: EditableStudent) => {
+    if (!student.id) {
+      alert('학생 ID를 찾을 수 없습니다.');
+      return;
+    }
+
+    updateMutation.mutate({
+      studentId: student.id,
+      data: {
+        grade: student.grade,
+        classroom: student.classroom,
+        number: student.number,
+        room: student.room,
+        phoneNumber: student.phone,
+        gender: student.gender === '남' ? 'MALE' : 'FEMALE',
+      },
     });
   };
 
@@ -433,12 +520,12 @@ export default function StudentManagement() {
                   )}
                 </th>
                 <th>전화번호</th>
-                <th></th>
+                <th>작업</th>
               </tr>
             </thead>
             {filteredStudents.length > 0 && (
               <tbody>
-                {filteredStudents.map((student) => (
+                {filteredStudents.map((student, index) => (
                   <tr key={student.id} className="student-row">
                     <td>
                       <span className="spoiler-number">{student.id}</span>
@@ -452,6 +539,13 @@ export default function StudentManagement() {
                     <td>{student.gender === 'MALE' ? '남' : '여'}</td>
                     <td>{formatPhoneNumber(student.phoneNumber)}</td>
                     <td className="action-cell">
+                      <button
+                        className="edit-student-btn"
+                        onClick={() => handleEditClick(student, index)}
+                        disabled={updateMutation.isPending}
+                      >
+                        수정
+                      </button>
                       <button
                         className="delete-student-btn"
                         onClick={() => handleDeleteClick(student)}
@@ -484,6 +578,15 @@ export default function StudentManagement() {
           onPasswordChange={handlePasswordChange}
           onConfirmDelete={handleConfirmDelete}
           onClose={handleCloseDeleteModal}
+        />
+      )}
+
+      {editModal && (
+        <EditStudentModal
+          isOpen={Boolean(editModal)}
+          onClose={() => setEditModal(null)}
+          student={editModal}
+          onSave={handleSaveStudent}
         />
       )}
     </div>

@@ -19,6 +19,10 @@ interface NoticeItem {
   isPinned: boolean;
 }
 
+interface PinMutationResult {
+  affectedNoticeIds: number[];
+}
+
 export default function Notice() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -27,6 +31,12 @@ export default function Notice() {
   const [currentPage] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedNotices, setSelectedNotices] = useState<number[]>([]);
+
+  const invalidateAnnouncementDetails = (noticeIds: number[]) => {
+    Array.from(new Set(noticeIds)).forEach((noticeId) => {
+      queryClient.invalidateQueries({ queryKey: ['announcement', noticeId] });
+    });
+  };
 
   // Fetch announcements
   const { data: announcementsData, isLoading } = useQuery({
@@ -65,15 +75,16 @@ export default function Notice() {
     }: {
       noticeIds: number[];
       pin: boolean;
-    }) => {
+    }): Promise<PinMutationResult> => {
       if (pin) {
         const [noticeId] = noticeIds;
         if (typeof noticeId !== 'number') {
           throw new Error('고정할 공지사항 ID가 없습니다.');
         }
 
-        await announcementService.pinOnlyAnnouncement(noticeId);
-        return;
+        const unpinnedNoticeIds =
+          await announcementService.pinOnlyAnnouncement(noticeId);
+        return { affectedNoticeIds: [noticeId, ...unpinnedNoticeIds] };
       }
 
       await Promise.all(
@@ -81,9 +92,11 @@ export default function Notice() {
           announcementService.unpinAnnouncement(id),
         ),
       );
+      return { affectedNoticeIds: noticeIds };
     },
-    onSuccess: (_data, { noticeIds, pin }) => {
+    onSuccess: ({ affectedNoticeIds }, { noticeIds, pin }) => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      invalidateAnnouncementDetails(affectedNoticeIds);
       setSelectedNotices([]);
       if (pin) {
         toast.success('공지사항을 고정했습니다.');

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
 import { NoticeGridSkeleton } from '../components/Skeleton';
 import NoticeCreateModal from '../components/NoticeCreateModal';
+import { useToast } from '../hooks/useToast';
 import '../styles/Notice.css';
 
 interface NoticeItem {
@@ -20,6 +21,7 @@ interface NoticeItem {
 export default function Notice() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [filter, setFilter] = useState('올해');
   const [currentPage] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -39,9 +41,14 @@ export default function Notice() {
         noticeIds.map((id) => announcementService.deleteAnnouncement(id)),
       );
     },
-    onSuccess: () => {
+    onSuccess: (_data, noticeIds) => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
       setSelectedNotices([]);
+      toast.success(
+        noticeIds.length > 1
+          ? `${noticeIds.length}개의 공지사항을 삭제했습니다.`
+          : '공지사항을 삭제했습니다.',
+      );
     },
     onError: (error: Error) => {
       console.error('Delete error:', error);
@@ -66,9 +73,15 @@ export default function Notice() {
         ),
       );
     },
-    onSuccess: () => {
+    onSuccess: (_data, { noticeIds, pin }) => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
       setSelectedNotices([]);
+      const action = pin ? '고정했습니다' : '고정 해제했습니다';
+      toast.success(
+        noticeIds.length > 1
+          ? `${noticeIds.length}개의 공지사항을 ${action}.`
+          : `공지사항을 ${action}.`,
+      );
     },
     onError: (error: Error) => {
       console.error('Pin error:', error);

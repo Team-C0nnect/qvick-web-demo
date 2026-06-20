@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
 import NoticeEditModal from '../components/NoticeEditModal';
 import { PinIcon, PencilIcon, TrashIcon } from '../components/Icons';
+import { useToast } from '../hooks/useToast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../styles/NoticeDetail.css';
@@ -12,6 +13,7 @@ export default function NoticeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const announcementId = parseInt(id || '0', 10);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -40,6 +42,7 @@ export default function NoticeDetail() {
     mutationFn: () => announcementService.deleteAnnouncement(announcementId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      toast.success('공지사항을 삭제했습니다.');
       navigate('/notice');
     },
     onError: (error: Error) => {
@@ -54,11 +57,14 @@ export default function NoticeDetail() {
       pin
         ? announcementService.pinAnnouncement(announcementId)
         : announcementService.unpinAnnouncement(announcementId),
-    onSuccess: () => {
+    onSuccess: (_data, pin) => {
       queryClient.invalidateQueries({
         queryKey: ['announcement', announcementId],
       });
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      toast.success(
+        pin ? '공지사항을 고정했습니다.' : '공지사항을 고정 해제했습니다.',
+      );
     },
     onError: (error: Error) => {
       console.error('Pin error:', error);

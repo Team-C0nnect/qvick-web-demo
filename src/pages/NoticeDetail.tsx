@@ -145,7 +145,7 @@ export default function NoticeDetail() {
               <div className="detail-icon-actions" aria-label="공지 작업">
                 <button
                   type="button"
-                  className={`detail-icon-button pin ${announcement.isPinned ? 'active' : ''}`}
+                  className={`detail-pin-toggle-button ${announcement.isPinned ? 'active' : ''}`}
                   onClick={handleTogglePin}
                   disabled={pinMutation.isPending}
                   aria-label={
@@ -154,6 +154,7 @@ export default function NoticeDetail() {
                   title={announcement.isPinned ? '고정 해제' : '고정'}
                 >
                   <PinIcon className="detail-action-icon" />
+                  <span>{announcement.isPinned ? '고정 해제' : '고정'}</span>
                 </button>
                 <button
                   type="button"

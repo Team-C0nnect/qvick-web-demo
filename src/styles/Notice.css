@@ -211,6 +211,18 @@
   color: #ffffff;
 }
 
+.action-button.unpin {
+  border-color: rgba(109, 35, 237, 0.45);
+  background: rgba(109, 35, 237, 0.08);
+  color: #6d23ed;
+}
+
+.action-button.unpin:hover:not(:disabled) {
+  border-color: #6d23ed;
+  background: #6d23ed;
+  color: #ffffff;
+}
+
 .action-button.delete {
   border-color: rgba(255, 66, 66, 0.34);
   color: #ff4242;

@@ -11,7 +11,6 @@ import '../styles/Sleepover.css';
 import type { AttendanceResponse } from '../types/api';
 
 type NightStudyDisplayStatus = '출석' | '미출석' | '-';
-type NightStudyAttendanceValue = boolean | null | undefined;
 
 interface NightStudyStudent {
   id: number | null;
@@ -21,7 +20,7 @@ interface NightStudyStudent {
   studentId: string;
   grade: number;
   phone: string;
-  nightStudyAttendance: NightStudyAttendanceValue;
+  nightStudyAttendance: NightStudyDisplayStatus;
 }
 
 const getStudentNumber = (
@@ -52,14 +51,6 @@ const formatFetchedAt = (value: string): string => {
   return `${month}.${day} ${hours}:${minutes}`;
 };
 
-const getLocalDateString = (): string => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 const buildSyncMessage = (
   result: Awaited<ReturnType<typeof nightStudyService.syncNightStudies>>,
   attendances: AttendanceResponse[],
@@ -82,7 +73,7 @@ const buildSyncMessage = (
   );
   const targetCount = summary.present + summary.absent;
 
-  return `외부 동기화 완료: 총 인원 ${targetCount}명, 출석 ${summary.present}명, 미출석 ${summary.absent}명, 미신청 ${summary.notApplied}명 (${formatFetchedAt(result.fetchedAt)})`;
+  return `외부 동기화 완료: 심자 총 인원 ${targetCount}명, 출석 ${summary.present}명, 미출석 ${summary.absent}명, 심야자습 미신청 ${summary.notApplied}명 (${formatFetchedAt(result.fetchedAt)})`;
 };
 
 const getNightStudyDisplayStatus = (
@@ -93,21 +84,21 @@ const getNightStudyDisplayStatus = (
   return '-';
 };
 
-const renderNightStudyStatus = (status: NightStudyAttendanceValue) => {
-  const displayStatus = getNightStudyDisplayStatus(status);
-
-  if (displayStatus === '출석') {
-    return <span className="status-present">{displayStatus}</span>;
+const renderNightStudyStatus = (status: NightStudyDisplayStatus) => {
+  if (status === '출석') {
+    return <span className="status-present">{status}</span>;
   }
-  if (displayStatus === '미출석') {
-    return <span className="status-absent">{displayStatus}</span>;
+  if (status === '미출석') {
+    return <span className="status-absent">{status}</span>;
   }
-  return displayStatus;
+  return status;
 };
 
 export default function NightStudy() {
   const queryClient = useQueryClient();
-  const [currentDate, setCurrentDate] = useState(getLocalDateString);
+  const [currentDate, setCurrentDate] = useState(
+    () => new Date().toISOString().split('T')[0],
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(
     '전체',
@@ -158,7 +149,9 @@ export default function NightStudy() {
         studentId,
         grade: student.grade,
         phone: formatPhoneNumber(studentInfo?.phoneNumber ?? student.phoneNumber),
-        nightStudyAttendance: getNightStudyDisplayStatus(attendance.nightStudyAttendance),
+        nightStudyAttendance: getNightStudyDisplayStatus(
+          attendance.nightStudyAttendance,
+        ),
       };
     });
   }, [attendancesData, studentsData]);
@@ -201,15 +194,13 @@ export default function NightStudy() {
   const stats = filteredStudents.reduce(
     (acc, student) => {
       acc.total += 1;
-      if (student.nightStudyAttendance === true) acc.present += 1;
-      if (student.nightStudyAttendance === false) acc.absent += 1;
-      if (student.nightStudyAttendance == null) acc.notApplied += 1;
+      if (student.nightStudyAttendance === '출석') acc.present += 1;
+      if (student.nightStudyAttendance === '미출석') acc.absent += 1;
+      if (student.nightStudyAttendance === '-') acc.notApplied += 1;
       return acc;
     },
     { total: 0, present: 0, absent: 0, notApplied: 0 },
   );
-
-  const targetCount = stats.present + stats.absent;
 
   return (
     <div className="check-page sleepover-page">
@@ -238,15 +229,14 @@ export default function NightStudy() {
 
         <div className="stats-section">
           <div className="stat-box">전체 : {stats.total}명</div>
-          <div className="stat-box">대상 : {targetCount}명</div>
           <div className="stat-box attendance">
-            심야자습 출석 : <span className="positive">{stats.present}</span>명
+            심자 출석 : <span className="positive">{stats.present}</span>명
           </div>
           <div className="stat-box absence">
-            심야자습 미출석 : <span className="negative">{stats.absent}</span>명
+            심자 미출석 : <span className="negative">{stats.absent}</span>명
           </div>
           <div className="stat-box">
-            미신청 : <span>{stats.notApplied}</span>명
+            심자 미신청 : <span>{stats.notApplied}</span>명
           </div>
           <button
             type="button"

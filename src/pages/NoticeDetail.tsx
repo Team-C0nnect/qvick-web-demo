@@ -55,7 +55,7 @@ export default function NoticeDetail() {
   const pinMutation = useMutation({
     mutationFn: (pin: boolean) =>
       pin
-        ? announcementService.pinAnnouncement(announcementId)
+        ? announcementService.pinOnlyAnnouncement(announcementId)
         : announcementService.unpinAnnouncement(announcementId),
     onSuccess: (_data, pin) => {
       queryClient.invalidateQueries({

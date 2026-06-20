@@ -66,22 +66,30 @@ export default function Notice() {
       noticeIds: number[];
       pin: boolean;
     }) => {
+      if (pin) {
+        const [noticeId] = noticeIds;
+        await announcementService.pinOnlyAnnouncement(noticeId);
+        return;
+      }
+
       await Promise.all(
         noticeIds.map((id) =>
-          pin
-            ? announcementService.pinAnnouncement(id)
-            : announcementService.unpinAnnouncement(id),
+          announcementService.unpinAnnouncement(id),
         ),
       );
     },
     onSuccess: (_data, { noticeIds, pin }) => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
       setSelectedNotices([]);
-      const action = pin ? '고정했습니다' : '고정 해제했습니다';
+      if (pin) {
+        toast.success('공지사항을 고정했습니다.');
+        return;
+      }
+
       toast.success(
         noticeIds.length > 1
-          ? `${noticeIds.length}개의 공지사항을 ${action}.`
-          : `공지사항을 ${action}.`,
+          ? `${noticeIds.length}개의 공지사항을 고정 해제했습니다.`
+          : '공지사항을 고정 해제했습니다.',
       );
     },
     onError: (error: Error) => {
@@ -128,6 +136,11 @@ export default function Notice() {
   const handlePinSelected = () => {
     if (selectedNotices.length === 0) {
       alert('고정할 공지사항을 선택해주세요.');
+      return;
+    }
+
+    if (selectedNotices.length > 1) {
+      toast.warning('고정 공지사항은 하나만 선택할 수 있습니다.');
       return;
     }
 

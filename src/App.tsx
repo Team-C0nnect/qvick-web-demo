@@ -3,6 +3,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Check from './pages/Check';
+import NightStudy from './pages/NightStudy';
+import PhoneSubmission from './pages/PhoneSubmission';
 import Sleepover from './pages/Sleepover';
 import Notice from './pages/Notice';
 import NoticeDetail from './pages/NoticeDetail';
@@ -47,12 +49,13 @@ function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="check" element={<Check />} />
+          <Route path="night-study" element={<NightStudy />} />
+          <Route path="phone-submissions" element={<PhoneSubmission />} />
           <Route path="sleepovers" element={<Sleepover />} />
           <Route path="notice" element={<Notice />} />
           <Route path="notice/:id" element={<NoticeDetail />} />
           <Route path="schedule" element={<Schedule />} />
           <Route path="room" element={<Room />} />
-          <Route path="council" element={<Council />} />
           {/* Teacher 전용 패치노트 페이지 */}
           <Route path="teacher-patchnote" element={<TeacherPatchNote />} />
           <Route
@@ -60,6 +63,7 @@ function App() {
             element={<TeacherPatchNote />}
           />
           {/* Admin 전용 페이지 */}
+          <Route path="admin/council" element={<Council />} />
           <Route path="admin/patchnote" element={<PatchNoteAdmin />} />
           <Route path="admin/inquiry" element={<InquiryAdmin />} />
           <Route

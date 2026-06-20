@@ -132,6 +132,7 @@ export interface AttendanceResponse {
   morningCheckStatus?: AttendanceStatus;
   nightCheckedAt?: string; // format: date-time
   nightCheckStatus?: AttendanceStatus;
+  nightStudyAttendance?: AttendanceStatus | null;
   phoneSubmissionStatus?: PhoneSubmissionStatus;
 }
 

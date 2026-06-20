@@ -64,6 +64,51 @@ function MoonIcon({ className }: { className?: string }) {
   );
 }
 
+// 심자 확인 아이콘
+function BookIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 6.4C10.5 5.3 8.7 4.7 6.4 4.7H4.6a1 1 0 0 0-1 1v12.6a1 1 0 0 0 1 1h1.8c2.3 0 4.1.6 5.6 1.7" />
+      <path d="M12 6.4c1.5-1.1 3.3-1.7 5.6-1.7h1.8a1 1 0 0 1 1 1v12.6a1 1 0 0 1-1 1h-1.8c-2.3 0-4.1.6-5.6 1.7" />
+      <path d="M12 6.4v14.6" />
+      <path d="M6.4 8.7h2.8" />
+      <path d="M6.4 11.5h3.2" />
+      <path d="M6.4 14.3h2.6" />
+      <path d="M14.8 8.7h2.8" />
+      <path d="M14.4 11.5h3.2" />
+      <path d="M15 14.3h2.6" />
+    </svg>
+  );
+}
+
+// 제출 확인 아이콘
+function PhoneIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="6.5" y="2.5" width="11" height="19" rx="2.6" />
+      <path d="M10 5.5h4" />
+      <path d="M9 17.5h6" />
+      <circle cx="12" cy="19.5" r="0.35" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 // 자치위원 아이콘
 function CouncilIcon({ className }: { className?: string }) {
   return (
@@ -114,15 +159,17 @@ export default function Sidebar() {
   const menuItems = [
     { path: '/', label: '대시 보드', icon: 'dashboard' },
     { path: '/check', label: '인원 확인', icon: 'check' },
+    { path: '/night-study', label: '심야자습 확인', icon: 'book' },
+    { path: '/phone-submissions', label: '휴대폰 제출 확인', icon: 'phone' },
     { path: '/sleepovers', label: '외박 확인', icon: 'sleepover' },
     { path: '/notice', label: '공지사항', icon: 'notice' },
     { path: '/schedule', label: '일정 관리', icon: 'schedule' },
     { path: '/room', label: '방 관리', icon: 'room' },
-    { path: '/council', label: '자치위원', icon: 'council' },
     { path: '/teacher-patchnote', label: '패치노트', icon: 'patchnote' },
   ];
 
   const adminMenuItems = [
+    { path: '/admin/council', label: '자치위원', icon: 'council' },
     { path: '/admin/patchnote', label: '패치노트 관리', icon: 'patchnote' },
     { path: '/admin/inquiry', label: '문의 관리', icon: 'inquiry' },
     { path: '/admin/account-management', label: '계정 관리', icon: 'account' },
@@ -136,6 +183,10 @@ export default function Sidebar() {
         return <DocumentIcon className="menu-icon" />;
       case 'sleepover':
         return <MoonIcon className="menu-icon" />;
+      case 'book':
+        return <BookIcon className="menu-icon" />;
+      case 'phone':
+        return <PhoneIcon className="menu-icon" />;
       case 'notice':
         return <NoticeIcon className="menu-icon" />;
       case 'schedule':

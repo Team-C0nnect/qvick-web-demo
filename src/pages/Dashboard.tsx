@@ -2,9 +2,20 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { attendanceService } from '../services/attendance.service';
 import { announcementService } from '../services/announcement.service';
-import type { AnnouncementResponse } from '../types/api';
+import type {
+  AnnouncementResponse,
+  AttendanceResponse,
+  AttendanceStatus,
+} from '../types/api';
 import { DashboardSkeleton } from '../components/Skeleton';
 import '../styles/Dashboard.css';
+
+const getAttendanceStatus = (
+  attendance: AttendanceResponse,
+): AttendanceStatus | undefined =>
+  attendance.nightCheckStatus ??
+  attendance.status ??
+  attendance.morningCheckStatus;
 
 export default function Dashboard() {
   const today = new Date().toISOString().split('T')[0];
@@ -24,17 +35,17 @@ export default function Dashboard() {
   const isLoading = attendancesLoading || announcementsLoading;
 
   // 출석 현황 계산
-  const presentCount = attendancesData?.filter((a) => a.status === 'PRESENT').length || 0;
-  const absentCount = attendancesData?.filter((a) => a.status === 'ABSENT').length || 0;
+  const presentCount = attendancesData?.filter((a) => getAttendanceStatus(a) === 'PRESENT').length || 0;
+  const absentCount = attendancesData?.filter((a) => getAttendanceStatus(a) === 'ABSENT').length || 0;
   const totalCount = attendancesData?.length || 0;
 
   // 남/여 기숙사 미출석 계산
-  const maleAbsent = attendancesData?.filter((a) => a.status === 'ABSENT' && a.student.gender === 'MALE').length || 0;
-  const femaleAbsent = attendancesData?.filter((a) => a.status === 'ABSENT' && a.student.gender === 'FEMALE').length || 0;
+  const maleAbsent = attendancesData?.filter((a) => getAttendanceStatus(a) === 'ABSENT' && a.student.gender === 'MALE').length || 0;
+  const femaleAbsent = attendancesData?.filter((a) => getAttendanceStatus(a) === 'ABSENT' && a.student.gender === 'FEMALE').length || 0;
 
   // 오늘 외박 인원 (SLEEPOVER 상태)
-  const todaySleepover = attendancesData?.filter((a) => a.status === 'SLEEPOVER').length || 0;
-  const lateCount = attendancesData?.filter((a) => a.status === 'LATE').length || 0;
+  const todaySleepover = attendancesData?.filter((a) => getAttendanceStatus(a) === 'SLEEPOVER').length || 0;
+  const lateCount = attendancesData?.filter((a) => getAttendanceStatus(a) === 'LATE').length || 0;
   const attendanceTargetCount = Math.max(0, totalCount - todaySleepover);
   const attendedCount = presentCount + lateCount;
   const attendanceRate =

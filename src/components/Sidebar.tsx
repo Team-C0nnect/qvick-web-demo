@@ -76,8 +76,15 @@ function BookIcon({ className }: { className?: string }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15Z" />
+      <path d="M12 6.4C10.5 5.3 8.7 4.7 6.4 4.7H4.6a1 1 0 0 0-1 1v12.6a1 1 0 0 0 1 1h1.8c2.3 0 4.1.6 5.6 1.7" />
+      <path d="M12 6.4c1.5-1.1 3.3-1.7 5.6-1.7h1.8a1 1 0 0 1 1 1v12.6a1 1 0 0 1-1 1h-1.8c-2.3 0-4.1.6-5.6 1.7" />
+      <path d="M12 6.4v14.6" />
+      <path d="M6.4 8.7h2.8" />
+      <path d="M6.4 11.5h3.2" />
+      <path d="M6.4 14.3h2.6" />
+      <path d="M14.8 8.7h2.8" />
+      <path d="M14.4 11.5h3.2" />
+      <path d="M15 14.3h2.6" />
     </svg>
   );
 }
@@ -152,7 +159,7 @@ export default function Sidebar() {
   const menuItems = [
     { path: '/', label: '대시 보드', icon: 'dashboard' },
     { path: '/check', label: '인원 확인', icon: 'check' },
-    { path: '/night-study', label: '심자 확인', icon: 'book' },
+    { path: '/night-study', label: '심야자습 확인', icon: 'book' },
     { path: '/phone-submissions', label: '휴대폰 제출 확인', icon: 'phone' },
     { path: '/sleepovers', label: '외박 확인', icon: 'sleepover' },
     { path: '/notice', label: '공지사항', icon: 'notice' },

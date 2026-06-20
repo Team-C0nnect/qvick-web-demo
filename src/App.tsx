@@ -56,7 +56,6 @@ function App() {
           <Route path="notice/:id" element={<NoticeDetail />} />
           <Route path="schedule" element={<Schedule />} />
           <Route path="room" element={<Room />} />
-          <Route path="council" element={<Council />} />
           {/* Teacher 전용 패치노트 페이지 */}
           <Route path="teacher-patchnote" element={<TeacherPatchNote />} />
           <Route

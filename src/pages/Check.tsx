@@ -819,6 +819,9 @@ export default function Check() {
             외박 : <span className="sleepover-count">{stats.sleepover}</span>명
           </div>
           <div className="stat-box night-absence">
+            심자 출석 : <span className="positive">{stats.nightPresent}</span>명
+          </div>
+          <div className="stat-box night-absence">
             심자 미출석 : <span className="negative">{stats.nightAbsent}</span>명
           </div>
           <div className="stat-box phone-submission">

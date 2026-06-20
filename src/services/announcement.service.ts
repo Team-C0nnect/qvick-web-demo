@@ -16,10 +16,6 @@ const updateAnnouncementPin = async (
 ): Promise<void> => {
   await apiClient.patch(
     `/teacher/announcements/${announcementId}/${pin ? 'pin' : 'unpin'}`,
-    undefined,
-    {
-      params: { announcementId },
-    },
   );
 };
 

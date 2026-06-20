@@ -40,7 +40,7 @@ interface Student {
 }
 
 type DisplayAttendanceStatus = Student['status'];
-type NightAttendanceDisplayStatus = '출석' | '-';
+type NightAttendanceDisplayStatus = '출석' | '미출석' | '-';
 type PhoneSubmissionDisplayStatus = '제출' | '미제출' | '외박' | '-';
 type SortKey =
   | 'room'
@@ -75,7 +75,11 @@ const getPrimaryCheckedAt = (attendance: AttendanceResponse): string | undefined
 
 const getNightAttendanceDisplayStatus = (
   status: AttendanceStatus | undefined,
-): NightAttendanceDisplayStatus => (status === 'PRESENT' ? '출석' : '-');
+): NightAttendanceDisplayStatus => {
+  if (status === 'PRESENT') return '출석';
+  if (status === 'ABSENT') return '미출석';
+  return '-';
+};
 
 const getPhoneSubmissionDisplayStatus = (
   status: PhoneSubmissionStatus | undefined,
@@ -647,6 +651,8 @@ export default function Check() {
     absent: filteredStudents.filter((s) => s.status === '미출석').length,
     late: filteredStudents.filter((s) => s.status === '지연출석').length,
     sleepover: filteredStudents.filter((s) => s.status === '외박').length,
+    nightAbsent: filteredStudents.filter((s) => s.nightAttendance === '미출석')
+      .length,
     phoneNotSubmitted: filteredStudents.filter(
       (s) => s.phoneSubmission === '미제출',
     ).length,
@@ -694,6 +700,10 @@ export default function Check() {
           </div>
           <div className="stat-box sleepover">
             외박 : <span className="sleepover-count">{stats.sleepover}</span>명
+          </div>
+          <div className="stat-box night-absence">
+            심자 미출석 : <span className="negative">{stats.nightAbsent}</span>
+            명
           </div>
           <div className="stat-box phone-submission">
             휴대폰 미제출 :{' '}
@@ -1018,6 +1028,8 @@ export default function Check() {
                   <td data-label="심자 출석">
                     {nightAttendance === '출석' ? (
                       <span className="status-present">{nightAttendance}</span>
+                    ) : nightAttendance === '미출석' ? (
+                      <span className="status-absent">{nightAttendance}</span>
                     ) : (
                       nightAttendance
                     )}

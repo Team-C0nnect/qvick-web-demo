@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
 import { NoticeGridSkeleton } from '../components/Skeleton';
 import NoticeCreateModal from '../components/NoticeCreateModal';
+import { PinIcon } from '../components/Icons';
 import { useToast } from '../hooks/useToast';
 import '../styles/Notice.css';
 
@@ -325,7 +326,10 @@ export default function Notice() {
                 <div className="notice-header">
                   <div className="notice-badges">
                     {notice.isPinned && (
-                      <span className="notice-pin-badge">고정됨</span>
+                      <span className="notice-pin-badge">
+                        <PinIcon className="notice-pin-badge-icon" />
+                        고정됨
+                      </span>
                     )}
                     <span className="notice-category">{notice.category}</span>
                   </div>

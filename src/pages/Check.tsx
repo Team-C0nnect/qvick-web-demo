@@ -58,6 +58,21 @@ interface AttendanceCheckViewProps {
   viewMode?: CheckViewMode;
 }
 
+interface AttendanceStats {
+  total: number;
+  present: number;
+  absent: number;
+  late: number;
+  sleepover: number;
+  nightPresent: number;
+  nightAbsent: number;
+  nightPending: number;
+  phoneSubmitted: number;
+  phoneNotSubmitted: number;
+  phoneSleepover: number;
+  phonePending: number;
+}
+
 // 자동 새로고침 간격 (30초)
 const REFRESH_INTERVAL = 30 * 1000;
 
@@ -659,28 +674,69 @@ export function AttendanceCheckView({
 
   // 기존 handleExportExcel은 위에서 useCallback으로 정의됨
 
-  const stats = {
-    total: filteredStudents.length,
-    present: filteredStudents.filter((s) => s.status === '출석').length,
-    absent: filteredStudents.filter((s) => s.status === '미출석').length,
-    late: filteredStudents.filter((s) => s.status === '지연출석').length,
-    sleepover: filteredStudents.filter((s) => s.status === '외박').length,
-    nightPresent: filteredStudents.filter((s) => s.nightAttendance === '출석')
-      .length,
-    nightAbsent: filteredStudents.filter((s) => s.nightAttendance === '미출석')
-      .length,
-    nightPending: filteredStudents.filter((s) => s.nightAttendance === '-')
-      .length,
-    phoneSubmitted: filteredStudents.filter((s) => s.phoneSubmission === '제출')
-      .length,
-    phoneNotSubmitted: filteredStudents.filter(
-      (s) => s.phoneSubmission === '미제출',
-    ).length,
-    phoneSleepover: filteredStudents.filter((s) => s.phoneSubmission === '외박')
-      .length,
-    phonePending: filteredStudents.filter((s) => s.phoneSubmission === '-')
-      .length,
-  };
+  const stats = filteredStudents.reduce<AttendanceStats>(
+    (acc, student) => {
+      acc.total += 1;
+
+      switch (student.status) {
+        case '출석':
+          acc.present += 1;
+          break;
+        case '미출석':
+          acc.absent += 1;
+          break;
+        case '지연출석':
+          acc.late += 1;
+          break;
+        case '외박':
+          acc.sleepover += 1;
+          break;
+      }
+
+      switch (student.nightAttendance ?? '-') {
+        case '출석':
+          acc.nightPresent += 1;
+          break;
+        case '미출석':
+          acc.nightAbsent += 1;
+          break;
+        case '-':
+          acc.nightPending += 1;
+          break;
+      }
+
+      switch (student.phoneSubmission ?? '-') {
+        case '제출':
+          acc.phoneSubmitted += 1;
+          break;
+        case '미제출':
+          acc.phoneNotSubmitted += 1;
+          break;
+        case '외박':
+          acc.phoneSleepover += 1;
+          break;
+        case '-':
+          acc.phonePending += 1;
+          break;
+      }
+
+      return acc;
+    },
+    {
+      total: 0,
+      present: 0,
+      absent: 0,
+      late: 0,
+      sleepover: 0,
+      nightPresent: 0,
+      nightAbsent: 0,
+      nightPending: 0,
+      phoneSubmitted: 0,
+      phoneNotSubmitted: 0,
+      phoneSleepover: 0,
+      phonePending: 0,
+    },
+  );
 
   const tableClassName = `student-table ${
     isAttendanceView ? '' : 'student-table-focused'

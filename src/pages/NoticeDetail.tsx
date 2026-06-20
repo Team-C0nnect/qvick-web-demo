@@ -53,13 +53,21 @@ export default function NoticeDetail() {
 
   // 고정/고정 해제 mutation
   const pinMutation = useMutation({
-    mutationFn: (pin: boolean) =>
-      pin
-        ? announcementService.pinOnlyAnnouncement(announcementId)
-        : announcementService.unpinAnnouncement(announcementId),
-    onSuccess: (_data, pin) => {
-      queryClient.invalidateQueries({
-        queryKey: ['announcement', announcementId],
+    mutationFn: async (pin: boolean): Promise<number[]> => {
+      if (pin) {
+        return announcementService.pinOnlyAnnouncement(announcementId);
+      }
+
+      await announcementService.unpinAnnouncement(announcementId);
+      return [];
+    },
+    onSuccess: (unpinnedAnnouncementIds, pin) => {
+      Array.from(
+        new Set([announcementId, ...unpinnedAnnouncementIds]),
+      ).forEach((affectedAnnouncementId) => {
+        queryClient.invalidateQueries({
+          queryKey: ['announcement', affectedAnnouncementId],
+        });
       });
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
       toast.success(

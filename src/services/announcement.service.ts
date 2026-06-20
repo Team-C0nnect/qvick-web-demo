@@ -80,18 +80,23 @@ export const announcementService = {
     await updateAnnouncementPin(announcementId, true);
   },
 
-  pinOnlyAnnouncement: async (announcementId: number): Promise<void> => {
+  pinOnlyAnnouncement: async (announcementId: number): Promise<number[]> => {
     const pinnedAnnouncements = (await getAllAnnouncements()).filter(
       (announcement) =>
         announcement.isPinned && announcement.id !== announcementId,
     );
+    const unpinnedAnnouncementIds = pinnedAnnouncements.map(
+      (announcement) => announcement.id,
+    );
 
     await Promise.all(
-      pinnedAnnouncements.map((announcement) =>
-        updateAnnouncementPin(announcement.id, false),
+      unpinnedAnnouncementIds.map((pinnedAnnouncementId) =>
+        updateAnnouncementPin(pinnedAnnouncementId, false),
       ),
     );
     await updateAnnouncementPin(announcementId, true);
+
+    return unpinnedAnnouncementIds;
   },
 
   unpinAnnouncement: async (announcementId: number): Promise<void> => {

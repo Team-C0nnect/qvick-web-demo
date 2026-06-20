@@ -155,10 +155,10 @@
   justify-content: center;
   gap: 6px;
   padding: 0 12px;
-  border: 1px solid rgba(109, 35, 237, 0.34);
+  border: 1px solid #6d23ed;
   border-radius: 8px;
-  background: rgba(109, 35, 237, 0.08);
-  color: #6d23ed;
+  background: #6d23ed;
+  color: #ffffff;
   font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
@@ -168,8 +168,19 @@
   color: #6d23ed;
 }
 
-.detail-pin-toggle-button:hover:not(:disabled),
 .detail-pin-toggle-button.active {
+  border-color: rgba(109, 35, 237, 0.45);
+  background: rgba(109, 35, 237, 0.08);
+  color: #6d23ed;
+}
+
+.detail-pin-toggle-button:hover:not(:disabled) {
+  border-color: #5919c7;
+  background: #5919c7;
+  color: #ffffff;
+}
+
+.detail-pin-toggle-button.active:hover:not(:disabled) {
   border-color: #6d23ed;
   background: #6d23ed;
   color: #ffffff;

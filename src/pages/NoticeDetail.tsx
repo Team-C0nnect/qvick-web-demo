@@ -137,13 +137,13 @@ export default function NoticeDetail() {
           <header className="notice-detail-header">
             <div className="notice-detail-header-top">
               <div className="notice-detail-badges">
-                <span className="notice-detail-category">기숙사 생활 안내</span>
                 {announcement.isPinned && (
                   <span className="notice-detail-pin-badge">
                     <PinIcon className="notice-detail-pin-badge-icon" />
                     고정됨
                   </span>
                 )}
+                <span className="notice-detail-category">기숙사 생활 안내</span>
               </div>
               <div className="detail-icon-actions" aria-label="공지 작업">
                 <button

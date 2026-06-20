@@ -38,10 +38,22 @@ export const announcementService = {
   },
 
   pinAnnouncement: async (announcementId: number): Promise<void> => {
-    await apiClient.patch(`/teacher/announcements/${announcementId}/pin`);
+    await apiClient.patch(
+      `/teacher/announcements/${announcementId}/pin`,
+      undefined,
+      {
+        params: { announcementId },
+      },
+    );
   },
 
   unpinAnnouncement: async (announcementId: number): Promise<void> => {
-    await apiClient.patch(`/teacher/announcements/${announcementId}/unpin`);
+    await apiClient.patch(
+      `/teacher/announcements/${announcementId}/unpin`,
+      undefined,
+      {
+        params: { announcementId },
+      },
+    );
   },
 };

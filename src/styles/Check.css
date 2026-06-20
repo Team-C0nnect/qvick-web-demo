@@ -431,6 +431,41 @@
   width: 22%;
 }
 
+.check-page .student-table-phone-submission th:nth-child(1),
+.check-page .student-table-phone-submission td:nth-child(1) {
+  width: 10%;
+}
+
+.check-page .student-table-phone-submission th:nth-child(2),
+.check-page .student-table-phone-submission td:nth-child(2) {
+  width: 15%;
+}
+
+.check-page .student-table-phone-submission th:nth-child(3),
+.check-page .student-table-phone-submission td:nth-child(3) {
+  width: 9%;
+}
+
+.check-page .student-table-phone-submission th:nth-child(4),
+.check-page .student-table-phone-submission td:nth-child(4) {
+  width: 13%;
+}
+
+.check-page .student-table-phone-submission th:nth-child(5),
+.check-page .student-table-phone-submission td:nth-child(5) {
+  width: 17%;
+}
+
+.check-page .student-table-phone-submission th:nth-child(6),
+.check-page .student-table-phone-submission td:nth-child(6) {
+  width: 14%;
+}
+
+.check-page .student-table-phone-submission th:nth-child(7),
+.check-page .student-table-phone-submission td:nth-child(7) {
+  width: 22%;
+}
+
 .check-page .student-table thead th {
   background: #ffffff;
   border-bottom: 1px solid #c4c5c6;
@@ -548,6 +583,37 @@
 
 .check-page .status-select.status-late {
   color: #f59e0b;
+}
+
+.check-page .phone-submission-select {
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  outline: none;
+  appearance: auto;
+  text-align: center;
+  text-align-last: center;
+}
+
+.check-page .phone-submission-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.check-page .phone-submission-select.status-present {
+  color: #00bf40;
+}
+
+.check-page .phone-submission-select.status-absent {
+  color: #ff4242;
+}
+
+.check-page .phone-submission-select.status-sleepover {
+  color: #8b5cf6;
 }
 
 .phone-submission-badge {

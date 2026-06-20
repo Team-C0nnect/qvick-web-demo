@@ -74,7 +74,7 @@ const getPrimaryCheckedAt = (attendance: AttendanceResponse): string | undefined
   attendance.nightCheckedAt ?? attendance.checkedAt ?? attendance.morningCheckedAt;
 
 const getNightAttendanceDisplayStatus = (
-  status: AttendanceStatus | undefined,
+  status: AttendanceStatus | null | undefined,
 ): NightAttendanceDisplayStatus => {
   if (status === 'PRESENT') return '출석';
   if (status === 'ABSENT') return '미출석';
@@ -529,7 +529,7 @@ export default function Check() {
           number: student.number,
           time: checkedTime,
           nightAttendance: getNightAttendanceDisplayStatus(
-            att.nightCheckStatus,
+            att.nightStudyAttendance,
           ),
           phone: formatPhoneNumber(
             studentInfo?.phoneNumber ?? student.phoneNumber,

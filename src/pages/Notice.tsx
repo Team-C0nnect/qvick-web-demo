@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
 import { NoticeGridSkeleton } from '../components/Skeleton';
 import NoticeCreateModal from '../components/NoticeCreateModal';
+import { PinIcon } from '../components/Icons';
+import { useToast } from '../hooks/useToast';
 import '../styles/Notice.css';
 
 interface NoticeItem {
@@ -20,6 +22,7 @@ interface NoticeItem {
 export default function Notice() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [filter, setFilter] = useState('올해');
   const [currentPage] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -39,9 +42,14 @@ export default function Notice() {
         noticeIds.map((id) => announcementService.deleteAnnouncement(id)),
       );
     },
-    onSuccess: () => {
+    onSuccess: (_data, noticeIds) => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
       setSelectedNotices([]);
+      toast.success(
+        noticeIds.length > 1
+          ? `${noticeIds.length}개의 공지사항을 삭제했습니다.`
+          : '공지사항을 삭제했습니다.',
+      );
     },
     onError: (error: Error) => {
       console.error('Delete error:', error);
@@ -58,17 +66,35 @@ export default function Notice() {
       noticeIds: number[];
       pin: boolean;
     }) => {
+      if (pin) {
+        const [noticeId] = noticeIds;
+        if (typeof noticeId !== 'number') {
+          throw new Error('고정할 공지사항 ID가 없습니다.');
+        }
+
+        await announcementService.pinOnlyAnnouncement(noticeId);
+        return;
+      }
+
       await Promise.all(
         noticeIds.map((id) =>
-          pin
-            ? announcementService.pinAnnouncement(id)
-            : announcementService.unpinAnnouncement(id),
+          announcementService.unpinAnnouncement(id),
         ),
       );
     },
-    onSuccess: () => {
+    onSuccess: (_data, { noticeIds, pin }) => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
       setSelectedNotices([]);
+      if (pin) {
+        toast.success('공지사항을 고정했습니다.');
+        return;
+      }
+
+      toast.success(
+        noticeIds.length > 1
+          ? `${noticeIds.length}개의 공지사항을 고정 해제했습니다.`
+          : '공지사항을 고정 해제했습니다.',
+      );
     },
     onError: (error: Error) => {
       console.error('Pin error:', error);
@@ -114,6 +140,11 @@ export default function Notice() {
   const handlePinSelected = () => {
     if (selectedNotices.length === 0) {
       alert('고정할 공지사항을 선택해주세요.');
+      return;
+    }
+
+    if (selectedNotices.length > 1) {
+      toast.warning('고정 공지사항은 하나만 선택할 수 있습니다.');
       return;
     }
 
@@ -312,7 +343,10 @@ export default function Notice() {
                 <div className="notice-header">
                   <div className="notice-badges">
                     {notice.isPinned && (
-                      <span className="notice-pin-badge">고정됨</span>
+                      <span className="notice-pin-badge">
+                        <PinIcon className="notice-pin-badge-icon" />
+                        고정됨
+                      </span>
                     )}
                     <span className="notice-category">{notice.category}</span>
                   </div>

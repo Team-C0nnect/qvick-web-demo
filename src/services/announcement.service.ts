@@ -1,11 +1,50 @@
 import apiClient from '../lib/api-client';
 import type {
   AnnouncementDetailResponse,
+  AnnouncementResponse,
   PageAnnouncementResponse,
   AnnouncementQueryParams,
   CreateAnnouncementRequest,
   TeacherUpdateAnnouncementRequest,
 } from '../types/api';
+
+const PIN_SYNC_PAGE_SIZE = 100;
+
+const updateAnnouncementPin = async (
+  announcementId: number,
+  pin: boolean,
+): Promise<void> => {
+  await apiClient.patch(
+    `/teacher/announcements/${announcementId}/${pin ? 'pin' : 'unpin'}`,
+  );
+};
+
+const getAllAnnouncements = async (): Promise<AnnouncementResponse[]> => {
+  const firstResponse = await apiClient.get<PageAnnouncementResponse>(
+    '/announcements',
+    {
+      params: { page: 0, size: PIN_SYNC_PAGE_SIZE },
+    },
+  );
+  const firstPage = firstResponse.data;
+  const remainingPageNumbers = Array.from(
+    { length: Math.max(firstPage.totalPages - 1, 0) },
+    (_, index) => index + 1,
+  );
+
+  const remainingResponses = await Promise.all(
+    remainingPageNumbers.map((page) =>
+      apiClient.get<PageAnnouncementResponse>('/announcements', {
+        params: { page, size: PIN_SYNC_PAGE_SIZE },
+      }),
+    ),
+  );
+
+  return [
+    ...firstPage.content,
+    ...remainingResponses.flatMap((response) => response.data.content),
+  ];
+};
 
 export const announcementService = {
   getAnnouncements: async (params?: AnnouncementQueryParams): Promise<PageAnnouncementResponse> => {
@@ -38,10 +77,24 @@ export const announcementService = {
   },
 
   pinAnnouncement: async (announcementId: number): Promise<void> => {
-    await apiClient.patch(`/teacher/announcements/${announcementId}/pin`);
+    await updateAnnouncementPin(announcementId, true);
+  },
+
+  pinOnlyAnnouncement: async (announcementId: number): Promise<void> => {
+    const pinnedAnnouncements = (await getAllAnnouncements()).filter(
+      (announcement) =>
+        announcement.isPinned && announcement.id !== announcementId,
+    );
+
+    await Promise.all(
+      pinnedAnnouncements.map((announcement) =>
+        updateAnnouncementPin(announcement.id, false),
+      ),
+    );
+    await updateAnnouncementPin(announcementId, true);
   },
 
   unpinAnnouncement: async (announcementId: number): Promise<void> => {
-    await apiClient.patch(`/teacher/announcements/${announcementId}/unpin`);
+    await updateAnnouncementPin(announcementId, false);
   },
 };

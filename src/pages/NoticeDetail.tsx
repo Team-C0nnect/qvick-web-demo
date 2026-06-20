@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { announcementService } from '../services/announcement.service';
 import NoticeEditModal from '../components/NoticeEditModal';
 import { PinIcon, PencilIcon, TrashIcon } from '../components/Icons';
+import { useToast } from '../hooks/useToast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../styles/NoticeDetail.css';
@@ -12,6 +13,7 @@ export default function NoticeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const announcementId = parseInt(id || '0', 10);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -40,6 +42,7 @@ export default function NoticeDetail() {
     mutationFn: () => announcementService.deleteAnnouncement(announcementId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      toast.success('공지사항을 삭제했습니다.');
       navigate('/notice');
     },
     onError: (error: Error) => {
@@ -52,13 +55,16 @@ export default function NoticeDetail() {
   const pinMutation = useMutation({
     mutationFn: (pin: boolean) =>
       pin
-        ? announcementService.pinAnnouncement(announcementId)
+        ? announcementService.pinOnlyAnnouncement(announcementId)
         : announcementService.unpinAnnouncement(announcementId),
-    onSuccess: () => {
+    onSuccess: (_data, pin) => {
       queryClient.invalidateQueries({
         queryKey: ['announcement', announcementId],
       });
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      toast.success(
+        pin ? '공지사항을 고정했습니다.' : '공지사항을 고정 해제했습니다.',
+      );
     },
     onError: (error: Error) => {
       console.error('Pin error:', error);
@@ -131,15 +137,18 @@ export default function NoticeDetail() {
           <header className="notice-detail-header">
             <div className="notice-detail-header-top">
               <div className="notice-detail-badges">
-                <span className="notice-detail-category">기숙사 생활 안내</span>
                 {announcement.isPinned && (
-                  <span className="notice-detail-pin-badge">고정됨</span>
+                  <span className="notice-detail-pin-badge">
+                    <PinIcon className="notice-detail-pin-badge-icon" />
+                    고정됨
+                  </span>
                 )}
+                <span className="notice-detail-category">기숙사 생활 안내</span>
               </div>
               <div className="detail-icon-actions" aria-label="공지 작업">
                 <button
                   type="button"
-                  className={`detail-icon-button pin ${announcement.isPinned ? 'active' : ''}`}
+                  className={`detail-pin-toggle-button ${announcement.isPinned ? 'active' : ''}`}
                   onClick={handleTogglePin}
                   disabled={pinMutation.isPending}
                   aria-label={
@@ -148,6 +157,7 @@ export default function NoticeDetail() {
                   title={announcement.isPinned ? '고정 해제' : '고정'}
                 >
                   <PinIcon className="detail-action-icon" />
+                  <span>{announcement.isPinned ? '고정 해제' : '고정'}</span>
                 </button>
                 <button
                   type="button"

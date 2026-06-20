@@ -86,12 +86,12 @@ export const announcementService = {
         announcement.isPinned && announcement.id !== announcementId,
     );
 
-    await updateAnnouncementPin(announcementId, true);
     await Promise.all(
       pinnedAnnouncements.map((announcement) =>
         updateAnnouncementPin(announcement.id, false),
       ),
     );
+    await updateAnnouncementPin(announcementId, true);
   },
 
   unpinAnnouncement: async (announcementId: number): Promise<void> => {

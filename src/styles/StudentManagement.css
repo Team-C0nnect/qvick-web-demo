@@ -186,14 +186,16 @@
 }
 
 .action-cell {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
   text-align: right;
   padding: 1rem;
 }
 
+.edit-student-btn,
 .delete-student-btn {
   padding: 0.5rem 1rem;
-  background-color: #ef4444;
-  color: white;
   border: none;
   border-radius: 0.375rem;
   font-size: 0.875rem;
@@ -202,10 +204,25 @@
   transition: background-color 0.2s;
 }
 
+.edit-student-btn {
+  background-color: #164e8d;
+  color: #ffffff;
+}
+
+.edit-student-btn:hover:not(:disabled) {
+  background-color: #1a5aa1;
+}
+
+.delete-student-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
 .delete-student-btn:hover:not(:disabled) {
   background-color: #dc2626;
 }
 
+.edit-student-btn:disabled,
 .delete-student-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

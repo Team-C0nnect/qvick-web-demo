@@ -50,6 +50,7 @@ export interface Student {
   number: number;
   room: string;
   gender: Gender;
+  phoneNumber?: string;
 }
 
 export interface StudentResponse {
@@ -61,6 +62,7 @@ export interface StudentResponse {
   name: string;
   gender: Gender;
   isCouncil?: boolean;
+  phoneNumber?: string;
 }
 
 export interface TeacherUpdateStudentRequest {

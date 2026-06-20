@@ -40,7 +40,7 @@ interface Student {
 }
 
 type DisplayAttendanceStatus = Student['status'];
-type NightAttendanceDisplayStatus = '출석' | '';
+type NightAttendanceDisplayStatus = '출석' | '-';
 type PhoneSubmissionDisplayStatus = '제출' | '미제출' | '외박' | '-';
 type SortKey =
   | 'room'
@@ -75,7 +75,7 @@ const getPrimaryCheckedAt = (attendance: AttendanceResponse): string | undefined
 
 const getNightAttendanceDisplayStatus = (
   status: AttendanceStatus | undefined,
-): NightAttendanceDisplayStatus => (status === 'PRESENT' ? '출석' : '');
+): NightAttendanceDisplayStatus => (status === 'PRESENT' ? '출석' : '-');
 
 const getPhoneSubmissionDisplayStatus = (
   status: PhoneSubmissionStatus | undefined,
@@ -119,6 +119,19 @@ const getPhoneSubmissionSymbol = (
     default:
       return status;
   }
+};
+
+const formatPhoneNumber = (phone?: string): string => {
+  if (!phone) return '-';
+
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 11) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  }
+  return phone;
 };
 
 const getCurrentTimeString = (): string => {
@@ -429,12 +442,18 @@ export default function Check() {
 
   // 신버전 출석 데이터 매핑
   useEffect(() => {
-    // 학번 → ID 매핑
-    const studentIdMap = new Map<string, number>();
+    // 학번 → 학생 목록 정보 매핑
+    const studentInfoMap = new Map<
+      string,
+      { id: number; phoneNumber?: string }
+    >();
     if (studentsData?.content) {
       studentsData.content.forEach((s) => {
         const studentIdStr = `${s.grade}${s.classroom}${String(s.number).padStart(2, '0')}`;
-        studentIdMap.set(studentIdStr, s.id);
+        studentInfoMap.set(studentIdStr, {
+          id: s.id,
+          phoneNumber: s.phoneNumber,
+        });
       });
     }
 
@@ -444,7 +463,8 @@ export default function Check() {
       attendancesData.forEach((att, index) => {
         const student = att.student;
         const studentIdStr = `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
-        const actualId = studentIdMap.get(studentIdStr) || null;
+        const studentInfo = studentInfoMap.get(studentIdStr);
+        const actualId = studentInfo?.id ?? student.id ?? null;
         const attendanceStatus = getPrimaryAttendanceStatus(att);
         const checkedAt = getPrimaryCheckedAt(att);
 
@@ -507,7 +527,9 @@ export default function Check() {
           nightAttendance: getNightAttendanceDisplayStatus(
             att.nightCheckStatus,
           ),
-          phone: '010-0000-0000',
+          phone: formatPhoneNumber(
+            studentInfo?.phoneNumber ?? student.phoneNumber,
+          ),
           phoneSubmission: getPhoneSubmissionDisplayStatus(
             att.phoneSubmissionStatus,
             isOvernight,
@@ -952,7 +974,7 @@ export default function Check() {
           </thead>
           <tbody>
             {filteredStudents.map((student, index) => {
-              const nightAttendance = student.nightAttendance ?? '';
+              const nightAttendance = student.nightAttendance ?? '-';
               const phoneSubmission = student.phoneSubmission ?? '-';
 
               return (
@@ -994,8 +1016,10 @@ export default function Check() {
                   <td data-label="학번">{student.studentId}</td>
                   <td data-label="출석 시간">{student.time}</td>
                   <td data-label="심자 출석">
-                    {nightAttendance && (
+                    {nightAttendance === '출석' ? (
                       <span className="status-present">{nightAttendance}</span>
+                    ) : (
+                      nightAttendance
                     )}
                   </td>
                   <td data-label="휴대폰 제출">

@@ -52,6 +52,11 @@ type SortKey =
   | 'nightAttendance'
   | 'phoneSubmission';
 type SortDirection = 'asc' | 'desc' | null;
+type CheckViewMode = 'attendance' | 'nightStudy' | 'phoneSubmission';
+
+interface AttendanceCheckViewProps {
+  viewMode?: CheckViewMode;
+}
 
 // 자동 새로고침 간격 (30초)
 const REFRESH_INTERVAL = 30 * 1000;
@@ -188,7 +193,12 @@ const hasAttendanceWindowEnded = (
   return isLateAttendance(getCurrentTimeString(), endTime);
 };
 
-export default function Check() {
+export function AttendanceCheckView({
+  viewMode = 'attendance',
+}: AttendanceCheckViewProps) {
+  const isAttendanceView = viewMode === 'attendance';
+  const isNightStudyView = viewMode === 'nightStudy';
+  const isPhoneSubmissionView = viewMode === 'phoneSubmission';
   const [searchQuery, setSearchQuery] = useState('');
   const [currentDate, setCurrentDate] = useState(
     () => new Date().toISOString().split('T')[0],
@@ -623,7 +633,11 @@ export default function Check() {
       }
 
       // Status filter (출석, 미출석, 외박)
-      if (statusFilter !== '전체' && student.status !== statusFilter) {
+      if (
+        isAttendanceView &&
+        statusFilter !== '전체' &&
+        student.status !== statusFilter
+      ) {
         return false;
       }
 
@@ -651,12 +665,62 @@ export default function Check() {
     absent: filteredStudents.filter((s) => s.status === '미출석').length,
     late: filteredStudents.filter((s) => s.status === '지연출석').length,
     sleepover: filteredStudents.filter((s) => s.status === '외박').length,
+    nightPresent: filteredStudents.filter((s) => s.nightAttendance === '출석')
+      .length,
     nightAbsent: filteredStudents.filter((s) => s.nightAttendance === '미출석')
+      .length,
+    nightPending: filteredStudents.filter((s) => s.nightAttendance === '-')
+      .length,
+    phoneSubmitted: filteredStudents.filter((s) => s.phoneSubmission === '제출')
       .length,
     phoneNotSubmitted: filteredStudents.filter(
       (s) => s.phoneSubmission === '미제출',
     ).length,
+    phoneSleepover: filteredStudents.filter((s) => s.phoneSubmission === '외박')
+      .length,
+    phonePending: filteredStudents.filter((s) => s.phoneSubmission === '-')
+      .length,
   };
+
+  const tableClassName = `student-table ${
+    isAttendanceView ? '' : 'student-table-focused'
+  }`;
+
+  const renderSortableHeader = (key: SortKey, label: string) => (
+    <th onClick={() => handleSort(key)} className="sortable">
+      {label}
+      {sortKey === key && (
+        <span className="sort-indicator">
+          {sortDirection === 'asc' ? '▲' : '▼'}
+        </span>
+      )}
+    </th>
+  );
+
+  const renderNightAttendance = (
+    nightAttendance: NightAttendanceDisplayStatus,
+  ) => {
+    if (nightAttendance === '출석') {
+      return <span className="status-present">{nightAttendance}</span>;
+    }
+    if (nightAttendance === '미출석') {
+      return <span className="status-absent">{nightAttendance}</span>;
+    }
+    return nightAttendance;
+  };
+
+  const renderPhoneSubmission = (
+    phoneSubmission: PhoneSubmissionDisplayStatus,
+  ) => (
+    <span
+      className={`phone-submission-badge ${getPhoneSubmissionClassName(
+        phoneSubmission,
+      )}`}
+      aria-label={`휴대폰 ${phoneSubmission}`}
+    >
+      {getPhoneSubmissionSymbol(phoneSubmission)}
+    </span>
+  );
 
   if (attendancesLoading) {
     return (
@@ -688,74 +752,121 @@ export default function Check() {
         </div>
 
         <div className="stats-section">
-          <div className="stat-box">전체 : {stats.total}명</div>
-          <div className="stat-box attendance">
-            출석 : <span className="positive">{stats.present}</span>명
-          </div>
-          <div className="stat-box absence">
-            미출석 : <span className="negative">{stats.absent}</span>명
-          </div>
-          <div className="stat-box late">
-            지연출석 : <span className="warning">{stats.late}</span>명
-          </div>
-          <div className="stat-box sleepover">
-            외박 : <span className="sleepover-count">{stats.sleepover}</span>명
-          </div>
-          <div className="stat-box night-absence">
-            심자 미출석 : <span className="negative">{stats.nightAbsent}</span>
-            명
-          </div>
-          <div className="stat-box phone-submission">
-            휴대폰 미제출 :{' '}
-            <span className="phone-submission-count">
-              {stats.phoneNotSubmitted}
-            </span>
-            명
-          </div>
+          {isAttendanceView && (
+            <>
+              <div className="stat-box">전체 : {stats.total}명</div>
+              <div className="stat-box attendance">
+                출석 : <span className="positive">{stats.present}</span>명
+              </div>
+              <div className="stat-box absence">
+                미출석 : <span className="negative">{stats.absent}</span>명
+              </div>
+              <div className="stat-box late">
+                지연출석 : <span className="warning">{stats.late}</span>명
+              </div>
+              <div className="stat-box sleepover">
+                외박 : <span className="sleepover-count">{stats.sleepover}</span>
+                명
+              </div>
+              <div className="stat-box night-absence">
+                심자 미출석 :{' '}
+                <span className="negative">{stats.nightAbsent}</span>명
+              </div>
+              <div className="stat-box phone-submission">
+                휴대폰 미제출 :{' '}
+                <span className="phone-submission-count">
+                  {stats.phoneNotSubmitted}
+                </span>
+                명
+              </div>
+            </>
+          )}
+
+          {isNightStudyView && (
+            <>
+              <div className="stat-box">전체 : {stats.total}명</div>
+              <div className="stat-box attendance">
+                심자 출석 : <span className="positive">{stats.nightPresent}</span>
+                명
+              </div>
+              <div className="stat-box absence">
+                심자 미출석 :{' '}
+                <span className="negative">{stats.nightAbsent}</span>명
+              </div>
+              <div className="stat-box">
+                미확인 : <span>{stats.nightPending}</span>명
+              </div>
+            </>
+          )}
+
+          {isPhoneSubmissionView && (
+            <>
+              <div className="stat-box">전체 : {stats.total}명</div>
+              <div className="stat-box attendance">
+                제출 : <span className="positive">{stats.phoneSubmitted}</span>명
+              </div>
+              <div className="stat-box phone-submission">
+                미제출 :{' '}
+                <span className="phone-submission-count">
+                  {stats.phoneNotSubmitted}
+                </span>
+                명
+              </div>
+              <div className="stat-box sleepover">
+                외박 :{' '}
+                <span className="sleepover-count">{stats.phoneSleepover}</span>명
+              </div>
+              <div className="stat-box">
+                미확인 : <span>{stats.phonePending}</span>명
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       <div className="filter-section">
-        <div className="filter-group">
-          <label className="filter-label">출석 상태:</label>
-          <div className="filter-buttons">
-            <button
-              type="button"
-              className={`filter-btn ${statusFilter === '전체' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('전체')}
-            >
-              전체
-            </button>
-            <button
-              type="button"
-              className={`filter-btn ${statusFilter === '출석' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('출석')}
-            >
-              출석
-            </button>
-            <button
-              type="button"
-              className={`filter-btn ${statusFilter === '미출석' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('미출석')}
-            >
-              미출석
-            </button>
-            <button
-              type="button"
-              className={`filter-btn ${statusFilter === '지연출석' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('지연출석')}
-            >
-              지연출석
-            </button>
-            <button
-              type="button"
-              className={`filter-btn ${statusFilter === '외박' ? 'active' : ''}`}
-              onClick={() => setStatusFilter('외박')}
-            >
-              외박
-            </button>
+        {isAttendanceView && (
+          <div className="filter-group">
+            <label className="filter-label">출석 상태:</label>
+            <div className="filter-buttons">
+              <button
+                type="button"
+                className={`filter-btn ${statusFilter === '전체' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('전체')}
+              >
+                전체
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${statusFilter === '출석' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('출석')}
+              >
+                출석
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${statusFilter === '미출석' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('미출석')}
+              >
+                미출석
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${statusFilter === '지연출석' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('지연출석')}
+              >
+                지연출석
+              </button>
+              <button
+                type="button"
+                className={`filter-btn ${statusFilter === '외박' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('외박')}
+              >
+                외박
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="filter-group">
           <label className="filter-label">성별:</label>
@@ -818,167 +929,113 @@ export default function Check() {
           </div>
         </div>
 
-        <div className="filter-actions">
-          <div className="excel-dropdown" ref={excelMenuRef}>
-            <button
-              className="excel-button"
-              onClick={() => setShowExcelMenu(!showExcelMenu)}
-              disabled={isExporting}
-            >
-              <ExcelIcon className="excel-icon" />
-              {isExporting ? '다운로드 중...' : 'Excel'}
-              <span className="excel-caret">▾</span>
-            </button>
-            {showExcelMenu && (
-              <div className="excel-menu">
-                {selectedGender === null ? (
-                  <>
-                    <button
-                      className="excel-menu-item"
-                      onClick={() => setSelectedGender('남')}
-                    >
-                      남학생
-                    </button>
-                    <button
-                      className="excel-menu-item"
-                      onClick={() => setSelectedGender('여')}
-                    >
-                      여학생
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div className="excel-menu-header">
-                      <span>{selectedGender === '남' ? '남학생' : '여학생'}</span>
+        {isAttendanceView && (
+          <div className="filter-actions">
+            <div className="excel-dropdown" ref={excelMenuRef}>
+              <button
+                className="excel-button"
+                onClick={() => setShowExcelMenu(!showExcelMenu)}
+                disabled={isExporting}
+              >
+                <ExcelIcon className="excel-icon" />
+                {isExporting ? '다운로드 중...' : 'Excel'}
+                <span className="excel-caret">▾</span>
+              </button>
+              {showExcelMenu && (
+                <div className="excel-menu">
+                  {selectedGender === null ? (
+                    <>
                       <button
-                        type="button"
-                        className="excel-menu-header-action"
+                        className="excel-menu-item"
+                        onClick={() => setSelectedGender('남')}
+                      >
+                        남학생
+                      </button>
+                      <button
+                        className="excel-menu-item"
+                        onClick={() => setSelectedGender('여')}
+                      >
+                        여학생
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="excel-menu-header">
+                        <span>
+                          {selectedGender === '남' ? '남학생' : '여학생'}
+                        </span>
+                        <button
+                          type="button"
+                          className="excel-menu-header-action"
+                          onClick={() => setSelectedGender(null)}
+                        >
+                          변경
+                        </button>
+                      </div>
+                      <button
+                        className="excel-menu-item"
+                        onClick={() => handleExportExcel(selectedGender, 'all')}
+                      >
+                        <span className="excel-menu-item-title">전체 명단</span>
+                        <span className="excel-menu-item-desc">
+                          출석부 전체 양식 다운로드
+                        </span>
+                      </button>
+                      <button
+                        className="excel-menu-item absent-only"
+                        onClick={() =>
+                          handleExportExcel(selectedGender, 'absent')
+                        }
+                      >
+                        <span className="excel-menu-item-title">
+                          미출석 명단
+                        </span>
+                        <span className="excel-menu-item-desc">
+                          A4 체크리스트 다운로드
+                        </span>
+                      </button>
+                      <button
+                        className="excel-menu-item sleepover-only"
+                        onClick={() =>
+                          handleExportExcel(selectedGender, 'sleepover')
+                        }
+                      >
+                        <span className="excel-menu-item-title">
+                          외박자 명단
+                        </span>
+                        <span className="excel-menu-item-desc">
+                          외박자 A4 명단 다운로드
+                        </span>
+                      </button>
+                      <button
+                        className="excel-menu-item back-button"
                         onClick={() => setSelectedGender(null)}
                       >
-                        변경
+                        ← 뒤로가기
                       </button>
-                    </div>
-                    <button
-                      className="excel-menu-item"
-                      onClick={() => handleExportExcel(selectedGender, 'all')}
-                    >
-                      <span className="excel-menu-item-title">전체 명단</span>
-                      <span className="excel-menu-item-desc">
-                        출석부 전체 양식 다운로드
-                      </span>
-                    </button>
-                    <button
-                      className="excel-menu-item absent-only"
-                      onClick={() => handleExportExcel(selectedGender, 'absent')}
-                    >
-                      <span className="excel-menu-item-title">
-                        미출석 명단
-                      </span>
-                      <span className="excel-menu-item-desc">
-                        A4 체크리스트 다운로드
-                      </span>
-                    </button>
-                    <button
-                      className="excel-menu-item sleepover-only"
-                      onClick={() =>
-                        handleExportExcel(selectedGender, 'sleepover')
-                      }
-                    >
-                      <span className="excel-menu-item-title">
-                        외박자 명단
-                      </span>
-                      <span className="excel-menu-item-desc">
-                        외박자 A4 명단 다운로드
-                      </span>
-                    </button>
-                    <button
-                      className="excel-menu-item back-button"
-                      onClick={() => setSelectedGender(null)}
-                    >
-                      ← 뒤로가기
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="table-container">
-        <table className="student-table">
+        <table className={tableClassName}>
           <thead>
             <tr>
-              <th onClick={() => handleSort('room')} className="sortable">
-                호실
-                {sortKey === 'room' && (
-                  <span className="sort-indicator">
-                    {sortDirection === 'asc' ? '▲' : '▼'}
-                  </span>
-                )}
-              </th>
-              <th onClick={() => handleSort('name')} className="sortable">
-                이름
-                {sortKey === 'name' && (
-                  <span className="sort-indicator">
-                    {sortDirection === 'asc' ? '▲' : '▼'}
-                  </span>
-                )}
-              </th>
-              <th onClick={() => handleSort('status')} className="sortable">
-                상태
-                {sortKey === 'status' && (
-                  <span className="sort-indicator">
-                    {sortDirection === 'asc' ? '▲' : '▼'}
-                  </span>
-                )}
-              </th>
-              <th onClick={() => handleSort('gender')} className="sortable">
-                성별
-                {sortKey === 'gender' && (
-                  <span className="sort-indicator">
-                    {sortDirection === 'asc' ? '▲' : '▼'}
-                  </span>
-                )}
-              </th>
-              <th onClick={() => handleSort('studentId')} className="sortable">
-                학번
-                {sortKey === 'studentId' && (
-                  <span className="sort-indicator">
-                    {sortDirection === 'asc' ? '▲' : '▼'}
-                  </span>
-                )}
-              </th>
-              <th onClick={() => handleSort('time')} className="sortable">
-                출석 시간
-                {sortKey === 'time' && (
-                  <span className="sort-indicator">
-                    {sortDirection === 'asc' ? '▲' : '▼'}
-                  </span>
-                )}
-              </th>
-              <th
-                onClick={() => handleSort('nightAttendance')}
-                className="sortable"
-              >
-                심자 출석
-                {sortKey === 'nightAttendance' && (
-                  <span className="sort-indicator">
-                    {sortDirection === 'asc' ? '▲' : '▼'}
-                  </span>
-                )}
-              </th>
-              <th
-                onClick={() => handleSort('phoneSubmission')}
-                className="sortable"
-              >
-                휴대폰 제출
-                {sortKey === 'phoneSubmission' && (
-                  <span className="sort-indicator">
-                    {sortDirection === 'asc' ? '▲' : '▼'}
-                  </span>
-                )}
-              </th>
+              {renderSortableHeader('room', '호실')}
+              {renderSortableHeader('name', '이름')}
+              {isAttendanceView && renderSortableHeader('status', '상태')}
+              {renderSortableHeader('gender', '성별')}
+              {renderSortableHeader('studentId', '학번')}
+              {isAttendanceView && renderSortableHeader('time', '출석 시간')}
+              {(isAttendanceView || isNightStudyView) &&
+                renderSortableHeader('nightAttendance', '심자 출석')}
+              {(isAttendanceView || isPhoneSubmissionView) &&
+                renderSortableHeader('phoneSubmission', '휴대폰 제출')}
               <th>연락처</th>
             </tr>
           </thead>
@@ -991,59 +1048,54 @@ export default function Check() {
                 <tr key={index}>
                   <td className="room-cell" data-label="호실">{student.room}</td>
                   <td data-label="이름">{student.name}</td>
-                  <td data-label="상태">
-                    {student.status === '외박' ? (
-                      <span className="status-sleepover">외박</span>
-                    ) : (
-                      <select
-                        value={student.status}
-                        onChange={(e) =>
-                          handleStatusChange(
-                            student,
-                            e.target.value as
-                              | '출석'
-                              | '미출석'
-                              | '외박'
-                              | '지연출석',
-                          )
-                        }
-                        disabled={updateAttendancesMutation.isPending}
-                        className={`status-select ${
-                          student.status === '출석'
-                            ? 'status-present'
-                            : student.status === '지연출석'
-                              ? 'status-late'
-                              : 'status-absent'
-                        }`}
-                      >
-                        <option value="출석">출석</option>
-                        <option value="지연출석">지연출석</option>
-                        <option value="미출석">미출석</option>
-                      </select>
-                    )}
-                  </td>
+                  {isAttendanceView && (
+                    <td data-label="상태">
+                      {student.status === '외박' ? (
+                        <span className="status-sleepover">외박</span>
+                      ) : (
+                        <select
+                          value={student.status}
+                          onChange={(e) =>
+                            handleStatusChange(
+                              student,
+                              e.target.value as
+                                | '출석'
+                                | '미출석'
+                                | '외박'
+                                | '지연출석',
+                            )
+                          }
+                          disabled={updateAttendancesMutation.isPending}
+                          className={`status-select ${
+                            student.status === '출석'
+                              ? 'status-present'
+                              : student.status === '지연출석'
+                                ? 'status-late'
+                                : 'status-absent'
+                          }`}
+                        >
+                          <option value="출석">출석</option>
+                          <option value="지연출석">지연출석</option>
+                          <option value="미출석">미출석</option>
+                        </select>
+                      )}
+                    </td>
+                  )}
                   <td data-label="성별">{student.gender}</td>
                   <td data-label="학번">{student.studentId}</td>
-                  <td data-label="출석 시간">{student.time}</td>
-                  <td data-label="심자 출석">
-                    {nightAttendance === '출석' ? (
-                      <span className="status-present">{nightAttendance}</span>
-                    ) : nightAttendance === '미출석' ? (
-                      <span className="status-absent">{nightAttendance}</span>
-                    ) : (
-                      nightAttendance
-                    )}
-                  </td>
-                  <td data-label="휴대폰 제출">
-                    <span
-                      className={`phone-submission-badge ${getPhoneSubmissionClassName(
-                        phoneSubmission,
-                      )}`}
-                      aria-label={`휴대폰 ${phoneSubmission}`}
-                    >
-                      {getPhoneSubmissionSymbol(phoneSubmission)}
-                    </span>
-                  </td>
+                  {isAttendanceView && (
+                    <td data-label="출석 시간">{student.time}</td>
+                  )}
+                  {(isAttendanceView || isNightStudyView) && (
+                    <td data-label="심자 출석">
+                      {renderNightAttendance(nightAttendance)}
+                    </td>
+                  )}
+                  {(isAttendanceView || isPhoneSubmissionView) && (
+                    <td data-label="휴대폰 제출">
+                      {renderPhoneSubmission(phoneSubmission)}
+                    </td>
+                  )}
                   <td data-label="연락처">{student.phone}</td>
                 </tr>
               );
@@ -1053,4 +1105,8 @@ export default function Check() {
       </div>
     </div>
   );
+}
+
+export default function Check() {
+  return <AttendanceCheckView />;
 }

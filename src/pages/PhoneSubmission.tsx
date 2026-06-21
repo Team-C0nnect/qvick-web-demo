@@ -314,22 +314,26 @@ export default function PhoneSubmission() {
                   <td data-label="성별">{student.gender}</td>
                   <td data-label="학번">{student.studentId}</td>
                   <td data-label="휴대폰 제출">
-                    <select
-                      value={student.status}
-                      onChange={(e) =>
-                        handleStatusChange(
-                          student,
-                          e.target.value as PhoneSubmissionStatus,
-                        )
-                      }
-                      disabled={updateMutation.isPending}
-                      className={`phone-submission-select ${getPhoneSubmissionStatusClassName(
-                        student.displayStatus,
-                      )}`}
-                    >
-                      <option value="SUBMITTED">제출</option>
-                      <option value="NOT_SUBMITTED">미제출</option>
-                    </select>
+                    {student.status === 'SLEEPOVER' ? (
+                      <span className="status-sleepover">외박</span>
+                    ) : (
+                      <select
+                        value={student.status}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            student,
+                            e.target.value as PhoneSubmissionStatus,
+                          )
+                        }
+                        disabled={updateMutation.isPending}
+                        className={`phone-submission-select ${getPhoneSubmissionStatusClassName(
+                          student.displayStatus,
+                        )}`}
+                      >
+                        <option value="SUBMITTED">제출</option>
+                        <option value="NOT_SUBMITTED">미제출</option>
+                      </select>
+                    )}
                   </td>
                   <td data-label="제출 시간">{student.checkedAt}</td>
                   <td data-label="연락처">{student.phone}</td>

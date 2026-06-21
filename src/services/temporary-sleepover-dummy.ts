@@ -17,9 +17,10 @@ const TEMP_STUDENT: StudentResponse = {
   grade: 2,
   classroom: 4,
   number: 17,
-  room: '-',
+  room: '412',
   name: '황경민',
   gender: 'MALE',
+  phoneNumber: '010-9988-1122',
 };
 
 const getStudentNumber = (

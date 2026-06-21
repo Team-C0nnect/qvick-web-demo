@@ -4,6 +4,7 @@ import type {
   PageSleepoverResponse,
   SyncSleepoversResponse,
 } from '../types/api';
+import { withTemporarySleepoverPage } from './temporary-sleepover-dummy';
 
 type SleepoverQueryParams = {
   page?: number;
@@ -31,7 +32,7 @@ export const sleepoverService = {
     });
 
     if (firstPage.last || firstPage.totalPages <= 1) {
-      return firstPage;
+      return withTemporarySleepoverPage(firstPage, date);
     }
 
     const remainingPages = await Promise.all(
@@ -43,7 +44,7 @@ export const sleepoverService = {
       ),
     );
 
-    return {
+    return withTemporarySleepoverPage({
       ...firstPage,
       content: [
         ...firstPage.content,
@@ -55,7 +56,7 @@ export const sleepoverService = {
       last: remainingPages.at(-1)?.last ?? firstPage.last,
       empty:
         firstPage.empty && remainingPages.every((page) => page.empty),
-    };
+    }, date);
   },
 
   createSleepover: async (data: CreateSleepoverRequest): Promise<void> => {

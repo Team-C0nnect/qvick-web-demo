@@ -5,13 +5,14 @@ import type {
   StudentQueryParams,
   TeacherUpdateStudentRequest,
 } from '../types/api';
+import { withTemporarySleepoverStudent } from './temporary-sleepover-dummy';
 
 export const studentService = {
   getStudents: async (params?: StudentQueryParams): Promise<PageStudentResponse> => {
     const response = await apiClient.get<PageStudentResponse>('/teacher/students', {
       params,
     });
-    return response.data;
+    return withTemporarySleepoverStudent(response.data);
   },
 
   getStudent: async (studentId: number): Promise<StudentResponse> => {

@@ -2,6 +2,44 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { getFirestore } from "../lib/firebase-admin";
 
+type InquiryType = 'bug' | 'feature' | 'other';
+type InquiryStatus = 'pending' | 'in-progress' | 'resolved' | 'closed';
+type InquiryPriority = 'low' | 'medium' | 'high' | 'critical';
+
+interface CreateInquiryBody {
+  type?: InquiryType;
+  studentId?: string;
+  name?: string;
+  email?: string;
+  title?: string;
+  description?: string;
+  errorPage?: string;
+  errorTime?: string;
+  reproductionSteps?: string;
+  expectedBehavior?: string;
+  actualBehavior?: string;
+  deviceInfo?: unknown;
+  featureCategory?: string;
+  featureBenefit?: string;
+  attachments?: string[];
+}
+
+interface InquiryDocument {
+  id: string;
+  status?: InquiryStatus;
+  type?: InquiryType;
+  [key: string]: unknown;
+}
+
+interface UpdateInquiryBody {
+  status?: InquiryStatus;
+  priority?: InquiryPriority;
+  adminNote?: string | null;
+  assignedTo?: string | null;
+}
+
+type InquiryUpdateData = Record<string, string | null>;
+
 // CORS 헤더
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -18,7 +56,7 @@ async function createInquiry(request: HttpRequest, context: InvocationContext): 
 
   try {
     const db = getFirestore();
-    const body = await request.json() as any;
+    const body = await request.json() as CreateInquiryBody;
     
     // 필수 필드 검증
     if (!body.type || !body.studentId || !body.name || !body.title || !body.description) {
@@ -108,17 +146,17 @@ async function getInquiries(request: HttpRequest, context: InvocationContext): P
     const query = db.collection('inquiries').orderBy('createdAt', 'desc');
     
     const snapshot = await query.get();
-    let inquiries = snapshot.docs.map(doc => ({
+    let inquiries: InquiryDocument[] = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
     }));
 
     // 필터링 (클라이언트 사이드)
     if (status) {
-      inquiries = inquiries.filter((i: any) => i.status === status);
+      inquiries = inquiries.filter((i) => i.status === status);
     }
     if (type) {
-      inquiries = inquiries.filter((i: any) => i.type === type);
+      inquiries = inquiries.filter((i) => i.type === type);
     }
 
     return {
@@ -195,10 +233,10 @@ async function updateInquiry(request: HttpRequest, context: InvocationContext): 
       };
     }
 
-    const body = await request.json() as any;
+    const body = await request.json() as UpdateInquiryBody;
     const now = new Date().toISOString();
     
-    const updateData: any = {
+    const updateData: InquiryUpdateData = {
       updatedAt: now,
     };
 

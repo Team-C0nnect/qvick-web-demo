@@ -2,8 +2,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useMutation } from '@tanstack/react-query';
+import axios from 'axios';
 import { temporaryAttendanceService } from '../services/temporary-attendance.service';
 import '../styles/TemporaryScan.css';
+
+interface ApiErrorResponse {
+  message?: string;
+}
 
 function LogoIcon() {
   return (
@@ -51,8 +56,8 @@ export default function TemporaryScan() {
           code: qrData,
         });
         return response;
-      } catch (error: any) {
-        if (error.response?.status === 409) {
+      } catch (error: unknown) {
+        if (axios.isAxiosError<ApiErrorResponse>(error) && error.response?.status === 409) {
           return {
             status: 409,
             message: error.response?.data?.message || '이미 출석이 완료되었습니다.',
@@ -72,13 +77,17 @@ export default function TemporaryScan() {
       setError('');
       setIsCompleted(true);
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       let errorMessage = '출석 처리 중 오류가 발생했습니다.';
-      if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        errorMessage = '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
-      } else if (err.message && !err.message.includes('status code')) {
+      if (axios.isAxiosError<ApiErrorResponse>(err)) {
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+          errorMessage = '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
+        } else if (err.message && !err.message.includes('status code')) {
+          errorMessage = err.message;
+        }
+      } else if (err instanceof Error && !err.message.includes('status code')) {
         errorMessage = err.message;
       }
       setError(errorMessage);
@@ -215,14 +224,15 @@ export default function TemporaryScan() {
         setCameraError('카메라를 시작할 수 없습니다. 브라우저 설정에서 카메라 권한을 확인해주세요.');
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Camera start error:', err);
       if (isMountedRef.current) {
-        if (err.name === 'NotAllowedError' || err.message?.includes('Permission')) {
+        const cameraError = err instanceof Error ? err : new Error('Unknown camera error');
+        if (cameraError.name === 'NotAllowedError' || cameraError.message.includes('Permission')) {
           setCameraError('카메라 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.');
-        } else if (err.name === 'NotFoundError') {
+        } else if (cameraError.name === 'NotFoundError') {
           setCameraError('카메라를 찾을 수 없습니다.');
-        } else if (err.name === 'NotReadableError') {
+        } else if (cameraError.name === 'NotReadableError') {
           setCameraError('카메라가 다른 앱에서 사용 중입니다.');
         } else {
           setCameraError('카메라를 시작할 수 없습니다. 페이지를 새로고침 해주세요.');

@@ -187,8 +187,8 @@ export interface AttendanceScheduleResponse {
   id: number;
   date: string; // format: date
   gender: Gender; // 남/여 기숙사 구분
-  startTime: string;
-  endTime: string;
+  startTime?: string;
+  endTime?: string;
   morningStartTime?: string;
   morningEndTime?: string;
   nightStartTime?: string;

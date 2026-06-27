@@ -24,10 +24,44 @@ interface CalendarDay {
 
 type QuickSelectionMode = 'sunday' | 'redDay' | 'schoolWeekdays';
 
+const TIME_PATTERN = /^(\d{1,2}):(\d{2})/;
+
+const getScheduleStartTime = (
+  schedule?: AttendanceScheduleResponse,
+): string | undefined =>
+  schedule?.startTime ?? schedule?.nightStartTime ?? schedule?.morningStartTime;
+
+const getScheduleEndTime = (
+  schedule?: AttendanceScheduleResponse,
+): string | undefined =>
+  schedule?.endTime ?? schedule?.nightEndTime ?? schedule?.morningEndTime;
+
+const splitScheduleTime = (time?: string) => {
+  const match = time?.match(TIME_PATTERN);
+  if (!match) return null;
+
+  return {
+    hour: match[1].padStart(2, '0'),
+    minute: match[2],
+  };
+};
+
 // 시간 포맷 (HH:mm -> HH:mm, 초 제거)
-const formatTime = (time: string) => {
-  const parts = time.split(':');
-  return `${parts[0]}:${parts[1]}`;
+const formatTime = (time?: string) => {
+  const parts = splitScheduleTime(time);
+  return parts ? `${parts.hour}:${parts.minute}` : '--:--';
+};
+
+const formatScheduleRange = (
+  schedule?: AttendanceScheduleResponse,
+  separator = '~',
+) => {
+  const startTime = getScheduleStartTime(schedule);
+  const endTime = getScheduleEndTime(schedule);
+
+  if (!startTime || !endTime) return '시간 미설정';
+
+  return `${formatTime(startTime)}${separator}${formatTime(endTime)}`;
 };
 
 // 기본 시간 상수
@@ -243,24 +277,32 @@ export default function Schedule() {
     const defaults = getDefaultTimeByCalendarDay(day);
 
     // 기존 스케줄이 있으면 해당 시간으로 설정
-    if (day.maleSchedule) {
-      const [sh, sm] = day.maleSchedule.startTime.split(':');
-      const [eh, em] = day.maleSchedule.endTime.split(':');
-      setMaleStartHour(sh);
-      setMaleStartMinute(sm);
-      setMaleEndHour(eh);
-      setMaleEndMinute(em);
+    const maleStartTime = splitScheduleTime(
+      getScheduleStartTime(day.maleSchedule),
+    );
+    const maleEndTime = splitScheduleTime(getScheduleEndTime(day.maleSchedule));
+
+    if (maleStartTime && maleEndTime) {
+      setMaleStartHour(maleStartTime.hour);
+      setMaleStartMinute(maleStartTime.minute);
+      setMaleEndHour(maleEndTime.hour);
+      setMaleEndMinute(maleEndTime.minute);
     } else {
       resetMaleTime(defaults);
     }
 
-    if (day.femaleSchedule) {
-      const [sh, sm] = day.femaleSchedule.startTime.split(':');
-      const [eh, em] = day.femaleSchedule.endTime.split(':');
-      setFemaleStartHour(sh);
-      setFemaleStartMinute(sm);
-      setFemaleEndHour(eh);
-      setFemaleEndMinute(em);
+    const femaleStartTime = splitScheduleTime(
+      getScheduleStartTime(day.femaleSchedule),
+    );
+    const femaleEndTime = splitScheduleTime(
+      getScheduleEndTime(day.femaleSchedule),
+    );
+
+    if (femaleStartTime && femaleEndTime) {
+      setFemaleStartHour(femaleStartTime.hour);
+      setFemaleStartMinute(femaleStartTime.minute);
+      setFemaleEndHour(femaleEndTime.hour);
+      setFemaleEndMinute(femaleEndTime.minute);
     } else {
       resetFemaleTime(defaults);
     }
@@ -800,10 +842,10 @@ export default function Schedule() {
                     ? `공휴일 ${day.holidayName}`
                     : '',
                   hasMaleSchedule
-                    ? `남기숙사 ${formatTime(day.maleSchedule!.startTime)} ~ ${formatTime(day.maleSchedule!.endTime)}`
+                    ? `남기숙사 ${formatScheduleRange(day.maleSchedule, ' ~ ')}`
                     : '',
                   hasFemaleSchedule
-                    ? `여기숙사 ${formatTime(day.femaleSchedule!.startTime)} ~ ${formatTime(day.femaleSchedule!.endTime)}`
+                    ? `여기숙사 ${formatScheduleRange(day.femaleSchedule, ' ~ ')}`
                     : '',
                 ]
                   .filter(Boolean)
@@ -853,8 +895,7 @@ export default function Schedule() {
                             <div className="schedule-tag male">
                               <span>남</span>
                               <span className="schedule-tag-time">
-                                {formatTime(day.maleSchedule!.startTime)}~
-                                {formatTime(day.maleSchedule!.endTime)}
+                                {formatScheduleRange(day.maleSchedule)}
                               </span>
                             </div>
                           )}
@@ -862,8 +903,7 @@ export default function Schedule() {
                             <div className="schedule-tag female">
                               <span>여</span>
                               <span className="schedule-tag-time">
-                                {formatTime(day.femaleSchedule!.startTime)}~
-                                {formatTime(day.femaleSchedule!.endTime)}
+                                {formatScheduleRange(day.femaleSchedule)}
                               </span>
                             </div>
                           )}
@@ -928,8 +968,10 @@ export default function Schedule() {
                   {selectedDates.length === 1 &&
                     selectedDayData?.maleSchedule && (
                       <small>
-                        현재 {formatTime(selectedDayData.maleSchedule.startTime)}
-                        -{formatTime(selectedDayData.maleSchedule.endTime)}
+                        현재 {formatScheduleRange(
+                          selectedDayData.maleSchedule,
+                          '-',
+                        )}
                       </small>
                     )}
                 </div>
@@ -975,8 +1017,10 @@ export default function Schedule() {
                     selectedDayData?.femaleSchedule && (
                       <small>
                         현재{' '}
-                        {formatTime(selectedDayData.femaleSchedule.startTime)}-
-                        {formatTime(selectedDayData.femaleSchedule.endTime)}
+                        {formatScheduleRange(
+                          selectedDayData.femaleSchedule,
+                          '-',
+                        )}
                       </small>
                     )}
                 </div>

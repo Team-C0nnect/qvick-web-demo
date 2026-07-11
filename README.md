@@ -4,12 +4,12 @@
 
 ## 🚀 기술 스택
 
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite 7.1.12
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite 7
 - **Routing**: React Router DOM
 - **State Management**: TanStack React Query (서버 상태)
 - **HTTP Client**: Axios
-- **Styling**: CSS Modules
+- **Styling**: 전역 CSS
 - **Design**: Figma MCP 연동
 
 ## 📦 설치 및 실행

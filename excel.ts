@@ -191,7 +191,7 @@ function createWorksheet(
     { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }
   ];
   
-  const cellStyles: Record<string, any> = {}; // XLSX.CellStyle이 내보내지지 않아 any 사용
+  const cellStyles: Record<string, XLSX.CellStyle> = {};
   
   // 타이틀 셀 스타일 미리 지정
   cellStyles['A1'] = {
@@ -260,7 +260,7 @@ function addRoomData(
   roomMap: Record<string, Member[]>,
   aoa: (string | number)[][],
   merges: XLSX.Range[],
-  cellStyles: Record<string, any>,
+  cellStyles: Record<string, XLSX.CellStyle>,
   thickTopRows: number[],
   rowIndex: number,
   fillColorGray: { fgColor: { rgb: string } }
@@ -348,7 +348,7 @@ function addNotesSection(
 function applyStylesToWorksheet(
   worksheet: XLSX.WorkSheet,
   aoa: (string | number)[][],
-  cellStyles: Record<string, any>,
+  cellStyles: Record<string, XLSX.CellStyle>,
   thickTopRows: number[],
   totalRows: number,
   borderThin: Border,

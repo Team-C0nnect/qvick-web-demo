@@ -10,6 +10,37 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+interface CreateInquiryBody {
+  type?: string;
+  studentId?: string;
+  name?: string;
+  email?: string;
+  title?: string;
+  description?: string;
+  errorPage?: string;
+  errorTime?: string;
+  reproductionSteps?: string;
+  expectedBehavior?: string;
+  actualBehavior?: string;
+  deviceInfo?: unknown;
+  featureCategory?: string;
+  featureBenefit?: string;
+  attachments?: string[];
+}
+
+interface InquiryRecord extends FirebaseFirestore.DocumentData {
+  id: string;
+  status?: string;
+  type?: string;
+}
+
+interface UpdateInquiryBody {
+  status?: string;
+  priority?: string;
+  adminNote?: string | null;
+  assignedTo?: string | null;
+}
+
 // 문의 생성 (로그인 불필요)
 async function createInquiry(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   if (request.method === 'OPTIONS') {
@@ -18,7 +49,7 @@ async function createInquiry(request: HttpRequest, context: InvocationContext): 
 
   try {
     const db = getFirestore();
-    const body = await request.json() as any;
+    const body = await request.json() as CreateInquiryBody;
     
     // 필수 필드 검증
     if (!body.type || !body.studentId || !body.name || !body.title || !body.description) {
@@ -108,17 +139,17 @@ async function getInquiries(request: HttpRequest, context: InvocationContext): P
     const query = db.collection('inquiries').orderBy('createdAt', 'desc');
     
     const snapshot = await query.get();
-    let inquiries = snapshot.docs.map(doc => ({
+    let inquiries: InquiryRecord[] = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-    }));
+    } as InquiryRecord));
 
     // 필터링 (클라이언트 사이드)
     if (status) {
-      inquiries = inquiries.filter((i: any) => i.status === status);
+      inquiries = inquiries.filter((inquiry) => inquiry.status === status);
     }
     if (type) {
-      inquiries = inquiries.filter((i: any) => i.type === type);
+      inquiries = inquiries.filter((inquiry) => inquiry.type === type);
     }
 
     return {
@@ -195,10 +226,10 @@ async function updateInquiry(request: HttpRequest, context: InvocationContext): 
       };
     }
 
-    const body = await request.json() as any;
+    const body = await request.json() as UpdateInquiryBody;
     const now = new Date().toISOString();
     
-    const updateData: any = {
+    const updateData: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
       updatedAt: now,
     };
 

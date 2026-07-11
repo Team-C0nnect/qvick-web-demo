@@ -3,7 +3,6 @@ import type {
   PhoneSubmissionResponse,
   UpdatePhoneSubmissionsRequest,
 } from '../types/api';
-import { withTemporarySleepoverPhoneSubmissions } from './temporary-sleepover-dummy';
 
 export const phoneSubmissionService = {
   getPhoneSubmissions: async (
@@ -15,7 +14,7 @@ export const phoneSubmissionService = {
         params: { date },
       },
     );
-    return withTemporarySleepoverPhoneSubmissions(response.data, date);
+    return response.data;
   },
 
   updatePhoneSubmissions: async (

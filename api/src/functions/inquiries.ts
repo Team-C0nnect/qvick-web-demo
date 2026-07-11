@@ -2,16 +2,12 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { getFirestore } from "../lib/firebase-admin";
 
-// CORS 헤더
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+type InquiryType = 'bug' | 'feature' | 'other';
+type InquiryStatus = 'pending' | 'in-progress' | 'resolved' | 'closed';
+type InquiryPriority = 'low' | 'medium' | 'high' | 'critical';
 
 interface CreateInquiryBody {
-  type?: string;
+  type?: InquiryType;
   studentId?: string;
   name?: string;
   email?: string;
@@ -28,18 +24,29 @@ interface CreateInquiryBody {
   attachments?: string[];
 }
 
-interface InquiryRecord extends FirebaseFirestore.DocumentData {
+interface InquiryDocument {
   id: string;
-  status?: string;
-  type?: string;
+  status?: InquiryStatus;
+  type?: InquiryType;
+  [key: string]: unknown;
 }
 
 interface UpdateInquiryBody {
-  status?: string;
-  priority?: string;
+  status?: InquiryStatus;
+  priority?: InquiryPriority;
   adminNote?: string | null;
   assignedTo?: string | null;
 }
+
+type InquiryUpdateData = Record<string, string | null>;
+
+// CORS 헤더
+const corsHeaders = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
 
 // 문의 생성 (로그인 불필요)
 async function createInquiry(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
@@ -139,17 +146,17 @@ async function getInquiries(request: HttpRequest, context: InvocationContext): P
     const query = db.collection('inquiries').orderBy('createdAt', 'desc');
     
     const snapshot = await query.get();
-    let inquiries: InquiryRecord[] = snapshot.docs.map(doc => ({
+    let inquiries: InquiryDocument[] = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-    } as InquiryRecord));
+    }));
 
     // 필터링 (클라이언트 사이드)
     if (status) {
-      inquiries = inquiries.filter((inquiry) => inquiry.status === status);
+      inquiries = inquiries.filter((i) => i.status === status);
     }
     if (type) {
-      inquiries = inquiries.filter((inquiry) => inquiry.type === type);
+      inquiries = inquiries.filter((i) => i.type === type);
     }
 
     return {
@@ -229,7 +236,7 @@ async function updateInquiry(request: HttpRequest, context: InvocationContext): 
     const body = await request.json() as UpdateInquiryBody;
     const now = new Date().toISOString();
     
-    const updateData: FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
+    const updateData: InquiryUpdateData = {
       updatedAt: now,
     };
 

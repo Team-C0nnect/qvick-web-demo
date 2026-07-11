@@ -6,6 +6,10 @@ import axios from 'axios';
 import { temporaryAttendanceService } from '../services/temporary-attendance.service';
 import '../styles/TemporaryScan.css';
 
+interface ApiErrorResponse {
+  message?: string;
+}
+
 function LogoIcon() {
   return (
     <svg viewBox="0 0 87 87" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
@@ -53,7 +57,7 @@ export default function TemporaryScan() {
         });
         return response;
       } catch (error: unknown) {
-        if (axios.isAxiosError<{ message?: string }>(error) && error.response?.status === 409) {
+        if (axios.isAxiosError<ApiErrorResponse>(error) && error.response?.status === 409) {
           return {
             status: 409,
             message: error.response?.data?.message || '이미 출석이 완료되었습니다.',
@@ -75,11 +79,15 @@ export default function TemporaryScan() {
     },
     onError: (err: unknown) => {
       let errorMessage = '출석 처리 중 오류가 발생했습니다.';
-      if (axios.isAxiosError<{ message?: string }>(err) && err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (axios.isAxiosError(err) && (err.code === 'ERR_NETWORK' || err.message === 'Network Error')) {
-        errorMessage = '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
-      } else if (err instanceof Error && err.message && !err.message.includes('status code')) {
+      if (axios.isAxiosError<ApiErrorResponse>(err)) {
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
+          errorMessage = '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
+        } else if (err.message && !err.message.includes('status code')) {
+          errorMessage = err.message;
+        }
+      } else if (err instanceof Error && !err.message.includes('status code')) {
         errorMessage = err.message;
       }
       setError(errorMessage);
@@ -219,7 +227,7 @@ export default function TemporaryScan() {
     } catch (err: unknown) {
       console.error('Camera start error:', err);
       if (isMountedRef.current) {
-        const cameraError = err instanceof Error ? err : new Error(String(err));
+        const cameraError = err instanceof Error ? err : new Error('Unknown camera error');
         if (cameraError.name === 'NotAllowedError' || cameraError.message.includes('Permission')) {
           setCameraError('카메라 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.');
         } else if (cameraError.name === 'NotFoundError') {

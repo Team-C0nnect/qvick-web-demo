@@ -17,9 +17,12 @@ interface PageGroup {
 
 // xlsx-js-style에서 직접 제공하지 않는 Border 타입 정의
 interface Border {
-  style: string;
-  color: { rgb: string };
+  style: XLSX.BorderType;
+  color: XLSX.CellStyleColor;
 }
+
+type CellFill = NonNullable<XLSX.CellStyle['fill']>;
+type CellAlignment = NonNullable<XLSX.CellStyle['alignment']>;
 
 const FLOOR_CONFIG = {
   floors: [
@@ -46,7 +49,7 @@ const FLOOR_CONFIG = {
 export const exportToExcel = (data: Member[]) => {
   // 설정 상수
   const MAX_ROWS_PER_PAGE = 44;                          // 페이지당 최대 행 수
-  const FILL_COLOR_GRAY = { fgColor: { rgb: 'D9D9D9' } }; // 회색 배경색
+  const FILL_COLOR_GRAY: CellFill = { fgColor: { rgb: 'D9D9D9' } }; // 회색 배경색
   const BORDER_THIN: Border = { style: 'thin', color: { rgb: '000000' } };  // 얇은 테두리
   const BORDER_THICK: Border = { style: 'medium', color: { rgb: '000000' } }; // 중간 두께 테두리
   const COL_WIDTHS = [8, 15, 15, 15, 27];                // 열 너비 (호실, 학번, 성명, 출석여부, 비고)
@@ -263,7 +266,7 @@ function addRoomData(
   cellStyles: Record<string, XLSX.CellStyle>,
   thickTopRows: number[],
   rowIndex: number,
-  fillColorGray: { fgColor: { rgb: string } }
+  fillColorGray: CellFill
 ): void {
   const members = roomMap[room] || [];
   thickTopRows.push(rowIndex);
@@ -389,8 +392,8 @@ function applyStylesToWorksheet(
       
       // 날짜와 자치위원 행의 첫 번째 셀 특별 처리
       const isDateCell = r === totalRows;
-      const horizontalAlignment = isDateCell && c === 0 ? 'left' : 'center';
-      const verticalAlignment = isDateCell && c === 0 ? 'top' : 'center';
+      const horizontalAlignment: CellAlignment['horizontal'] = isDateCell && c === 0 ? 'left' : 'center';
+      const verticalAlignment: CellAlignment['vertical'] = isDateCell && c === 0 ? 'top' : 'center';
       
       
       // 셀 스타일 적용

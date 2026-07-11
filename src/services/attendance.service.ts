@@ -3,14 +3,13 @@ import type {
   AttendanceResponse,
   UpdateAttendancesRequest,
 } from '../types/api';
-import { withTemporarySleepoverAttendances } from './temporary-sleepover-dummy';
 
 export const attendanceService = {
   getAttendances: async (date?: string): Promise<AttendanceResponse[]> => {
     const response = await apiClient.get<AttendanceResponse[]>('/teacher/attendances', {
       params: { date },
     });
-    return withTemporarySleepoverAttendances(response.data, date);
+    return response.data;
   },
 
   updateAttendances: async (data: UpdateAttendancesRequest): Promise<void> => {

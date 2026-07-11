@@ -131,8 +131,8 @@ export default function StudentManagement() {
 
       switch (sortColumn) {
         case 'id':
-          compareA = a.id;
-          compareB = b.id;
+          compareA = a.grade * 1000 + a.classroom * 100 + a.number;
+          compareB = b.grade * 1000 + b.classroom * 100 + b.number;
           break;
         case 'name':
           compareA = a.name;
@@ -205,6 +205,12 @@ export default function StudentManagement() {
   };
 
   const filteredStudents = getFilteredStudents();
+  const studentStats = {
+    total: allStudents.length,
+    male: allStudents.filter((student) => student.gender === 'MALE').length,
+    female: allStudents.filter((student) => student.gender === 'FEMALE').length,
+    visible: filteredStudents.length,
+  };
 
   const getStudentId = (student: Pick<Student, 'grade' | 'classroom' | 'number'>) =>
     `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
@@ -377,8 +383,40 @@ export default function StudentManagement() {
   return (
     <div className="student-management">
       <div className="student-management-container">
-        {/* 검색 섹션 */}
-        <div className="toolbar-section">
+        <section className="account-hero">
+          <div>
+            <span className="account-kicker">Account Management</span>
+            <h1>계정 관리</h1>
+            <p>학생 계정과 기숙사 정보를 한곳에서 확인하고 관리합니다.</p>
+          </div>
+          <div className="account-total">
+            <span>전체 학생</span>
+            <strong>{studentStats.total}</strong>
+            <small>명</small>
+          </div>
+        </section>
+
+        <section className="account-stats" aria-label="학생 현황">
+          <div className="account-stat-card total">
+            <span>전체</span>
+            <strong>{studentStats.total}명</strong>
+          </div>
+          <div className="account-stat-card male">
+            <span>남학생</span>
+            <strong>{studentStats.male}명</strong>
+          </div>
+          <div className="account-stat-card female">
+            <span>여학생</span>
+            <strong>{studentStats.female}명</strong>
+          </div>
+          <div className="account-stat-card visible">
+            <span>검색 결과</span>
+            <strong>{studentStats.visible}명</strong>
+          </div>
+        </section>
+
+        <section className="account-controls">
+          <div className="toolbar-section">
           <div className="search-box">
             <SearchIcon className="search-icon" />
             <input
@@ -389,10 +427,22 @@ export default function StudentManagement() {
               className="search-input"
             />
           </div>
-        </div>
+            {(searchTerm || genderFilter !== '전체' || gradeFilter !== '전체') && (
+              <button
+                type="button"
+                className="reset-filter-btn"
+                onClick={() => {
+                  setSearchTerm('');
+                  setGenderFilter('전체');
+                  setGradeFilter('전체');
+                }}
+              >
+                필터 초기화
+              </button>
+            )}
+          </div>
 
-        {/* 필터 섹션 */}
-        <div className="filter-section">
+          <div className="filter-section">
           <div className="filter-group">
             <label className="filter-label">성별:</label>
             <div className="filter-buttons">
@@ -446,7 +496,8 @@ export default function StudentManagement() {
               </button>
             </div>
           </div>
-        </div>
+          </div>
+        </section>
 
         {/* 테이블 */}
         <div className="table-container">
@@ -457,7 +508,7 @@ export default function StudentManagement() {
                   onClick={() => handleSort('id')}
                   className={`sortable ${sortColumn === 'id' ? 'active' : ''}`}
                 >
-                  ID
+                  학번
                   {sortColumn === 'id' && (
                     <span className="sort-indicator">
                       {sortDirection === 'asc' ? '▲' : '▼'}
@@ -479,30 +530,8 @@ export default function StudentManagement() {
                   onClick={() => handleSort('grade')}
                   className={`sortable ${sortColumn === 'grade' ? 'active' : ''}`}
                 >
-                  학년
+                  학급
                   {sortColumn === 'grade' && (
-                    <span className="sort-indicator">
-                      {sortDirection === 'asc' ? '▲' : '▼'}
-                    </span>
-                  )}
-                </th>
-                <th
-                  onClick={() => handleSort('classroom')}
-                  className={`sortable ${sortColumn === 'classroom' ? 'active' : ''}`}
-                >
-                  반
-                  {sortColumn === 'classroom' && (
-                    <span className="sort-indicator">
-                      {sortDirection === 'asc' ? '▲' : '▼'}
-                    </span>
-                  )}
-                </th>
-                <th
-                  onClick={() => handleSort('number')}
-                  className={`sortable ${sortColumn === 'number' ? 'active' : ''}`}
-                >
-                  번호
-                  {sortColumn === 'number' && (
                     <span className="sort-indicator">
                       {sortDirection === 'asc' ? '▲' : '▼'}
                     </span>
@@ -519,8 +548,9 @@ export default function StudentManagement() {
                     </span>
                   )}
                 </th>
+                <th>호실</th>
                 <th>전화번호</th>
-                <th>작업</th>
+                <th>관리</th>
               </tr>
             </thead>
             {filteredStudents.length > 0 && (
@@ -528,15 +558,16 @@ export default function StudentManagement() {
                 {filteredStudents.map((student, index) => (
                   <tr key={student.id} className="student-row">
                     <td>
-                      <span className="spoiler-number">{student.id}</span>
+                      <span className="student-id-badge">{getStudentId(student)}</span>
                     </td>
-                    <td>{student.name}</td>
-                    <td className="grade-classroom-number">{student.grade}</td>
-                    <td className="grade-classroom-number">
-                      {student.classroom}
+                    <td className="student-name-cell">{student.name}</td>
+                    <td>{student.grade}학년 {student.classroom}반 {student.number}번</td>
+                    <td>
+                      <span className={`gender-badge ${student.gender.toLowerCase()}`}>
+                        {student.gender === 'MALE' ? '남' : '여'}
+                      </span>
                     </td>
-                    <td className="grade-classroom-number">{student.number}</td>
-                    <td>{student.gender === 'MALE' ? '남' : '여'}</td>
+                    <td><span className="room-badge">{student.room || '-'}</span></td>
                     <td>{formatPhoneNumber(student.phoneNumber)}</td>
                     <td className="action-cell">
                       <button

@@ -11,6 +11,11 @@ if (!envApiBaseUrl) {
 
 const API_BASE_URL = (envApiBaseUrl || DEFAULT_API_BASE_URL).replace(/\/$/, '');
 
+const clearAuthTokens = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+};
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -52,7 +57,7 @@ apiClient.interceptors.response.use(
         
         if (!refreshToken) {
           // No refresh token, redirect to login
-          localStorage.clear();
+          clearAuthTokens();
           window.location.href = '/login';
           return Promise.reject(error);
         }
@@ -76,7 +81,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh failed, redirect to login
-        localStorage.clear();
+        clearAuthTokens();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

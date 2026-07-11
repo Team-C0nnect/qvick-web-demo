@@ -15,6 +15,47 @@
   min-width: 0;
 }
 
+.schedule-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid #ffd4d4;
+  border-radius: 12px;
+  background: #fff7f7;
+  color: #b42326;
+}
+
+.schedule-error div,
+.schedule-error span {
+  display: block;
+}
+
+.schedule-error strong {
+  font-size: 14px;
+}
+
+.schedule-error span {
+  margin-top: 3px;
+  color: #805456;
+  font-size: 12px;
+}
+
+.schedule-error button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #efb6b7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #b42326;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .schedule-hero,
 .calendar,
 .scheduler-panel {

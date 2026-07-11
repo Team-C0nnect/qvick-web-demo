@@ -6,6 +6,20 @@ import type {
   Gender,
 } from '../types/api';
 
+interface ScheduleListResponse {
+  data?: AttendanceScheduleResponse[];
+  content?: AttendanceScheduleResponse[];
+}
+
+const normalizeScheduleList = (
+  payload: AttendanceScheduleResponse[] | ScheduleListResponse,
+): AttendanceScheduleResponse[] => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload.data)) return payload.data;
+  if (Array.isArray(payload.content)) return payload.content;
+  return [];
+};
+
 export const scheduleService = {
   getSchedules: async (startDate: string, endDate: string): Promise<AttendanceScheduleResponse[]> => {
     const response = await apiClient.get<AttendanceScheduleResponse[]>(
@@ -28,13 +42,13 @@ export const scheduleService = {
   },
 
   getMonthSchedules: async (year: number, month: number): Promise<AttendanceScheduleResponse[]> => {
-    const response = await apiClient.get<AttendanceScheduleResponse[]>(
+    const response = await apiClient.get<AttendanceScheduleResponse[] | ScheduleListResponse>(
       '/teacher/attendance/schedules/calendar/month',
       {
         params: { year, month },
       }
     );
-    return response.data;
+    return normalizeScheduleList(response.data);
   },
 
   getWeekSchedules: async (date: string): Promise<AttendanceScheduleResponse[]> => {

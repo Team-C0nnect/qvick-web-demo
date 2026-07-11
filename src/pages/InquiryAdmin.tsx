@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import type { Inquiry, InquiryType, InquiryStatus, InquiryPriority } from '../types/inquiry';
+import type {
+  Inquiry,
+  InquiryType,
+  InquiryStatus,
+  InquiryPriority,
+  UpdateInquiryRequest,
+} from '../types/inquiry';
 import { INQUIRY_TYPE_CONFIG, INQUIRY_STATUS_CONFIG, INQUIRY_PRIORITY_CONFIG } from '../types/inquiry';
 import { apiClient } from '../lib/api-client';
 import type { MyUserResponse } from '../types/api';
@@ -14,7 +20,7 @@ const fetchInquiries = async (): Promise<Inquiry[]> => {
   return response.json();
 };
 
-const updateInquiry = async ({ id, data }: { id: string; data: any }) => {
+const updateInquiry = async ({ id, data }: { id: string; data: UpdateInquiryRequest }) => {
   const response = await fetch(`/api/updateInquiry?id=${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

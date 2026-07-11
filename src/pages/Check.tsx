@@ -5,10 +5,9 @@ import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
 import { scheduleService } from '../services/schedule.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
-import {
-  exportMergedAttendanceToExcel,
-  type AttendanceExportMode,
-  type MergedAttendanceMember,
+import type {
+  AttendanceExportMode,
+  MergedAttendanceMember,
 } from '../services/excel.service';
 import { CheckTableSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
@@ -375,7 +374,7 @@ export default function Check() {
 
   // 엑셀 내보내기 (성별, 출력 유형 선택)
   const handleExportExcel = useCallback(
-    (gender: '남' | '여' | null, exportMode: AttendanceExportMode = 'all') => {
+    async (gender: '남' | '여' | null, exportMode: AttendanceExportMode = 'all') => {
       setIsExporting(true);
       setShowExcelMenu(false);
       setSelectedGender(null);
@@ -406,6 +405,9 @@ export default function Check() {
           }),
         );
 
+        const { exportMergedAttendanceToExcel } = await import(
+          '../services/excel.service'
+        );
         exportMergedAttendanceToExcel(mergedData, gender, exportMode);
       } catch (error) {
         console.error('엑셀 내보내기 실패:', error);

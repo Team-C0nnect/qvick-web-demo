@@ -1,33 +1,36 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import Check from './pages/Check';
-import NightStudy from './pages/NightStudy';
-import PhoneSubmission from './pages/PhoneSubmission';
-import Sleepover from './pages/Sleepover';
-import Notice from './pages/Notice';
-import NoticeDetail from './pages/NoticeDetail';
-import Schedule from './pages/Schedule';
-import Room from './pages/Room';
-import StudentManagement from './pages/StudentManagement';
-import Login from './pages/Login';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
-import PublicPatchNote from './pages/PublicPatchNote';
-import TeacherPatchNote from './pages/TeacherPatchNote';
-import PatchNoteAdmin from './pages/PatchNoteAdmin';
-import InquiryForm from './pages/InquiryForm';
-import InquiryAdmin from './pages/InquiryAdmin';
-import Council from './pages/Council';
-import TemporaryLogin from './pages/TemporaryLogin';
-import TemporaryScan from './pages/TemporaryScan';
 import './App.css';
+
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Check = lazy(() => import('./pages/Check'));
+const NightStudy = lazy(() => import('./pages/NightStudy'));
+const PhoneSubmission = lazy(() => import('./pages/PhoneSubmission'));
+const Sleepover = lazy(() => import('./pages/Sleepover'));
+const Notice = lazy(() => import('./pages/Notice'));
+const NoticeDetail = lazy(() => import('./pages/NoticeDetail'));
+const Schedule = lazy(() => import('./pages/Schedule'));
+const Room = lazy(() => import('./pages/Room'));
+const StudentManagement = lazy(() => import('./pages/StudentManagement'));
+const Login = lazy(() => import('./pages/Login'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const PublicPatchNote = lazy(() => import('./pages/PublicPatchNote'));
+const TeacherPatchNote = lazy(() => import('./pages/TeacherPatchNote'));
+const PatchNoteAdmin = lazy(() => import('./pages/PatchNoteAdmin'));
+const InquiryForm = lazy(() => import('./pages/InquiryForm'));
+const InquiryAdmin = lazy(() => import('./pages/InquiryAdmin'));
+const Council = lazy(() => import('./pages/Council'));
+const TemporaryLogin = lazy(() => import('./pages/TemporaryLogin'));
+const TemporaryScan = lazy(() => import('./pages/TemporaryScan'));
 
 function App() {
   return (
     <Router>
-      <Routes>
+      <Suspense fallback={<div role="status">페이지를 불러오는 중...</div>}>
+        <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
@@ -71,7 +74,8 @@ function App() {
             element={<StudentManagement />}
           />
         </Route>
-      </Routes>
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

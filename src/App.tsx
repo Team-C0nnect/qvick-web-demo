@@ -13,6 +13,7 @@ const Notice = lazy(() => import('./pages/Notice'));
 const NoticeDetail = lazy(() => import('./pages/NoticeDetail'));
 const Schedule = lazy(() => import('./pages/Schedule'));
 const Room = lazy(() => import('./pages/Room'));
+const PhoneBox = lazy(() => import('./pages/PhoneBox'));
 const StudentManagement = lazy(() => import('./pages/StudentManagement'));
 const Login = lazy(() => import('./pages/Login'));
 const Terms = lazy(() => import('./pages/Terms'));
@@ -59,6 +60,7 @@ function App() {
           <Route path="notice/:id" element={<NoticeDetail />} />
           <Route path="schedule" element={<Schedule />} />
           <Route path="room" element={<Room />} />
+          <Route path="phone-boxes" element={<PhoneBox />} />
           {/* Teacher 전용 패치노트 페이지 */}
           <Route path="teacher-patchnote" element={<TeacherPatchNote />} />
           <Route

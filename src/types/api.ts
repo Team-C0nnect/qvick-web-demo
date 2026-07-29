@@ -266,6 +266,39 @@ export interface CreateRoomRequest {
   room: string;
 }
 
+// Phone Box Types
+export type PhoneBoxGender = 'MALE' | 'FEMALE' | 'ALL';
+
+export interface PhoneBoxStudent {
+  id: number;
+  name: string;
+  grade: number;
+  classroom: number;
+  number: number;
+  room: string;
+  gender: Gender;
+}
+
+export interface PhoneBoxResponse {
+  id: number;
+  name: string;
+  gender: PhoneBoxGender;
+  students: PhoneBoxStudent[];
+}
+
+export interface CreatePhoneBoxRequest {
+  name: string;
+  gender: PhoneBoxGender;
+}
+
+export interface UpdatePhoneBoxNameRequest {
+  name: string;
+}
+
+export interface PhoneBoxStudentsRequest {
+  studentIds: number[];
+}
+
 // Pagination Types
 export interface PageableObject {
   pageNumber: number;

@@ -109,6 +109,26 @@ function PhoneIcon({ className }: { className?: string }) {
   );
 }
 
+// 휴대폰 제출함 아이콘
+function PhoneBoxIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="7" y="2" width="10" height="14" rx="2" />
+      <path d="M11 5h2" />
+      <path d="M3 18h18" />
+      <path d="M5 18v3h14v-3" />
+    </svg>
+  );
+}
+
 // 자치위원 아이콘
 function CouncilIcon({ className }: { className?: string }) {
   return (
@@ -165,6 +185,7 @@ export default function Sidebar() {
     { path: '/notice', label: '공지사항', icon: 'notice' },
     { path: '/schedule', label: '일정 관리', icon: 'schedule' },
     { path: '/room', label: '방 관리', icon: 'room' },
+    { path: '/phone-boxes', label: '휴대폰 제출함', icon: 'phonebox' },
     { path: '/teacher-patchnote', label: '패치노트', icon: 'patchnote' },
   ];
 
@@ -193,6 +214,8 @@ export default function Sidebar() {
         return <CalendarIcon className="menu-icon" />;
       case 'room':
         return <RoomIcon className="menu-icon" />;
+      case 'phonebox':
+        return <PhoneBoxIcon className="menu-icon" />;
       case 'council':
         return <CouncilIcon className="menu-icon" />;
       case 'student':

@@ -75,15 +75,24 @@
 
 .dashboard-period-hero {
   min-height: 142px;
+}
+
+.dashboard-period-hero.morning {
   background:
     radial-gradient(circle at 84% 18%, rgba(255, 205, 74, 0.16), transparent 19%),
-    radial-gradient(circle at 94% 85%, rgba(87, 68, 189, 0.14), transparent 22%),
+    linear-gradient(90deg, rgba(109, 35, 237, 0.08), rgba(109, 35, 237, 0) 46%),
+    #ffffff;
+}
+
+.dashboard-period-hero.night {
+  background:
+    radial-gradient(circle at 90% 50%, rgba(87, 68, 189, 0.16), transparent 24%),
     linear-gradient(90deg, rgba(109, 35, 237, 0.08), rgba(109, 35, 237, 0) 46%),
     #ffffff;
 }
 
 .hero-period-visual {
-  min-width: 190px;
+  min-width: 70px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -115,15 +124,9 @@
   box-shadow: 0 12px 28px rgba(87, 68, 189, 0.15);
 }
 
-.hero-period-line {
-  width: 56px;
-  height: 2px;
-  background: linear-gradient(90deg, #efc557, #8a79d5);
-}
-
 .period-overview-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 

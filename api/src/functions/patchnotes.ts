@@ -1,7 +1,12 @@
 // 패치노트 CRUD API 엔드포인트
 // Azure Static Web Apps managed functions - 함수 이름으로 접근, 쿼리 파라미터 사용
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { getFirestore, admin } from "../lib/firebase-admin";
+import {
+  FieldValue,
+  getFirestore,
+  Timestamp,
+  type DocumentData,
+} from "../lib/firebase-admin";
 import { requireRoles } from "../lib/auth";
 import {
   readJsonBody,
@@ -76,7 +81,7 @@ const corsHeaders = {
 };
 
 // Firestore 문서를 PatchNote 객체로 변환
-function docToPatchNote(id: string, data: FirebaseFirestore.DocumentData): PatchNote {
+function docToPatchNote(id: string, data: DocumentData): PatchNote {
   return {
     id,
     title: data.title || '',
@@ -294,7 +299,7 @@ export async function createPatchnote(request: HttpRequest, context: InvocationC
     }
 
     const db = getFirestore();
-    const now = admin.firestore.Timestamp.now();
+    const now = Timestamp.now();
     
     const newPatchNote = {
       title,
@@ -379,7 +384,7 @@ export async function updatePatchnote(request: HttpRequest, context: InvocationC
     }
 
     const updateData: Record<string, unknown> = {
-      updatedAt: admin.firestore.Timestamp.now(),
+      updatedAt: Timestamp.now(),
     };
 
     if (body.title !== undefined) {
@@ -527,7 +532,7 @@ export async function publishPatchnote(request: HttpRequest, context: Invocation
       };
     }
 
-    const now = admin.firestore.Timestamp.now();
+    const now = Timestamp.now();
     await docRef.update({
       status: 'published',
       publishedAt: now,
@@ -591,8 +596,8 @@ export async function unpublishPatchnote(request: HttpRequest, context: Invocati
 
     await docRef.update({
       status: 'draft',
-      publishedAt: admin.firestore.FieldValue.delete(),
-      updatedAt: admin.firestore.Timestamp.now(),
+      publishedAt: FieldValue.delete(),
+      updatedAt: Timestamp.now(),
     });
     
     const updated = await docRef.get();

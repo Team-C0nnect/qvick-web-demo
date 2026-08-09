@@ -1,5 +1,12 @@
 // Firebase Admin SDK 초기화
-import * as admin from 'firebase-admin';
+import { cert, initializeApp } from 'firebase-admin/app';
+import {
+  FieldValue,
+  getFirestore as getAdminFirestore,
+  Timestamp,
+  type DocumentData,
+  type Firestore,
+} from 'firebase-admin/firestore';
 
 let initialized = false;
 
@@ -16,8 +23,8 @@ export function initializeFirebase(): void {
     throw new Error('Firebase 환경변수가 설정되지 않았습니다.');
   }
 
-  admin.initializeApp({
-    credential: admin.credential.cert({
+  initializeApp({
+    credential: cert({
       projectId,
       clientEmail,
       privateKey,
@@ -28,11 +35,12 @@ export function initializeFirebase(): void {
   console.log('Firebase Admin SDK 초기화 완료');
 }
 
-export function getFirestore(): admin.firestore.Firestore {
+export function getFirestore(): Firestore {
   if (!initialized) {
     initializeFirebase();
   }
-  return admin.firestore();
+  return getAdminFirestore();
 }
 
-export { admin };
+export { FieldValue, Timestamp };
+export type { DocumentData };

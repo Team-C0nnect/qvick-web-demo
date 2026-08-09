@@ -27,7 +27,12 @@ interface CalendarDay {
   femaleSchedule?: AttendanceScheduleResponse;
 }
 
-type QuickSelectionMode = 'sunday' | 'redDay' | 'schoolWeekdays';
+type QuickSelectionMode = 'all' | 'sunday' | 'redDay' | 'schoolWeekdays';
+
+interface PeriodTimeRange {
+  startTime: string;
+  endTime: string;
+}
 
 const TIME_PATTERN = /^(\d{1,2}):(\d{2})/;
 
@@ -549,7 +554,7 @@ export default function Schedule() {
     });
   };
 
-  const getGenderTime = (gender: Gender) => {
+  const getCompleteGenderTime = (gender: Gender) => {
     const isMALE = gender === 'MALE';
     return {
       morningStartTime: isMALE
@@ -567,12 +572,45 @@ export default function Schedule() {
     };
   };
 
+  const getGenderPeriodTime = (
+    gender: Gender,
+    attendanceType: AttendanceType,
+    override?: PeriodTimeRange,
+  ) => {
+    if (override) {
+      return attendanceType === 'MORNING'
+        ? {
+            morningStartTime: override.startTime,
+            morningEndTime: override.endTime,
+          }
+        : {
+            nightStartTime: override.startTime,
+            nightEndTime: override.endTime,
+          };
+    }
+
+    const completeTime = getCompleteGenderTime(gender);
+    return attendanceType === 'MORNING'
+      ? {
+          morningStartTime: completeTime.morningStartTime,
+          morningEndTime: completeTime.morningEndTime,
+        }
+      : {
+          nightStartTime: completeTime.nightStartTime,
+          nightEndTime: completeTime.nightEndTime,
+        };
+  };
+
   const hasSchedule = (date: string, gender: Gender) => {
     const day = calendarDays.find((calendarDay) => calendarDay.fullDate === date);
     return gender === 'MALE' ? !!day?.maleSchedule : !!day?.femaleSchedule;
   };
 
-  const handleApplySchedules = async (genders: Gender[]) => {
+  const handleApplySchedules = async (
+    genders: Gender[],
+    attendanceType = activeSchedulePeriod,
+    override?: PeriodTimeRange,
+  ) => {
     if (selectedDates.length === 0) {
       showSelectDateAlert();
       return;
@@ -589,30 +627,37 @@ export default function Schedule() {
         : genders[0] === 'MALE'
           ? '남기숙사'
           : '여기숙사';
+    const periodName =
+      attendanceType === 'MORNING' ? '아침 퇴실' : '저녁 입실';
 
     setLoadingModal({
       isOpen: true,
-      title: `${genderName} 일정 적용 중...`,
+      title: `${genderName} ${periodName} 적용 중...`,
       current: 0,
       total,
       action: 'update',
     });
 
     const promises = genders.flatMap((gender) => {
-      const scheduleTimes = getGenderTime(gender);
+      const periodTime = getGenderPeriodTime(
+        gender,
+        attendanceType,
+        override,
+      );
 
       return selectedDates.map(async (date) => {
         const shouldUpdate = hasSchedule(date, gender);
 
         try {
           if (shouldUpdate) {
-            await scheduleService.updateSchedule(date, gender, scheduleTimes);
+            await scheduleService.updateSchedule(date, gender, periodTime);
             updatedCount++;
           } else {
             await scheduleService.createSchedule({
               date,
               gender,
-              ...scheduleTimes,
+              ...getCompleteGenderTime(gender),
+              ...periodTime,
             });
             createdCount++;
           }
@@ -640,7 +685,7 @@ export default function Schedule() {
 
     setConfirmModal({
       isOpen: true,
-      title: '적용 완료',
+      title: `${periodName} 적용 완료`,
       message: resultMessage,
       confirmText: '확인',
       onConfirm: () =>

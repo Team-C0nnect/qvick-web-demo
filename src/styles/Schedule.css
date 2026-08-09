@@ -261,6 +261,145 @@
   cursor: not-allowed;
 }
 
+.quick-schedule-apply {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px 16px;
+  margin-bottom: 12px;
+  padding: 14px;
+  border: 1px solid #ded7f1;
+  border-radius: 12px;
+  background:
+    linear-gradient(105deg, rgba(109, 35, 237, 0.07), transparent 34%),
+    #ffffff;
+  box-shadow: 0 4px 16px rgba(15, 15, 16, 0.04);
+}
+
+.quick-schedule-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quick-schedule-copy > span {
+  color: #6d23ed;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.quick-schedule-copy > strong {
+  color: #37343a;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.quick-schedule-actions {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.quick-schedule-actions > button {
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid #dedfe1;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #49464d;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.quick-schedule-actions > button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.quick-schedule-actions > button.morning:hover:not(:disabled) {
+  border-color: #e6c45b;
+  background: #fff9e8;
+}
+
+.quick-schedule-actions > button.night:hover:not(:disabled) {
+  border-color: #b9ace8;
+  background: #f7f4ff;
+}
+
+.quick-schedule-actions > button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.quick-schedule-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
+  border-radius: 8px;
+}
+
+.quick-schedule-actions > button.morning .quick-schedule-icon {
+  background: #ffedb1;
+  color: #b87500;
+}
+
+.quick-schedule-actions > button.night .quick-schedule-icon {
+  background: #e9e5ff;
+  color: #5744bd;
+}
+
+.quick-schedule-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.quick-schedule-actions > button > span:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quick-schedule-actions strong,
+.quick-schedule-actions small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-schedule-actions strong {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.quick-schedule-actions small {
+  color: #77747b;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.quick-schedule-apply > p {
+  grid-column: 2;
+  margin: -2px 0 0;
+  color: #858188;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .calendar-legend {
   min-height: 38px;
   display: flex;
@@ -1799,12 +1938,20 @@
 
   .quick-select-actions {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
   }
 
   .quick-select-btn {
     width: 100%;
+  }
+
+  .quick-schedule-apply {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-schedule-apply > p {
+    grid-column: 1;
   }
 
   .calendar-cell {
@@ -1897,6 +2044,10 @@
   }
 
   .quick-select-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-schedule-actions {
     grid-template-columns: 1fr;
   }
 

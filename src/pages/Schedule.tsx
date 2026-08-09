@@ -122,6 +122,32 @@ const WEEKDAY_END_MINUTE = '15';
 const SUNDAY_END_HOUR = '21';
 const SUNDAY_END_MINUTE = '10';
 
+const QUICK_PERIOD_PRESETS: Array<{
+  label: string;
+  description: string;
+  attendanceType: AttendanceType;
+  time: PeriodTimeRange;
+}> = [
+  {
+    label: '아침 퇴실 적용',
+    description: '06:50–08:05',
+    attendanceType: 'MORNING',
+    time: { startTime: '06:50', endTime: '08:05' },
+  },
+  {
+    label: '평일 입실 적용',
+    description: '16:00–22:15',
+    attendanceType: 'NIGHT',
+    time: { startTime: '16:00', endTime: '22:15' },
+  },
+  {
+    label: '일·공휴일 입실',
+    description: '16:00–21:10',
+    attendanceType: 'NIGHT',
+    time: { startTime: '16:00', endTime: '21:10' },
+  },
+];
+
 export default function Schedule() {
   const today = new Date();
   const todayStr = formatLocalDate(today);
@@ -487,6 +513,10 @@ export default function Schedule() {
     selectDateGroup('sunday', (day) => day.dayOfWeek === 0);
   };
 
+  const handleSelectAll = () => {
+    selectDateGroup('all', () => true);
+  };
+
   const handleSelectSchoolWeekdays = () => {
     selectDateGroup(
       'schoolWeekdays',
@@ -813,6 +843,9 @@ export default function Schedule() {
   const sundayDates = calendarDays
     .filter((day) => day.isCurrentMonth && day.dayOfWeek === 0)
     .map((day) => day.fullDate);
+  const allDates = calendarDays
+    .filter((day) => day.isCurrentMonth)
+    .map((day) => day.fullDate);
   const redDayDates = calendarDays
     .filter(
       (day) => day.isCurrentMonth && day.isRedDay && day.dayOfWeek <= 4,
@@ -828,6 +861,11 @@ export default function Schedule() {
     )
     .map((day) => day.fullDate);
   const selectedDateSet = new Set(selectedDates);
+  const isAllSelectionActive =
+    activeQuickSelection === 'all' &&
+    allDates.length > 0 &&
+    allDates.every((date) => selectedDateSet.has(date)) &&
+    selectedDates.length === allDates.length;
   const isSundaySelectionActive =
     activeQuickSelection === 'sunday' &&
     sundayDates.length > 0 &&
@@ -1031,6 +1069,17 @@ export default function Schedule() {
           <div className="quick-select-actions">
             <button
               type="button"
+              className={`quick-select-btn all ${
+                isAllSelectionActive ? 'active' : ''
+              }`}
+              onClick={handleSelectAll}
+              disabled={isLoading}
+              aria-pressed={isAllSelectionActive}
+            >
+              모두 선택
+            </button>
+            <button
+              type="button"
               className={`quick-select-btn sunday ${
                 isSundaySelectionActive ? 'active' : ''
               }`}
@@ -1063,6 +1112,50 @@ export default function Schedule() {
               월~목 전체
             </button>
           </div>
+        </div>
+
+        <div className="quick-schedule-apply">
+          <div className="quick-schedule-copy">
+            <span>빠른 적용</span>
+            <strong>
+              {selectedDates.length > 0
+                ? `선택한 ${selectedDates.length}일에 남·여 함께 적용`
+                : '먼저 날짜를 선택해주세요'}
+            </strong>
+          </div>
+          <div className="quick-schedule-actions">
+            {QUICK_PERIOD_PRESETS.map((preset) => (
+              <button
+                type="button"
+                key={`${preset.attendanceType}-${preset.label}`}
+                className={preset.attendanceType.toLowerCase()}
+                onClick={() =>
+                  handleApplySchedules(
+                    ['MALE', 'FEMALE'],
+                    preset.attendanceType,
+                    preset.time,
+                  )
+                }
+                disabled={selectedDates.length === 0 || loadingModal.isOpen}
+              >
+                <span className="quick-schedule-icon" aria-hidden="true">
+                  {preset.attendanceType === 'MORNING' ? (
+                    <SunIcon />
+                  ) : (
+                    <MoonIcon />
+                  )}
+                </span>
+                <span>
+                  <strong>{preset.label}</strong>
+                  <small>{preset.description}</small>
+                </span>
+              </button>
+            ))}
+          </div>
+          <p>
+            기존 일정은 선택한 시간대만 수정됩니다. 새 일정은 서버 규격에 따라
+            다른 시간대의 기본값도 함께 생성됩니다.
+          </p>
         </div>
 
         <div className="calendar-legend" aria-label="일정 표시 안내">

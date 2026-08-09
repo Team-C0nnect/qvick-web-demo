@@ -3,7 +3,7 @@
   min-height: 100%;
   padding: 32px 40px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 330px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   align-items: start;
   background: #fafafa;
@@ -13,10 +13,6 @@
 .calendar-container,
 .scheduler-panel {
   min-width: 0;
-}
-
-.schedule-page.no-selection-mode {
-  grid-template-columns: minmax(0, 1fr);
 }
 
 .schedule-page.no-selection-mode .scheduler-panel {
@@ -546,11 +542,8 @@
 
 .calendar-schedule-row {
   min-width: 0;
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  align-items: center;
-  gap: 4px;
-  padding: 5px;
+  display: block;
+  padding: 5px 7px;
   border-radius: 7px;
 }
 
@@ -562,25 +555,6 @@
 .calendar-schedule-row.female {
   background: rgba(237, 76, 164, 0.09);
   box-shadow: inset 2px 0 0 rgba(237, 76, 164, 0.58);
-}
-
-.calendar-gender-chip {
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-  border-radius: 5px;
-  background: #ffffff;
-  font-size: 9px;
-  font-weight: 900;
-}
-
-.calendar-schedule-row.male .calendar-gender-chip {
-  color: #0d73c9;
-}
-
-.calendar-schedule-row.female .calendar-gender-chip {
-  color: #c62f83;
 }
 
 .calendar-period-times {
@@ -615,33 +589,6 @@
   width: 10px;
   height: 10px;
   flex: 0 0 10px;
-}
-
-.schedule-page.has-selection .calendar-cell {
-  padding-right: 7px;
-  padding-left: 7px;
-}
-
-.schedule-page.has-selection .calendar-schedule-row {
-  grid-template-columns: 17px minmax(0, 1fr);
-  gap: 3px;
-  padding: 4px;
-}
-
-.schedule-page.has-selection .calendar-gender-chip {
-  width: 17px;
-  height: 17px;
-}
-
-.schedule-page.has-selection .calendar-period-time {
-  gap: 2px;
-  font-size: 8px;
-}
-
-.schedule-page.has-selection .calendar-period-icon {
-  width: 9px;
-  height: 9px;
-  flex-basis: 9px;
 }
 
 .schedule-tag {
@@ -689,8 +636,7 @@
 }
 
 .scheduler-panel {
-  position: sticky;
-  top: 84px;
+  position: static;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -967,6 +913,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: min(900px, 100%);
+  margin: 0 auto;
   padding: 12px;
   border-radius: 12px;
   background: #fbfbfc;
@@ -1013,6 +961,8 @@
   border: 1px solid #e3e3e5;
   border-radius: 9px;
   background: #ffffff;
+  width: min(420px, 100%);
+  align-self: center;
 }
 
 .editor-period-tabs button {
@@ -1046,8 +996,8 @@
 }
 
 .compact-editor-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
 }
 
@@ -1890,15 +1840,7 @@
   }
 
   .calendar-schedule-row {
-    grid-template-columns: 17px minmax(0, 1fr);
-    gap: 3px;
     padding: 4px;
-  }
-
-  .calendar-gender-chip {
-    width: 16px;
-    height: 16px;
-    font-size: 8px;
   }
 
   .calendar-period-time {
@@ -1928,6 +1870,10 @@
 
   .scheduler-panel {
     padding: 14px;
+  }
+
+  .compact-editor-list {
+    grid-template-columns: 1fr;
   }
 }
 

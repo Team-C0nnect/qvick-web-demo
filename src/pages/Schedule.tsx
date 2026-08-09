@@ -92,9 +92,6 @@ const renderCalendarSchedule = (
   gender: Gender,
 ) => (
   <div className={`calendar-schedule-row ${gender.toLowerCase()}`}>
-    <span className="calendar-gender-chip">
-      {gender === 'MALE' ? '남' : '여'}
-    </span>
     <span className="calendar-period-times">
       <span className="calendar-period-time morning">
         <SunIcon className="calendar-period-icon" />

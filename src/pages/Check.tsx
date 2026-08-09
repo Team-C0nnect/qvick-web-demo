@@ -83,13 +83,10 @@ const STATUS_MAP: Record<DisplayAttendanceStatus, AttendanceStatus> = {
 
 const getPrimaryAttendanceStatus = (
   attendance: AttendanceResponse,
-): AttendanceStatus | undefined =>
-  attendance.nightCheckStatus ??
-  attendance.status ??
-  attendance.morningCheckStatus;
+): AttendanceStatus => attendance.nightCheckStatus;
 
 const getPrimaryCheckedAt = (attendance: AttendanceResponse): string | undefined =>
-  attendance.nightCheckedAt ?? attendance.checkedAt ?? attendance.morningCheckedAt;
+  attendance.nightCheckedAt;
 
 const getNightAttendanceDisplayStatus = (
   status: boolean | null | undefined,

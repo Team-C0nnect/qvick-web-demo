@@ -12,10 +12,7 @@ import '../styles/Dashboard.css';
 
 const getAttendanceStatus = (
   attendance: AttendanceResponse,
-): AttendanceStatus | undefined =>
-  attendance.nightCheckStatus ??
-  attendance.status ??
-  attendance.morningCheckStatus;
+): AttendanceStatus => attendance.nightCheckStatus;
 
 export default function Dashboard() {
   const today = new Date().toISOString().split('T')[0];

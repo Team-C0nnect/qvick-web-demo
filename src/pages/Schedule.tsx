@@ -28,13 +28,11 @@ const TIME_PATTERN = /^(\d{1,2}):(\d{2})/;
 
 const getScheduleStartTime = (
   schedule?: AttendanceScheduleResponse,
-): string | undefined =>
-  schedule?.startTime ?? schedule?.nightStartTime ?? schedule?.morningStartTime;
+): string | undefined => schedule?.nightStartTime;
 
 const getScheduleEndTime = (
   schedule?: AttendanceScheduleResponse,
-): string | undefined =>
-  schedule?.endTime ?? schedule?.nightEndTime ?? schedule?.morningEndTime;
+): string | undefined => schedule?.nightEndTime;
 
 const splitScheduleTime = (time?: string) => {
   const match = time?.match(TIME_PATTERN);
@@ -475,16 +473,16 @@ export default function Schedule() {
         try {
           if (shouldUpdate) {
             await scheduleService.updateSchedule(date, gender, {
-              startTime,
-              endTime,
+              nightStartTime: startTime,
+              nightEndTime: endTime,
             });
             updatedCount++;
           } else {
             await scheduleService.createSchedule({
               date,
               gender,
-              startTime,
-              endTime,
+              nightStartTime: startTime,
+              nightEndTime: endTime,
             });
             createdCount++;
           }

@@ -13,7 +13,7 @@ export async function authenticatedFetch(
 ): Promise<Response> {
   const response = await fetch(
     input,
-    withAccessToken(init, localStorage.getItem('accessToken')),
+    withAccessToken(init, sessionStorage.getItem('accessToken')),
   );
 
   if (response.status !== 401) return response;

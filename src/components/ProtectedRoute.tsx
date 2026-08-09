@@ -5,11 +5,11 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const accessToken = localStorage.getItem('accessToken');
+  const accessToken = sessionStorage.getItem('accessToken');
 
   if (!accessToken || accessToken === 'demo-token') {
     if (accessToken === 'demo-token') {
-      localStorage.removeItem('accessToken');
+      sessionStorage.removeItem('accessToken');
     }
     return <Navigate to="/login" replace />;
   }

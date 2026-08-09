@@ -12,8 +12,8 @@ if (!envApiBaseUrl) {
 const API_BASE_URL = (envApiBaseUrl || DEFAULT_API_BASE_URL).replace(/\/$/, '');
 
 export const clearAuthTokens = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
+  sessionStorage.removeItem('accessToken');
+  sessionStorage.removeItem('refreshToken');
 };
 
 let refreshPromise: Promise<string> | null = null;
@@ -22,7 +22,7 @@ export const refreshAccessToken = async (): Promise<string> => {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = sessionStorage.getItem('refreshToken');
     if (!refreshToken) throw new Error('Refresh token is missing');
 
     const response = await axios.post(`${API_BASE_URL}/auth/reissue`, {
@@ -34,8 +34,8 @@ export const refreshAccessToken = async (): Promise<string> => {
       throw new Error('Token reissue response is invalid');
     }
 
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', newRefreshToken);
+    sessionStorage.setItem('accessToken', accessToken);
+    sessionStorage.setItem('refreshToken', newRefreshToken);
     return accessToken as string;
   })().finally(() => {
     refreshPromise = null;
@@ -54,7 +54,7 @@ export const apiClient = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }

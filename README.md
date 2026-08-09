@@ -28,8 +28,8 @@ npm run build
 ## 🔐 인증 시스템
 
 ### 자동 토큰 관리
-- **Access Token**: localStorage에 저장
-- **Refresh Token**: localStorage에 저장
+- **Access Token**: 현재 탭의 sessionStorage에 저장
+- **Refresh Token**: 현재 탭의 sessionStorage에 저장
 - **자동 갱신**: 401 에러 시 자동으로 토큰 재발급
 - **보호된 라우트**: 로그인하지 않은 사용자는 자동으로 /login으로 리다이렉트
 

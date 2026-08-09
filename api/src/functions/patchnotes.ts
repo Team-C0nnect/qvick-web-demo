@@ -3,9 +3,70 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { getFirestore, admin } from "../lib/firebase-admin";
 import { requireRoles } from "../lib/auth";
-import type { PatchNote, CreatePatchNoteRequest, UpdatePatchNoteRequest } from "../types/patchnote";
+import {
+  readJsonBody,
+  RequestValidationError,
+  validationErrorResponse,
+} from "../lib/request-security";
+import type {
+  PatchNote,
+  PatchNoteCategory,
+  PatchNoteImage,
+  PatchNoteVisibility,
+  UpdatePatchNoteRequest,
+} from "../types/patchnote";
 
 const COLLECTION_NAME = 'patchnotes';
+const PATCHNOTE_BODY_LIMIT_BYTES = 900 * 1024;
+const PATCHNOTE_CATEGORIES: PatchNoteCategory[] = ['feature', 'improvement', 'bugfix', 'notice'];
+const PATCHNOTE_VISIBILITIES: PatchNoteVisibility[] = ['public', 'teacher'];
+const SAFE_DATA_IMAGE_PATTERN =
+  /^data:image\/(?:png|jpeg|gif|webp);base64,[a-z0-9+/=\s]+$/i;
+
+function validateRequiredText(value: unknown, fieldName: string, maxLength: number): string {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new RequestValidationError(`${fieldName} 항목이 필요합니다.`);
+  }
+  const trimmed = value.trim();
+  if (trimmed.length > maxLength) {
+    throw new RequestValidationError(`${fieldName} 항목이 너무 깁니다.`);
+  }
+  return trimmed;
+}
+
+function validateImages(value: unknown): PatchNoteImage[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > 5) {
+    throw new RequestValidationError('이미지는 최대 5개까지 첨부할 수 있습니다.');
+  }
+
+  return value.map((image) => {
+    if (!image || typeof image !== 'object') {
+      throw new RequestValidationError('이미지 정보가 올바르지 않습니다.');
+    }
+
+    const candidate = image as Partial<PatchNoteImage>;
+    const id = validateRequiredText(candidate.id, '이미지 ID', 100);
+    const url = validateRequiredText(candidate.url, '이미지 URL', PATCHNOTE_BODY_LIMIT_BYTES);
+    const alt = validateRequiredText(candidate.alt, '이미지 설명', 200);
+    const caption = candidate.caption === undefined
+      ? undefined
+      : validateRequiredText(candidate.caption, '이미지 캡션', 500);
+
+    if (!/^[A-Za-z0-9_-]+$/.test(id)) {
+      throw new RequestValidationError('이미지 ID 형식이 올바르지 않습니다.');
+    }
+    if (!/^https:\/\//i.test(url) && !SAFE_DATA_IMAGE_PATTERN.test(url)) {
+      throw new RequestValidationError('이미지 URL 형식이 올바르지 않습니다.');
+    }
+
+    return { id, url, alt, caption };
+  });
+}
+
+function isValidDocumentId(id: string | null): id is string {
+  return Boolean(id && /^[A-Za-z0-9_-]{1,128}$/.test(id));
+}
 
 // CORS 헤더
 const corsHeaders = {
@@ -145,7 +206,7 @@ export async function getPatchnoteById(request: HttpRequest, context: Invocation
 
   try {
     const id = request.query.get('id');
-    if (!id) {
+    if (!isValidDocumentId(id)) {
       return {
         status: 400,
         headers: corsHeaders,
@@ -210,15 +271,26 @@ export async function createPatchnote(request: HttpRequest, context: InvocationC
   if ('response' in auth) return auth.response;
 
   try {
-    const body = await request.json() as CreatePatchNoteRequest;
-    const { title, content, version, category, visibility = 'public', images = [] } = body;
+    const rawBody = await readJsonBody<unknown>(request, PATCHNOTE_BODY_LIMIT_BYTES);
+    if (!rawBody || typeof rawBody !== 'object') {
+      throw new RequestValidationError('요청 본문이 올바르지 않습니다.');
+    }
+    const body = rawBody as Record<string, unknown>;
+    const title = validateRequiredText(body.title, '제목', 200);
+    const content = validateRequiredText(body.content, '내용', 100_000);
+    const version = validateRequiredText(body.version, '버전', 50);
+    const category = body.category;
+    const visibility = body.visibility ?? 'public';
+    const images = validateImages(body.images);
 
-    if (!title || !content || !version || !category) {
-      return {
-        status: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: '필수 필드가 누락되었습니다.' }),
-      };
+    if (!PATCHNOTE_CATEGORIES.includes(category as PatchNoteCategory)) {
+      throw new RequestValidationError('패치노트 분류가 올바르지 않습니다.');
+    }
+    if (!PATCHNOTE_VISIBILITIES.includes(visibility as PatchNoteVisibility)) {
+      throw new RequestValidationError('공개 범위가 올바르지 않습니다.');
+    }
+    if (!/^[0-9A-Za-z._-]+$/.test(version)) {
+      throw new RequestValidationError('버전 형식이 올바르지 않습니다.');
     }
 
     const db = getFirestore();
@@ -228,8 +300,8 @@ export async function createPatchnote(request: HttpRequest, context: InvocationC
       title,
       content,
       version,
-      category,
-      visibility,
+      category: category as PatchNoteCategory,
+      visibility: visibility as PatchNoteVisibility,
       images,
       status: 'draft',
       createdAt: now,
@@ -250,6 +322,9 @@ export async function createPatchnote(request: HttpRequest, context: InvocationC
       }),
     };
   } catch (error) {
+    const validationResponse = validationErrorResponse(error);
+    if (validationResponse) return { ...validationResponse, headers: corsHeaders };
+
     context.error('패치노트 생성 실패:', error);
     return {
       status: 500,
@@ -278,7 +353,7 @@ export async function updatePatchnote(request: HttpRequest, context: InvocationC
 
   try {
     const id = request.query.get('id');
-    if (!id) {
+    if (!isValidDocumentId(id)) {
       return {
         status: 400,
         headers: corsHeaders,
@@ -286,7 +361,11 @@ export async function updatePatchnote(request: HttpRequest, context: InvocationC
       };
     }
 
-    const body = await request.json() as UpdatePatchNoteRequest;
+    const rawBody = await readJsonBody<unknown>(request, PATCHNOTE_BODY_LIMIT_BYTES);
+    if (!rawBody || typeof rawBody !== 'object') {
+      throw new RequestValidationError('요청 본문이 올바르지 않습니다.');
+    }
+    const body = rawBody as UpdatePatchNoteRequest;
     const db = getFirestore();
     const docRef = db.collection(COLLECTION_NAME).doc(id);
     const docSnap = await docRef.get();
@@ -299,10 +378,38 @@ export async function updatePatchnote(request: HttpRequest, context: InvocationC
       };
     }
 
-    const updateData = {
-      ...body,
+    const updateData: Record<string, unknown> = {
       updatedAt: admin.firestore.Timestamp.now(),
     };
+
+    if (body.title !== undefined) {
+      updateData.title = validateRequiredText(body.title, '제목', 200);
+    }
+    if (body.content !== undefined) {
+      updateData.content = validateRequiredText(body.content, '내용', 100_000);
+    }
+    if (body.version !== undefined) {
+      const version = validateRequiredText(body.version, '버전', 50);
+      if (!/^[0-9A-Za-z._-]+$/.test(version)) {
+        throw new RequestValidationError('버전 형식이 올바르지 않습니다.');
+      }
+      updateData.version = version;
+    }
+    if (body.category !== undefined) {
+      if (!PATCHNOTE_CATEGORIES.includes(body.category)) {
+        throw new RequestValidationError('패치노트 분류가 올바르지 않습니다.');
+      }
+      updateData.category = body.category;
+    }
+    if (body.visibility !== undefined) {
+      if (!PATCHNOTE_VISIBILITIES.includes(body.visibility)) {
+        throw new RequestValidationError('공개 범위가 올바르지 않습니다.');
+      }
+      updateData.visibility = body.visibility;
+    }
+    if (body.images !== undefined) {
+      updateData.images = validateImages(body.images);
+    }
 
     await docRef.update(updateData);
     
@@ -313,6 +420,9 @@ export async function updatePatchnote(request: HttpRequest, context: InvocationC
       body: JSON.stringify(docToPatchNote(updated.id, updated.data()!)),
     };
   } catch (error) {
+    const validationResponse = validationErrorResponse(error);
+    if (validationResponse) return { ...validationResponse, headers: corsHeaders };
+
     context.error('패치노트 수정 실패:', error);
     return {
       status: 500,
@@ -341,7 +451,7 @@ export async function deletePatchnote(request: HttpRequest, context: InvocationC
 
   try {
     const id = request.query.get('id');
-    if (!id) {
+    if (!isValidDocumentId(id)) {
       return {
         status: 400,
         headers: corsHeaders,
@@ -397,7 +507,7 @@ export async function publishPatchnote(request: HttpRequest, context: Invocation
 
   try {
     const id = request.query.get('id');
-    if (!id) {
+    if (!isValidDocumentId(id)) {
       return {
         status: 400,
         headers: corsHeaders,
@@ -459,7 +569,7 @@ export async function unpublishPatchnote(request: HttpRequest, context: Invocati
 
   try {
     const id = request.query.get('id');
-    if (!id) {
+    if (!isValidDocumentId(id)) {
       return {
         status: 400,
         headers: corsHeaders,

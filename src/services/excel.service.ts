@@ -1,4 +1,6 @@
 import * as XLSX from 'xlsx-js-style';
+import type { AttendanceType } from '../types/api';
+import { formatLocalDate } from '../utils/date';
 
 // 병합된 출석 데이터 인터페이스
 export interface MergedAttendanceMember {
@@ -12,6 +14,20 @@ export interface MergedAttendanceMember {
 }
 
 export type AttendanceExportMode = 'all' | 'absent' | 'sleepover';
+
+const getAttendancePeriodLabel = (attendanceType: AttendanceType) =>
+  attendanceType === 'MORNING' ? '아침 퇴실' : '저녁 입실';
+
+const getAttendanceStatusLabels = (attendanceType: AttendanceType) =>
+  attendanceType === 'MORNING'
+    ? { complete: '퇴실 완료', absent: '미퇴실', late: '지연 퇴실' }
+    : { complete: '입실 완료', absent: '미입실', late: '지연 입실' };
+
+const formatKoreanDate = (dateString: string) => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return `${year}년 ${month}월 ${day}일 ${DAY_NAMES[date.getDay()]}요일`;
+};
 
 // xlsx-js-style Border 타입
 interface Border {
@@ -95,14 +111,28 @@ export const exportMergedAttendanceToExcel = (
   data: MergedAttendanceMember[],
   gender?: '남' | '여' | null,
   exportMode: AttendanceExportMode = 'all',
+  attendanceType: AttendanceType = 'NIGHT',
+  attendanceDate = formatLocalDate(),
 ) => {
   const workbook = XLSX.utils.book_new();
 
   if (exportMode === 'absent') {
-    const worksheet = createAbsentOnlyWorksheet(data);
-    XLSX.utils.book_append_sheet(workbook, worksheet, '미출석자');
+    const worksheet = createAbsentOnlyWorksheet(
+      data,
+      attendanceType,
+      attendanceDate,
+    );
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      attendanceType === 'MORNING' ? '미퇴실자' : '미입실자',
+    );
   } else if (exportMode === 'sleepover') {
-    const worksheet = createSleepoverOnlyWorksheet(data);
+    const worksheet = createSleepoverOnlyWorksheet(
+      data,
+      attendanceType,
+      attendanceDate,
+    );
     XLSX.utils.book_append_sheet(workbook, worksheet, '외박자');
   } else {
     // 전체인 경우 기존 레이아웃
@@ -113,24 +143,27 @@ export const exportMergedAttendanceToExcel = (
     const pageGroups = definePageGroups(roomOrder, floors);
 
     pageGroups.forEach((group) => {
-      const worksheet = createWorksheet(group, roomMap);
+      const worksheet = createWorksheet(group, roomMap, attendanceType);
       XLSX.utils.book_append_sheet(workbook, worksheet, group.name);
     });
   }
 
   // 현재 날짜로 파일명 생성
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const dateStr = attendanceDate;
   const genderLabel = gender === '남' ? '_남' : gender === '여' ? '_여' : '';
+  const attendanceTypeLabel =
+    attendanceType === 'MORNING' ? '_아침퇴실' : '_저녁입실';
   const exportModeLabel =
     exportMode === 'absent'
-      ? '_미출석명단'
+      ? attendanceType === 'MORNING'
+        ? '_미퇴실명단'
+        : '_미입실명단'
       : exportMode === 'sleepover'
         ? '_외박자명단'
         : '';
   XLSX.writeFile(
     workbook,
-    `기숙사_출석부_${dateStr}${genderLabel}${exportModeLabel}.xlsx`,
+    `기숙사_출석부_${dateStr}${genderLabel}${attendanceTypeLabel}${exportModeLabel}.xlsx`,
   );
 };
 
@@ -239,6 +272,8 @@ function isLateAttendance(timeStr: string, endTime?: string): boolean {
 
 function createAbsentOnlyWorksheet(
   data: MergedAttendanceMember[],
+  attendanceType: AttendanceType,
+  attendanceDate: string,
 ): XLSX.WorkSheet {
   const absentMembers = [...data].sort((a, b) => {
     const aRoomNum = parseInt(a.room.replace(/\D/g, '')) || 0;
@@ -247,10 +282,11 @@ function createAbsentOnlyWorksheet(
     return a.stdId.localeCompare(b.stdId);
   });
 
-  const today = new Date();
-  const dateText = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 ${DAY_NAMES[today.getDay()]}요일`;
+  const dateText = formatKoreanDate(attendanceDate);
+  const periodLabel = getAttendancePeriodLabel(attendanceType);
+  const { absent } = getAttendanceStatusLabels(attendanceType);
   const aoa: (string | number)[][] = [
-    ['저녁 점호 미출석자 명단', '', '', '', '', '', ''],
+    [`${periodLabel} ${absent} 명단`, '', '', '', '', '', ''],
     [dateText, '', '', '', `총 ${absentMembers.length}명`, '', ''],
     ['', '', '', '', '', '', ''],
     ['번호', '호실', '학번', '성명', '상태', '확인', '비고'],
@@ -263,7 +299,7 @@ function createAbsentOnlyWorksheet(
   ];
 
   absentMembers.forEach((member, index) => {
-    aoa.push([index + 1, member.room, member.stdId, member.name, '미출석', '', '']);
+    aoa.push([index + 1, member.room, member.stdId, member.name, absent, '', '']);
   });
 
   const footerStartRow = aoa.length + 1;
@@ -358,6 +394,8 @@ function createAbsentOnlyWorksheet(
 
 function createSleepoverOnlyWorksheet(
   data: MergedAttendanceMember[],
+  attendanceType: AttendanceType,
+  attendanceDate: string,
 ): XLSX.WorkSheet {
   const sleepoverMembers = [...data].sort((a, b) => {
     const aRoomNum = parseInt(a.room.replace(/\D/g, '')) || 0;
@@ -366,10 +404,10 @@ function createSleepoverOnlyWorksheet(
     return a.stdId.localeCompare(b.stdId);
   });
 
-  const today = new Date();
-  const dateText = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 ${DAY_NAMES[today.getDay()]}요일`;
+  const dateText = formatKoreanDate(attendanceDate);
+  const periodLabel = getAttendancePeriodLabel(attendanceType);
   const aoa: (string | number)[][] = [
-    ['저녁 점호 외박자 명단', '', '', '', '', ''],
+    [`${periodLabel} 외박자 명단`, '', '', '', '', ''],
     [dateText, '', '', `총 ${sleepoverMembers.length}명`, '', ''],
     ['', '', '', '', '', ''],
     ['번호', '호실', '학번', '성명', '상태', '비고'],
@@ -480,10 +518,13 @@ function createSleepoverOnlyWorksheet(
 function createWorksheet(
   group: PageGroup,
   roomMap: Record<string, MergedAttendanceMember[]>,
+  attendanceType: AttendanceType,
 ): XLSX.WorkSheet {
+  const periodLabel = getAttendancePeriodLabel(attendanceType);
+  const statusLabels = getAttendanceStatusLabels(attendanceType);
   const aoa: (string | number)[][] = [
-    ['저녁 점호 체크리스트', '', '', '', ''],
-    ['호실', '학번', '성명', '출석 여부', '비고'],
+    [`${periodLabel} 체크리스트`, '', '', '', ''],
+    ['호실', '학번', '성명', '확인 상태', '비고'],
   ];
 
   const merges: XLSX.Range[] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
@@ -516,12 +557,12 @@ function createWorksheet(
           attendance = '외박';
         } else if (member.isLate) {
           attendance = member.checkedDate
-            ? `지연(${member.checkedDate})`
-            : '지연출석';
+            ? `${statusLabels.late}(${member.checkedDate})`
+            : statusLabels.late;
         } else if (member.checked) {
-          attendance = member.checkedDate || '출석';
+          attendance = member.checkedDate || statusLabels.complete;
         } else {
-          attendance = '미출석';
+          attendance = statusLabels.absent;
         }
       }
 

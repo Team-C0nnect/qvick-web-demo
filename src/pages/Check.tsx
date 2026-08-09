@@ -267,6 +267,16 @@ export default function Check() {
   );
   const excelMenuRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const queryAttendanceType = searchParams.get('attendanceType');
+    if (
+      (queryAttendanceType === 'MORNING' || queryAttendanceType === 'NIGHT') &&
+      queryAttendanceType !== attendanceType
+    ) {
+      setAttendanceType(queryAttendanceType);
+    }
+  }, [attendanceType, searchParams]);
+
   // 바깥 클릭 시 메뉴 닫기
   useEffect(() => {
     if (!showExcelMenu) return;

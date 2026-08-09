@@ -4,7 +4,6 @@ import type {
   InvocationContext,
 } from '@azure/functions';
 
-const DEFAULT_QVICK_API_BASE_URL = 'https://devapi.qvick.xyz';
 const AUTH_TIMEOUT_MS = 5_000;
 
 export type QvickRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | 'MANAGER';
@@ -27,8 +26,18 @@ function jsonResponse(status: number, message: string): HttpResponseInit {
   };
 }
 
-function getApiBaseUrl(): string {
-  return (process.env.QVICK_API_BASE_URL || DEFAULT_QVICK_API_BASE_URL).replace(/\/$/, '');
+function getApiBaseUrl(): string | null {
+  const configuredUrl = process.env.QVICK_API_BASE_URL?.trim();
+  if (!configuredUrl) return null;
+
+  try {
+    const url = new URL(configuredUrl);
+    const isLocalDevelopment = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    if (url.protocol !== 'https:' && !isLocalDevelopment) return null;
+    return url.toString().replace(/\/$/, '');
+  } catch {
+    return null;
+  }
 }
 
 function isAuthenticatedUser(value: unknown): value is AuthenticatedUser {
@@ -57,8 +66,17 @@ export async function requireRoles(
     };
   }
 
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) {
+    context.error('QVICK_API_BASE_URL 환경변수가 올바르게 설정되지 않았습니다.');
+    return {
+      authorized: false,
+      response: jsonResponse(503, '인증 서버 설정을 확인할 수 없습니다.'),
+    };
+  }
+
   try {
-    const response = await fetch(`${getApiBaseUrl()}/users/my`, {
+    const response = await fetch(`${apiBaseUrl}/users/my`, {
       headers: { Authorization: authorization },
       signal: AbortSignal.timeout(AUTH_TIMEOUT_MS),
     });

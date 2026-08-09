@@ -62,9 +62,10 @@ npm install -g azure-functions-core-tools@4 --unsafe-perm true
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "",
-    "FUNCTIONS_WORKER_RUNTIME": "node",
-    "OPENAI_API_KEY": "sk-your-actual-openai-api-key"
+      "AzureWebJobsStorage": "",
+      "FUNCTIONS_WORKER_RUNTIME": "node",
+      "OPENAI_API_KEY": "sk-your-actual-openai-api-key",
+      "QVICK_API_BASE_URL": "https://devapi.qvick.xyz"
   },
   "Host": {
     "CORS": "*",

@@ -1,6 +1,5 @@
 import apiClient from '../lib/api-client';
 import type { LoginRequest, JwtPayload, MyUserResponse, ReissueRequest } from '../types/api';
-import { legacyAttendanceService } from './legacy-attendance.service';
 
 export const STUDENT_LOGIN_DENIED_MESSAGE = 'STUDENT_LOGIN_DENIED';
 
@@ -18,12 +17,7 @@ export const authService = {
     if (userResponse.data.roles?.includes('STUDENT')) {
       throw new Error(STUDENT_LOGIN_DENIED_MESSAGE);
     }
-    
-    // 신버전 로그인 성공 시 구버전에도 자동 로그인
-    legacyAttendanceService.login().catch((err) => {
-      console.warn('Legacy login failed:', err);
-    });
-    
+
     return tokens;
   },
 

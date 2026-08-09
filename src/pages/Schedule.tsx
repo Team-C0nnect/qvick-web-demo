@@ -5,7 +5,11 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import '../styles/Schedule.css';
 import { CalendarIcon, MoonIcon, SunIcon } from '../components/Icons';
 import { getKoreanHolidayName } from '../constants/koreanHolidays';
-import type { AttendanceScheduleResponse, Gender } from '../types/api';
+import type {
+  AttendanceScheduleResponse,
+  AttendanceType,
+  Gender,
+} from '../types/api';
 import { formatLocalDate } from '../utils/date';
 
 interface CalendarDay {
@@ -74,16 +78,35 @@ const formatMorningScheduleRange = (
   return `${formatTime(schedule.morningStartTime)}${separator}${formatTime(schedule.morningEndTime)}`;
 };
 
-const formatScheduleSummary = (schedule?: AttendanceScheduleResponse) => {
-  const morningStart = schedule?.morningStartTime
-    ? formatTime(schedule.morningStartTime)
-    : '--:--';
-  const nightStart = schedule?.nightStartTime
-    ? formatTime(schedule.nightStartTime)
-    : '--:--';
+const formatPeriodScheduleRange = (
+  schedule: AttendanceScheduleResponse | undefined,
+  attendanceType: AttendanceType,
+  separator = '–',
+) =>
+  attendanceType === 'MORNING'
+    ? formatMorningScheduleRange(schedule, separator)
+    : formatScheduleRange(schedule, separator);
 
-  return `☀ ${morningStart} · ☾ ${nightStart}`;
-};
+const renderCalendarSchedule = (
+  schedule: AttendanceScheduleResponse,
+  gender: Gender,
+) => (
+  <div className={`calendar-schedule-row ${gender.toLowerCase()}`}>
+    <span className="calendar-gender-chip">
+      {gender === 'MALE' ? '남' : '여'}
+    </span>
+    <span className="calendar-period-times">
+      <span className="calendar-period-time morning">
+        <SunIcon className="calendar-period-icon" />
+        {formatMorningScheduleRange(schedule, '–')}
+      </span>
+      <span className="calendar-period-time night">
+        <MoonIcon className="calendar-period-icon" />
+        {formatScheduleRange(schedule, '–')}
+      </span>
+    </span>
+  </div>
+);
 
 // 기본 시간 상수
 const MORNING_START_HOUR = '06';
@@ -103,6 +126,8 @@ export default function Schedule() {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [activeSchedulePeriod, setActiveSchedulePeriod] =
+    useState<AttendanceType>('MORNING');
   const [activeQuickSelection, setActiveQuickSelection] =
     useState<QuickSelectionMode | null>(null);
 
@@ -708,12 +733,6 @@ export default function Schedule() {
   const formatTimeInputValue = (hour: string, minute: string) =>
     `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
 
-  const formatManualTimeValue = (hour: string, minute: string) => {
-    if (!hour && !minute) return '';
-    if (hour.length < 2 && !minute) return hour;
-    return `${hour}:${minute}`;
-  };
-
   const setTimeValue = (
     time: string,
     setHour: (value: string) => void,
@@ -724,75 +743,25 @@ export default function Schedule() {
     setMinute(minute);
   };
 
-  const handleManualTimeChange = (
-    value: string,
-    setHour: (value: string) => void,
-    setMinute: (value: string) => void,
-  ) => {
-    const normalized = value.replace(/[^\d:]/g, '').slice(0, 5);
-    const [rawHour = '', rawMinute = ''] = normalized.includes(':')
-      ? normalized.split(':')
-      : [normalized.slice(0, 2), normalized.slice(2, 4)];
-    const hour = rawHour.slice(0, 2);
-    const minute = rawMinute.slice(0, 2);
-
-    setHour(hour);
-    setMinute(minute);
-  };
-
-  const normalizeManualTime = (
-    hour: string,
-    minute: string,
-    setHour: (value: string) => void,
-    setMinute: (value: string) => void,
-  ) => {
-    const nextHour = Math.min(23, Math.max(0, Number(hour) || 0));
-    const nextMinute = Math.min(59, Math.max(0, Number(minute) || 0));
-    setHour(String(nextHour).padStart(2, '0'));
-    setMinute(String(nextMinute).padStart(2, '0'));
-  };
-
-  const renderTimeControl = (
+  const renderCompactTimeInput = (
     label: string,
     hour: string,
     minute: string,
     setHour: (value: string) => void,
     setMinute: (value: string) => void,
-    presets?: string[],
-  ) => {
-    const timePresets =
-      presets ?? (label.includes('시작') ? ['16:00'] : ['21:10', '22:15']);
-
-    return (
-      <div className="time-control" aria-label={label}>
-        <input
-          className="time-manual-input"
-          value={formatManualTimeValue(hour, minute)}
-          inputMode="numeric"
-          placeholder="HH:MM"
-          onChange={(event) =>
-            handleManualTimeChange(event.target.value, setHour, setMinute)
-          }
-          onBlur={() => normalizeManualTime(hour, minute, setHour, setMinute)}
-          aria-label={`${label} 직접 입력`}
-        />
-        <div className="time-preset-row">
-          {timePresets.map((time) => (
-            <button
-              key={time}
-              type="button"
-              className={`time-preset-btn ${
-                formatTimeInputValue(hour, minute) === time ? 'active' : ''
-              }`}
-              onClick={() => setTimeValue(time, setHour, setMinute)}
-            >
-              {time}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
+  ) => (
+    <label className="compact-time-field">
+      <span>{label}</span>
+      <input
+        type="time"
+        value={formatTimeInputValue(hour, minute)}
+        onChange={(event) =>
+          setTimeValue(event.target.value, setHour, setMinute)
+        }
+        aria-label={label}
+      />
+    </label>
+  );
 
   const formatDisplayDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split('-');
@@ -838,6 +807,116 @@ export default function Schedule() {
       : selectedDates.length === 1
         ? formatDisplayDate(selectedDates[0])
         : `${selectedDates.length}일 선택됨`;
+
+  const renderDormitoryEditor = (gender: Gender) => {
+    const isMale = gender === 'MALE';
+    const schedule = isMale
+      ? selectedDayData?.maleSchedule
+      : selectedDayData?.femaleSchedule;
+    const isMorning = activeSchedulePeriod === 'MORNING';
+    const draft = isMorning
+      ? isMale
+        ? {
+            startHour: maleMorningStartHour,
+            startMinute: maleMorningStartMinute,
+            endHour: maleMorningEndHour,
+            endMinute: maleMorningEndMinute,
+            setStartHour: setMaleMorningStartHour,
+            setStartMinute: setMaleMorningStartMinute,
+            setEndHour: setMaleMorningEndHour,
+            setEndMinute: setMaleMorningEndMinute,
+          }
+        : {
+            startHour: femaleMorningStartHour,
+            startMinute: femaleMorningStartMinute,
+            endHour: femaleMorningEndHour,
+            endMinute: femaleMorningEndMinute,
+            setStartHour: setFemaleMorningStartHour,
+            setStartMinute: setFemaleMorningStartMinute,
+            setEndHour: setFemaleMorningEndHour,
+            setEndMinute: setFemaleMorningEndMinute,
+          }
+      : isMale
+        ? {
+            startHour: maleStartHour,
+            startMinute: maleStartMinute,
+            endHour: maleEndHour,
+            endMinute: maleEndMinute,
+            setStartHour: setMaleStartHour,
+            setStartMinute: setMaleStartMinute,
+            setEndHour: setMaleEndHour,
+            setEndMinute: setMaleEndMinute,
+          }
+        : {
+            startHour: femaleStartHour,
+            startMinute: femaleStartMinute,
+            endHour: femaleEndHour,
+            endMinute: femaleEndMinute,
+            setStartHour: setFemaleStartHour,
+            setStartMinute: setFemaleStartMinute,
+            setEndHour: setFemaleEndHour,
+            setEndMinute: setFemaleEndMinute,
+          };
+
+    return (
+      <div className={`compact-schedule-editor ${isMale ? 'male' : 'female'}`}>
+        <div className="compact-editor-heading">
+          <span className={`gender-badge ${isMale ? 'male' : 'female'}`}>
+            {isMale ? '남기숙사' : '여기숙사'}
+          </span>
+          {selectedDates.length === 1 && schedule && (
+            <small>
+              현재{' '}
+              {formatPeriodScheduleRange(
+                schedule,
+                activeSchedulePeriod,
+                '–',
+              )}
+            </small>
+          )}
+        </div>
+
+        <div className="compact-editor-controls">
+          <div className="compact-time-range">
+            {renderCompactTimeInput(
+              '시작 시간',
+              draft.startHour,
+              draft.startMinute,
+              draft.setStartHour,
+              draft.setStartMinute,
+            )}
+            <span className="compact-time-separator">–</span>
+            {renderCompactTimeInput(
+              '종료 시간',
+              draft.endHour,
+              draft.endMinute,
+              draft.setEndHour,
+              draft.setEndMinute,
+            )}
+          </div>
+
+          <div className="compact-editor-actions">
+            <button
+              className="row-apply-btn"
+              onClick={() => handleApplySchedules([gender])}
+              disabled={loadingModal.isOpen}
+            >
+              적용
+            </button>
+            <button
+              className="row-delete-btn"
+              onClick={() => handleDeleteSchedules(gender)}
+              disabled={loadingModal.isOpen}
+              title="선택한 날짜의 아침·저녁 일정을 모두 삭제합니다."
+            >
+              삭제
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // 스켈레톤 캘린더 그리드 생성 (42개 셀)
   const renderSkeletonCalendar = () => (
     <div className="calendar-grid">
@@ -854,7 +933,11 @@ export default function Schedule() {
   );
 
   return (
-    <div className="schedule-page">
+    <div
+      className={`schedule-page ${
+        selectedDates.length === 0 ? 'no-selection-mode' : 'has-selection'
+      }`}
+    >
       <div className="calendar-container">
         {schedulesError && (
           <div className="schedule-error" role="alert">
@@ -940,6 +1023,18 @@ export default function Schedule() {
           </div>
         </div>
 
+        <div className="calendar-legend" aria-label="일정 표시 안내">
+          <span className="legend-period morning">
+            <SunIcon /> 아침 퇴실
+          </span>
+          <span className="legend-period night">
+            <MoonIcon /> 저녁 입실
+          </span>
+          <span className="legend-divider" aria-hidden="true" />
+          <span className="legend-gender male">남기숙사</span>
+          <span className="legend-gender female">여기숙사</span>
+        </div>
+
         <div className="calendar">
           <div className="calendar-weekdays">
             {days.map((day, index) => (
@@ -1015,20 +1110,13 @@ export default function Schedule() {
                       <>
                         <div className="schedule-indicators">
                           {hasMaleSchedule && (
-                            <div className="schedule-tag male">
-                              <span>남</span>
-                              <span className="schedule-tag-time">
-                                {formatScheduleSummary(day.maleSchedule)}
-                              </span>
-                            </div>
+                            renderCalendarSchedule(day.maleSchedule!, 'MALE')
                           )}
                           {hasFemaleSchedule && (
-                            <div className="schedule-tag female">
-                              <span>여</span>
-                              <span className="schedule-tag-time">
-                                {formatScheduleSummary(day.femaleSchedule)}
-                              </span>
-                            </div>
+                            renderCalendarSchedule(
+                              day.femaleSchedule!,
+                              'FEMALE',
+                            )
                           )}
                         </div>
                       </>
@@ -1064,7 +1152,7 @@ export default function Schedule() {
             <div className="workbench-heading">
               <div>
                 <span className="quick-apply-label">시간 설정</span>
-                <p>아침 퇴실과 저녁 입실 시간을 함께 조정합니다.</p>
+                <p>시간대를 고른 뒤 필요한 값만 수정하세요.</p>
               </div>
               <button
                 className="ghost-reset-btn"
@@ -1077,215 +1165,42 @@ export default function Schedule() {
               </button>
             </div>
 
-            <div className="time-table">
-              <div className="time-table-head">
-                <span>기숙사</span>
-                <span>시간대</span>
-                <span>작업</span>
-              </div>
-
-              <div className="time-table-row male">
-                <div className="dormitory-cell">
-                  <span className="gender-badge male">남기숙사</span>
-                </div>
-                <div className="attendance-periods">
-                  <div className="period-time-block morning">
-                    <div className="period-time-heading">
-                      <span className="period-icon-wrap">
-                        <SunIcon className="period-icon" />
-                      </span>
-                      <div>
-                        <strong>아침 퇴실</strong>
-                        {selectedDates.length === 1 &&
-                          selectedDayData?.maleSchedule && (
-                            <small>
-                              현재{' '}
-                              {formatMorningScheduleRange(
-                                selectedDayData.maleSchedule,
-                                '-',
-                              )}
-                            </small>
-                          )}
-                      </div>
-                    </div>
-                    <div className="time-range-cell">
-                      {renderTimeControl(
-                        '남기숙사 아침 퇴실 시작 시간',
-                        maleMorningStartHour,
-                        maleMorningStartMinute,
-                        setMaleMorningStartHour,
-                        setMaleMorningStartMinute,
-                        ['06:50', '07:00'],
-                      )}
-                      <span className="time-range-mark">~</span>
-                      {renderTimeControl(
-                        '남기숙사 아침 퇴실 종료 시간',
-                        maleMorningEndHour,
-                        maleMorningEndMinute,
-                        setMaleMorningEndHour,
-                        setMaleMorningEndMinute,
-                        ['08:05', '08:30'],
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="period-time-block night">
-                    <div className="period-time-heading">
-                      <span className="period-icon-wrap">
-                        <MoonIcon className="period-icon" />
-                      </span>
-                      <div>
-                        <strong>저녁 입실</strong>
-                        {selectedDates.length === 1 &&
-                          selectedDayData?.maleSchedule && (
-                            <small>
-                              현재{' '}
-                              {formatScheduleRange(
-                                selectedDayData.maleSchedule,
-                                '-',
-                              )}
-                            </small>
-                          )}
-                      </div>
-                    </div>
-                    <div className="time-range-cell">
-                      {renderTimeControl(
-                        '남기숙사 저녁 입실 시작 시간',
-                        maleStartHour,
-                        maleStartMinute,
-                        setMaleStartHour,
-                        setMaleStartMinute,
-                      )}
-                      <span className="time-range-mark">~</span>
-                      {renderTimeControl(
-                        '남기숙사 저녁 입실 종료 시간',
-                        maleEndHour,
-                        maleEndMinute,
-                        setMaleEndHour,
-                        setMaleEndMinute,
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="row-actions">
-                  <button
-                    className="row-apply-btn"
-                    onClick={() => handleApplySchedules(['MALE'])}
-                    disabled={loadingModal.isOpen}
-                  >
-                    적용
-                  </button>
-                  <button
-                    className="row-delete-btn"
-                    onClick={() => handleDeleteSchedules('MALE')}
-                    disabled={loadingModal.isOpen}
-                  >
-                    삭제
-                  </button>
-                </div>
-              </div>
-
-              <div className="time-table-row female">
-                <div className="dormitory-cell">
-                  <span className="gender-badge female">여기숙사</span>
-                </div>
-                <div className="attendance-periods">
-                  <div className="period-time-block morning">
-                    <div className="period-time-heading">
-                      <span className="period-icon-wrap">
-                        <SunIcon className="period-icon" />
-                      </span>
-                      <div>
-                        <strong>아침 퇴실</strong>
-                        {selectedDates.length === 1 &&
-                          selectedDayData?.femaleSchedule && (
-                            <small>
-                              현재{' '}
-                              {formatMorningScheduleRange(
-                                selectedDayData.femaleSchedule,
-                                '-',
-                              )}
-                            </small>
-                          )}
-                      </div>
-                    </div>
-                    <div className="time-range-cell">
-                      {renderTimeControl(
-                        '여기숙사 아침 퇴실 시작 시간',
-                        femaleMorningStartHour,
-                        femaleMorningStartMinute,
-                        setFemaleMorningStartHour,
-                        setFemaleMorningStartMinute,
-                        ['06:50', '07:00'],
-                      )}
-                      <span className="time-range-mark">~</span>
-                      {renderTimeControl(
-                        '여기숙사 아침 퇴실 종료 시간',
-                        femaleMorningEndHour,
-                        femaleMorningEndMinute,
-                        setFemaleMorningEndHour,
-                        setFemaleMorningEndMinute,
-                        ['08:05', '08:30'],
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="period-time-block night">
-                    <div className="period-time-heading">
-                      <span className="period-icon-wrap">
-                        <MoonIcon className="period-icon" />
-                      </span>
-                      <div>
-                        <strong>저녁 입실</strong>
-                        {selectedDates.length === 1 &&
-                          selectedDayData?.femaleSchedule && (
-                            <small>
-                              현재{' '}
-                              {formatScheduleRange(
-                                selectedDayData.femaleSchedule,
-                                '-',
-                              )}
-                            </small>
-                          )}
-                      </div>
-                    </div>
-                    <div className="time-range-cell">
-                      {renderTimeControl(
-                        '여기숙사 저녁 입실 시작 시간',
-                        femaleStartHour,
-                        femaleStartMinute,
-                        setFemaleStartHour,
-                        setFemaleStartMinute,
-                      )}
-                      <span className="time-range-mark">~</span>
-                      {renderTimeControl(
-                        '여기숙사 저녁 입실 종료 시간',
-                        femaleEndHour,
-                        femaleEndMinute,
-                        setFemaleEndHour,
-                        setFemaleEndMinute,
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="row-actions">
-                  <button
-                    className="row-apply-btn"
-                    onClick={() => handleApplySchedules(['FEMALE'])}
-                    disabled={loadingModal.isOpen}
-                  >
-                    적용
-                  </button>
-                  <button
-                    className="row-delete-btn"
-                    onClick={() => handleDeleteSchedules('FEMALE')}
-                    disabled={loadingModal.isOpen}
-                  >
-                    삭제
-                  </button>
-                </div>
-              </div>
+            <div className="editor-period-tabs" role="tablist" aria-label="수정할 시간대">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeSchedulePeriod === 'MORNING'}
+                className={activeSchedulePeriod === 'MORNING' ? 'active morning' : 'morning'}
+                onClick={() => setActiveSchedulePeriod('MORNING')}
+              >
+                <SunIcon />
+                아침 퇴실
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeSchedulePeriod === 'NIGHT'}
+                className={activeSchedulePeriod === 'NIGHT' ? 'active night' : 'night'}
+                onClick={() => setActiveSchedulePeriod('NIGHT')}
+              >
+                <MoonIcon />
+                저녁 입실
+              </button>
             </div>
+
+            <div className="compact-editor-list">
+              {renderDormitoryEditor('MALE')}
+              {renderDormitoryEditor('FEMALE')}
+            </div>
+
+            <button
+              type="button"
+              className="apply-all-dormitories-btn"
+              onClick={() => handleApplySchedules(['MALE', 'FEMALE'])}
+              disabled={loadingModal.isOpen}
+            >
+              남·여 함께 적용
+            </button>
           </div>
         ) : (
           <div className="no-selection">

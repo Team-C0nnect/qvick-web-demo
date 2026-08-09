@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import { scheduleService } from '../services/schedule.service';
 import ConfirmationModal from '../components/ConfirmationModal';
 import '../styles/Schedule.css';
@@ -33,6 +34,19 @@ interface PeriodTimeRange {
   startTime: string;
   endTime: string;
 }
+
+const getScheduleRequestError = (error: unknown) => {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as
+      | { message?: string; error?: string }
+      | undefined;
+    const status = error.response?.status;
+    const message = data?.message || data?.error || error.message;
+    return status ? `${status} ${message}` : message;
+  }
+
+  return error instanceof Error ? error.message : '알 수 없는 오류';
+};
 
 const TIME_PATTERN = /^(\d{1,2}):(\d{2})/;
 
@@ -147,6 +161,8 @@ const QUICK_PERIOD_PRESETS: Array<{
     time: { startTime: '16:00', endTime: '21:10' },
   },
 ];
+
+const SCHEDULE_APPLY_CONCURRENCY = 4;
 
 export default function Schedule() {
   const today = new Date();
@@ -631,9 +647,39 @@ export default function Schedule() {
         };
   };
 
-  const hasSchedule = (date: string, gender: Gender) => {
+  const getSchedule = (date: string, gender: Gender) => {
     const day = calendarDays.find((calendarDay) => calendarDay.fullDate === date);
-    return gender === 'MALE' ? !!day?.maleSchedule : !!day?.femaleSchedule;
+    return gender === 'MALE' ? day?.maleSchedule : day?.femaleSchedule;
+  };
+
+  const hasSchedule = (date: string, gender: Gender) =>
+    !!getSchedule(date, gender);
+
+  const getPreservedGenderTime = (date: string, gender: Gender) => {
+    const schedule = getSchedule(date, gender);
+    if (!schedule) {
+      const completeTime = getCompleteGenderTime(gender);
+      const day = calendarDays.find(
+        (calendarDay) => calendarDay.fullDate === date,
+      );
+
+      if (day?.dayOfWeek === 0 || day?.dayOfWeek === 6) {
+        return {
+          ...completeTime,
+          morningStartTime: undefined,
+          morningEndTime: undefined,
+        };
+      }
+
+      return completeTime;
+    }
+
+    return {
+      morningStartTime: schedule.morningStartTime,
+      morningEndTime: schedule.morningEndTime,
+      nightStartTime: schedule.nightStartTime,
+      nightEndTime: schedule.nightEndTime,
+    };
   };
 
   const handleApplySchedules = async (
@@ -646,11 +692,35 @@ export default function Schedule() {
       return;
     }
 
-    const total = selectedDates.length * genders.length;
+    const targetDates =
+      attendanceType === 'MORNING'
+        ? selectedDates.filter((date) => {
+            const day = calendarDays.find(
+              (calendarDay) => calendarDay.fullDate === date,
+            );
+            return !!day && day.dayOfWeek >= 1 && day.dayOfWeek <= 5;
+          })
+        : selectedDates;
+    const skippedDateCount = selectedDates.length - targetDates.length;
+
+    if (targetDates.length === 0) {
+      setConfirmModal({
+        isOpen: true,
+        title: '적용할 평일이 없습니다',
+        message: '아침 퇴실은 월요일부터 금요일까지만 설정할 수 있습니다.',
+        confirmText: '확인',
+        onConfirm: () =>
+          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
+      });
+      return;
+    }
+
+    const total = targetDates.length * genders.length;
     let completedCount = 0;
     let createdCount = 0;
     let updatedCount = 0;
     let failCount = 0;
+    let firstErrorMessage = '';
     const genderName =
       genders.length > 1
         ? '남/여 기숙사'
@@ -668,31 +738,37 @@ export default function Schedule() {
       action: 'update',
     });
 
-    const promises = genders.flatMap((gender) => {
+    const tasks = genders.flatMap((gender) => {
       const periodTime = getGenderPeriodTime(
         gender,
         attendanceType,
         override,
       );
 
-      return selectedDates.map(async (date) => {
+      return targetDates.map((date) => async () => {
         const shouldUpdate = hasSchedule(date, gender);
+        const scheduleTimes = {
+          ...getPreservedGenderTime(date, gender),
+          ...periodTime,
+        };
 
         try {
           if (shouldUpdate) {
-            await scheduleService.updateSchedule(date, gender, periodTime);
+            await scheduleService.updateSchedule(date, gender, scheduleTimes);
             updatedCount++;
           } else {
             await scheduleService.createSchedule({
               date,
               gender,
-              ...getCompleteGenderTime(gender),
-              ...periodTime,
+              ...scheduleTimes,
             });
             createdCount++;
           }
-        } catch {
+        } catch (error) {
           failCount++;
+          if (!firstErrorMessage) {
+            firstErrorMessage = getScheduleRequestError(error);
+          }
         } finally {
           completedCount++;
           setLoadingModal((prev) => ({
@@ -703,15 +779,30 @@ export default function Schedule() {
       });
     });
 
-    await Promise.all(promises);
+    let nextTaskIndex = 0;
+    const runWorker = async () => {
+      while (nextTaskIndex < tasks.length) {
+        const task = tasks[nextTaskIndex++];
+        await task();
+      }
+    };
+
+    await Promise.all(
+      Array.from(
+        { length: Math.min(SCHEDULE_APPLY_CONCURRENCY, tasks.length) },
+        runWorker,
+      ),
+    );
     setLoadingModal((prev) => ({ ...prev, isOpen: false }));
 
     queryClient.invalidateQueries({ queryKey: ['schedules'] });
 
+    const skippedMessage =
+      skippedDateCount > 0 ? `\n주말 ${skippedDateCount}일 제외` : '';
     const resultMessage =
       failCount > 0
-        ? `${createdCount}개 생성, ${updatedCount}개 수정 완료\n${failCount}개 실패`
-        : `${createdCount}개 생성, ${updatedCount}개 수정 완료`;
+        ? `${createdCount}개 생성, ${updatedCount}개 수정 완료\n${failCount}개 실패\n${firstErrorMessage}${skippedMessage}`
+        : `${createdCount}개 생성, ${updatedCount}개 수정 완료${skippedMessage}`;
 
     setConfirmModal({
       isOpen: true,

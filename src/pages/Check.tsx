@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
@@ -244,8 +245,14 @@ const hasAttendanceWindowEnded = (
 };
 
 export default function Check() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [attendanceType, setAttendanceType] = useState<AttendanceType>(() =>
-    new Date().getHours() < 12 ? 'MORNING' : 'NIGHT',
+    searchParams.get('attendanceType') === 'MORNING' ||
+    searchParams.get('attendanceType') === 'NIGHT'
+      ? (searchParams.get('attendanceType') as AttendanceType)
+      : new Date().getHours() < 12
+        ? 'MORNING'
+        : 'NIGHT',
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [currentDate, setCurrentDate] = useState(
@@ -300,11 +307,13 @@ export default function Check() {
   const { data: maleSchedule } = useQuery({
     queryKey: ['schedule', currentDate, 'MALE'],
     queryFn: () => scheduleService.getScheduleByDate(currentDate, 'MALE'),
+    retry: false,
   });
 
   const { data: femaleSchedule } = useQuery({
     queryKey: ['schedule', currentDate, 'FEMALE'],
     queryFn: () => scheduleService.getScheduleByDate(currentDate, 'FEMALE'),
+    retry: false,
   });
 
   const [students, setStudents] = useState<Student[]>([]);
@@ -474,7 +483,9 @@ export default function Check() {
     ];
 
     // 이미 로드된 날짜는 스킵
-    const datesToLoad = uniqueDates.filter((date) => !scheduleCache.has(date));
+    const datesToLoad = uniqueDates.filter(
+      (date) => date !== currentDate && !scheduleCache.has(date),
+    );
 
     if (datesToLoad.length === 0) return;
 
@@ -486,8 +497,7 @@ export default function Check() {
           .then((schedule) => {
             return { date, gender: 'MALE', schedule };
           })
-          .catch((err) => {
-            console.error(`[Schedule Error] ${date} MALE:`, err);
+          .catch(() => {
             return { date, gender: 'MALE', schedule: undefined };
           }),
         scheduleService
@@ -495,8 +505,7 @@ export default function Check() {
           .then((schedule) => {
             return { date, gender: 'FEMALE', schedule };
           })
-          .catch((err) => {
-            console.error(`[Schedule Error] ${date} FEMALE:`, err);
+          .catch(() => {
             return { date, gender: 'FEMALE', schedule: undefined };
           }),
       ]),
@@ -517,7 +526,7 @@ export default function Check() {
 
       setScheduleCache(newCache);
     });
-  }, [attendancesData, scheduleCache]);
+  }, [attendancesData, currentDate, scheduleCache]);
 
   // 신버전 출석 데이터 매핑
   useEffect(() => {
@@ -827,6 +836,10 @@ export default function Check() {
   );
 
   const periodLabels = ATTENDANCE_PERIOD_LABELS[attendanceType];
+  const handleAttendanceTypeChange = (nextType: AttendanceType) => {
+    setAttendanceType(nextType);
+    setSearchParams({ attendanceType: nextType }, { replace: true });
+  };
 
   if (attendancesLoading) {
     return (
@@ -862,7 +875,7 @@ export default function Check() {
             role="tab"
             aria-selected={attendanceType === 'MORNING'}
             className={attendanceType === 'MORNING' ? 'active morning' : 'morning'}
-            onClick={() => setAttendanceType('MORNING')}
+            onClick={() => handleAttendanceTypeChange('MORNING')}
           >
             <SunIcon className="attendance-tab-icon" />
             아침 퇴실
@@ -872,7 +885,7 @@ export default function Check() {
             role="tab"
             aria-selected={attendanceType === 'NIGHT'}
             className={attendanceType === 'NIGHT' ? 'active night' : 'night'}
-            onClick={() => setAttendanceType('NIGHT')}
+            onClick={() => handleAttendanceTypeChange('NIGHT')}
           >
             <MoonIcon className="attendance-tab-icon" />
             저녁 입실

@@ -86,10 +86,10 @@ const formatScheduleSummary = (schedule?: AttendanceScheduleResponse) => {
 };
 
 // 기본 시간 상수
-const MORNING_START_HOUR = '07';
-const MORNING_START_MINUTE = '00';
+const MORNING_START_HOUR = '06';
+const MORNING_START_MINUTE = '50';
 const MORNING_END_HOUR = '08';
-const MORNING_END_MINUTE = '30';
+const MORNING_END_MINUTE = '05';
 const DEFAULT_START_HOUR = '16';
 const DEFAULT_START_MINUTE = '00';
 const WEEKDAY_END_HOUR = '22';
@@ -1115,7 +1115,7 @@ export default function Schedule() {
                         maleMorningStartMinute,
                         setMaleMorningStartHour,
                         setMaleMorningStartMinute,
-                        ['07:00', '07:30'],
+                        ['06:50', '07:00'],
                       )}
                       <span className="time-range-mark">~</span>
                       {renderTimeControl(
@@ -1124,7 +1124,7 @@ export default function Schedule() {
                         maleMorningEndMinute,
                         setMaleMorningEndHour,
                         setMaleMorningEndMinute,
-                        ['08:00', '08:30'],
+                        ['08:05', '08:30'],
                       )}
                     </div>
                   </div>
@@ -1216,7 +1216,7 @@ export default function Schedule() {
                         femaleMorningStartMinute,
                         setFemaleMorningStartHour,
                         setFemaleMorningStartMinute,
-                        ['07:00', '07:30'],
+                        ['06:50', '07:00'],
                       )}
                       <span className="time-range-mark">~</span>
                       {renderTimeControl(
@@ -1225,7 +1225,7 @@ export default function Schedule() {
                         femaleMorningEndMinute,
                         setFemaleMorningEndHour,
                         setFemaleMorningEndMinute,
-                        ['08:00', '08:30'],
+                        ['08:05', '08:30'],
                       )}
                     </div>
                   </div>

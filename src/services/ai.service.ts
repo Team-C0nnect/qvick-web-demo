@@ -1,12 +1,4 @@
-import axios from 'axios';
-
-const azureFunctionClient = axios.create({
-  baseURL: '/api', // Azure Static Web Apps는 자동으로 /api를 Functions로 라우팅
-  timeout: 30000, // 30초 (OpenAI 응답 대기 시간 고려)
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import { authenticatedFetch } from '../lib/auth-fetch';
 
 export interface RefineAnnouncementRequest {
   content: string;
@@ -23,10 +15,15 @@ export interface RefineAnnouncementResponse {
 
 export const aiService = {
   refineAnnouncement: async (content: string): Promise<string> => {
-    const response = await azureFunctionClient.post<RefineAnnouncementResponse>(
-      '/refineAnnouncement',
-      { content }
-    );
-    return response.data.refinedContent;
+    const response = await authenticatedFetch('/api/refineAnnouncement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+      signal: AbortSignal.timeout(30_000),
+    });
+
+    if (!response.ok) throw new Error('공지사항 다듬기에 실패했습니다.');
+    const data = await response.json() as RefineAnnouncementResponse;
+    return data.refinedContent;
   },
 };

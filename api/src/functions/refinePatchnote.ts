@@ -1,6 +1,7 @@
 // 패치노트 AI 다듬기 API 엔드포인트
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import OpenAI from "openai";
+import { requireRoles } from "../lib/auth";
 
 function createOpenAIClient(): OpenAI | null {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -15,7 +16,6 @@ function createOpenAIClient(): OpenAI | null {
 // CORS 헤더
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -172,6 +172,9 @@ export async function refinePatchnote(request: HttpRequest, context: InvocationC
       body: JSON.stringify({ error: 'Method not allowed' }),
     };
   }
+
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
 
   try {
     const body = await request.json() as RefineRequest;

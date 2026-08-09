@@ -2,6 +2,7 @@
 // Azure Static Web Apps managed functions - 함수 이름으로 접근, 쿼리 파라미터 사용
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { getFirestore, admin } from "../lib/firebase-admin";
+import { requireRoles } from "../lib/auth";
 import type { PatchNote, CreatePatchNoteRequest, UpdatePatchNoteRequest } from "../types/patchnote";
 
 const COLLECTION_NAME = 'patchnotes';
@@ -9,7 +10,6 @@ const COLLECTION_NAME = 'patchnotes';
 // CORS 헤더
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -39,6 +39,9 @@ export async function getPatchnotes(request: HttpRequest, context: InvocationCon
   if (request.method === 'OPTIONS') {
     return { status: 204, headers: corsHeaders };
   }
+
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
 
   try {
     const db = getFirestore();
@@ -80,7 +83,20 @@ export async function getPublishedPatchnotes(request: HttpRequest, context: Invo
 
   try {
     const db = getFirestore();
-    const visibility = request.query.get('visibility');
+    const visibility = request.query.get('visibility') || 'public';
+
+    if (visibility !== 'public' && visibility !== 'teacher') {
+      return {
+        status: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: '올바르지 않은 공개 범위입니다.' }),
+      };
+    }
+
+    if (visibility === 'teacher') {
+      const auth = await requireRoles(request, ['TEACHER', 'ADMIN', 'MANAGER'], context);
+      if ('response' in auth) return auth.response;
+    }
     
     // 모든 패치노트를 가져와서 필터링 (복합 인덱스 불필요)
     const snapshot = await db
@@ -96,12 +112,7 @@ export async function getPublishedPatchnotes(request: HttpRequest, context: Invo
         return dateB - dateA;
       });
     
-    // visibility 필터링
-    if (visibility) {
-      notes = notes.filter((note) => 
-        note.visibility === visibility || note.visibility === 'public'
-      );
-    }
+    notes = notes.filter((note) => note.visibility === visibility);
     
     return {
       status: 200,
@@ -153,11 +164,23 @@ export async function getPatchnoteById(request: HttpRequest, context: Invocation
         body: JSON.stringify({ error: '패치노트를 찾을 수 없습니다.' }),
       };
     }
+
+    const note = docToPatchNote(docSnap.id, docSnap.data()!);
+    if (
+      note.status !== 'published' ||
+      (note.visibility !== 'public' && note.visibility !== 'teacher')
+    ) {
+      const auth = await requireRoles(request, ['ADMIN'], context);
+      if ('response' in auth) return auth.response;
+    } else if (note.visibility === 'teacher') {
+      const auth = await requireRoles(request, ['TEACHER', 'ADMIN', 'MANAGER'], context);
+      if ('response' in auth) return auth.response;
+    }
     
     return {
       status: 200,
       headers: corsHeaders,
-      body: JSON.stringify(docToPatchNote(docSnap.id, docSnap.data()!)),
+      body: JSON.stringify(note),
     };
   } catch (error) {
     context.error('패치노트 조회 실패:', error);
@@ -183,11 +206,14 @@ export async function createPatchnote(request: HttpRequest, context: InvocationC
     return { status: 204, headers: corsHeaders };
   }
 
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
+
   try {
     const body = await request.json() as CreatePatchNoteRequest;
-    const { title, content, version, category, visibility = 'public', images = [], author } = body;
+    const { title, content, version, category, visibility = 'public', images = [] } = body;
 
-    if (!title || !content || !version || !category || !author) {
+    if (!title || !content || !version || !category) {
       return {
         status: 400,
         headers: corsHeaders,
@@ -208,7 +234,7 @@ export async function createPatchnote(request: HttpRequest, context: InvocationC
       status: 'draft',
       createdAt: now,
       updatedAt: now,
-      author,
+      author: auth.user.name,
     };
 
     const docRef = await db.collection(COLLECTION_NAME).add(newPatchNote);
@@ -246,6 +272,9 @@ export async function updatePatchnote(request: HttpRequest, context: InvocationC
   if (request.method === 'OPTIONS') {
     return { status: 204, headers: corsHeaders };
   }
+
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
 
   try {
     const id = request.query.get('id');
@@ -307,6 +336,9 @@ export async function deletePatchnote(request: HttpRequest, context: InvocationC
     return { status: 204, headers: corsHeaders };
   }
 
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
+
   try {
     const id = request.query.get('id');
     if (!id) {
@@ -359,6 +391,9 @@ export async function publishPatchnote(request: HttpRequest, context: Invocation
   if (request.method === 'OPTIONS') {
     return { status: 204, headers: corsHeaders };
   }
+
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
 
   try {
     const id = request.query.get('id');
@@ -418,6 +453,9 @@ export async function unpublishPatchnote(request: HttpRequest, context: Invocati
   if (request.method === 'OPTIONS') {
     return { status: 204, headers: corsHeaders };
   }
+
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
 
   try {
     const id = request.query.get('id');

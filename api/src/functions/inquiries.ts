@@ -1,6 +1,7 @@
 // 문의 API 엔드포인트
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { getFirestore } from "../lib/firebase-admin";
+import { requireRoles } from "../lib/auth";
 
 type InquiryType = 'bug' | 'feature' | 'other';
 type InquiryStatus = 'pending' | 'in-progress' | 'resolved' | 'closed';
@@ -43,7 +44,6 @@ type InquiryUpdateData = Record<string, string | null>;
 // CORS 헤더
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -138,6 +138,9 @@ async function getInquiries(request: HttpRequest, context: InvocationContext): P
     return { status: 204, headers: corsHeaders };
   }
 
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
+
   try {
     const db = getFirestore();
     const status = request.query.get('status');
@@ -180,6 +183,9 @@ async function getInquiryById(request: HttpRequest, context: InvocationContext):
     return { status: 204, headers: corsHeaders };
   }
 
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
+
   try {
     const db = getFirestore();
     const id = request.query.get('id');
@@ -221,6 +227,9 @@ async function updateInquiry(request: HttpRequest, context: InvocationContext): 
   if (request.method === 'OPTIONS') {
     return { status: 204, headers: corsHeaders };
   }
+
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
 
   try {
     const db = getFirestore();
@@ -271,6 +280,9 @@ async function deleteInquiry(request: HttpRequest, context: InvocationContext): 
   if (request.method === 'OPTIONS') {
     return { status: 204, headers: corsHeaders };
   }
+
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
 
   try {
     const db = getFirestore();

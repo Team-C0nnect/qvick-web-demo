@@ -11,9 +11,37 @@ if (!envApiBaseUrl) {
 
 const API_BASE_URL = (envApiBaseUrl || DEFAULT_API_BASE_URL).replace(/\/$/, '');
 
-const clearAuthTokens = () => {
+export const clearAuthTokens = () => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
+};
+
+let refreshPromise: Promise<string> | null = null;
+
+export const refreshAccessToken = async (): Promise<string> => {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) throw new Error('Refresh token is missing');
+
+    const response = await axios.post(`${API_BASE_URL}/auth/reissue`, {
+      refreshToken,
+    });
+    const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+    if (!accessToken || !newRefreshToken) {
+      throw new Error('Token reissue response is invalid');
+    }
+
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', newRefreshToken);
+    return accessToken as string;
+  })().finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
 };
 
 export const apiClient = axios.create({
@@ -53,25 +81,7 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        
-        if (!refreshToken) {
-          // No refresh token, redirect to login
-          clearAuthTokens();
-          window.location.href = '/login';
-          return Promise.reject(error);
-        }
-
-        // Try to refresh the token
-        const response = await axios.post(`${API_BASE_URL}/auth/reissue`, {
-          refreshToken,
-        });
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-        // Store new tokens
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', newRefreshToken);
+        const accessToken = await refreshAccessToken();
 
         // Retry the original request with new token
         if (originalRequest.headers) {

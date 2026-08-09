@@ -1,5 +1,6 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import OpenAI from "openai";
+import { requireRoles } from "../lib/auth";
 
 function createOpenAIClient(): OpenAI | null {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -18,7 +19,6 @@ export async function refineAnnouncement(request: HttpRequest, context: Invocati
     // CORS 헤더 설정
     const headers = {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
@@ -39,6 +39,9 @@ export async function refineAnnouncement(request: HttpRequest, context: Invocati
         body: JSON.stringify({ error: 'Method not allowed' }),
       };
     }
+
+    const auth = await requireRoles(request, ['TEACHER', 'ADMIN', 'MANAGER'], context);
+    if ('response' in auth) return auth.response;
 
     // 요청 본문 파싱
     const body = await request.json() as { content: string };
@@ -130,7 +133,6 @@ export async function refineAnnouncement(request: HttpRequest, context: Invocati
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({ 
         error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' 

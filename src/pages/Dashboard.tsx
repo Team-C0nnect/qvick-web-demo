@@ -265,9 +265,7 @@ export default function Dashboard() {
                   </span>
                   <button
                     type="button"
-                    onClick={() =>
-                      navigate(`/check?attendanceType=${attendanceType}`)
-                    }
+                    onClick={() => navigate('/check')}
                   >
                     인원 확인
                   </button>

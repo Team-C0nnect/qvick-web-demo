@@ -3,138 +3,6 @@
   padding: 32px 40px;
 }
 
-.attendance-period-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 20px;
-  padding: 22px 24px;
-  overflow: hidden;
-  border: 1px solid #e6e6e7;
-  border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(15, 15, 16, 0.05);
-}
-
-.attendance-period-header.morning {
-  border-color: #f3d98f;
-  background:
-    radial-gradient(circle at 8% 20%, rgba(255, 207, 74, 0.2), transparent 28%),
-    linear-gradient(110deg, #fffaf0, #ffffff 64%);
-}
-
-.attendance-period-header.night {
-  border-color: #d8d1f0;
-  background:
-    radial-gradient(circle at 8% 20%, rgba(109, 86, 215, 0.16), transparent 28%),
-    linear-gradient(110deg, #f7f5ff, #ffffff 64%);
-}
-
-.attendance-period-copy {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.attendance-period-copy > div {
-  min-width: 0;
-}
-
-.attendance-period-copy > div > span {
-  color: #77727e;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.attendance-period-copy h1 {
-  margin: 3px 0 2px;
-  color: #171519;
-  font-size: 25px;
-  font-weight: 900;
-  line-height: 1.2;
-}
-
-.attendance-period-copy p {
-  margin: 0;
-  color: #68656b;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.attendance-period-visual {
-  width: 54px;
-  height: 54px;
-  display: grid;
-  flex: 0 0 54px;
-  place-items: center;
-  border-radius: 16px;
-}
-
-.attendance-period-header.morning .attendance-period-visual {
-  background: #ffedb1;
-  color: #d48600;
-  box-shadow: 0 10px 24px rgba(212, 134, 0, 0.16);
-}
-
-.attendance-period-header.night .attendance-period-visual {
-  background: #e4dfff;
-  color: #5744bd;
-  box-shadow: 0 10px 24px rgba(87, 68, 189, 0.14);
-}
-
-.attendance-period-icon {
-  width: 29px;
-  height: 29px;
-}
-
-.attendance-period-tabs {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 6px;
-  padding: 5px;
-  border: 1px solid #e3e1e6;
-  border-radius: 11px;
-  background: rgba(255, 255, 255, 0.86);
-}
-
-.attendance-period-tabs button {
-  min-height: 40px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #77727e;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.attendance-period-tabs button:hover {
-  background: #f7f7f8;
-  color: #332f38;
-}
-
-.attendance-period-tabs button.active.morning {
-  background: #fff0bd;
-  color: #a96900;
-}
-
-.attendance-period-tabs button.active.night {
-  background: #e9e5ff;
-  color: #513db7;
-}
-
-.attendance-tab-icon {
-  width: 17px;
-  height: 17px;
-}
-
 .check-page .controls-section {
   display: flex;
   justify-content: space-between;
@@ -880,21 +748,6 @@
     gap: 16px;
   }
 
-  .attendance-period-header {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 18px;
-  }
-
-  .attendance-period-tabs,
-  .attendance-period-tabs button {
-    width: 100%;
-  }
-
-  .attendance-period-tabs button {
-    justify-content: center;
-  }
-
   .check-page .stats-section {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -997,30 +850,6 @@
   .check-page .stat-box {
     font-size: 14px;
     padding: 8px 10px;
-  }
-
-  .attendance-period-copy {
-    align-items: flex-start;
-  }
-
-  .attendance-period-visual {
-    width: 44px;
-    height: 44px;
-    flex-basis: 44px;
-    border-radius: 12px;
-  }
-
-  .attendance-period-icon {
-    width: 24px;
-    height: 24px;
-  }
-
-  .attendance-period-copy h1 {
-    font-size: 21px;
-  }
-
-  .attendance-period-tabs {
-    flex-direction: column;
   }
 
   .check-page .excel-button {

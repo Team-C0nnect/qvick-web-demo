@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
@@ -12,7 +11,7 @@ import type {
 } from '../services/excel.service';
 import { CheckTableSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
-import { SearchIcon, ExcelIcon, MoonIcon, SunIcon } from '../components/Icons';
+import { SearchIcon, ExcelIcon } from '../components/Icons';
 import type {
   AttendanceStatus,
   AttendanceResponse,
@@ -46,6 +45,7 @@ type NightAttendanceDisplayStatus = '출석' | '미출석' | '-';
 type PhoneSubmissionDisplayStatus = '제출' | '미제출' | '외박' | '-';
 type AttendanceScheduleTime = {
   morningEndTime?: string;
+  nightStartTime?: string;
   nightEndTime?: string;
 };
 type SortKey =
@@ -105,6 +105,22 @@ interface AttendanceStats {
 
 // 자동 새로고침 간격 (30초)
 const REFRESH_INTERVAL = 30 * 1000;
+
+const getTimeBasedAttendanceType = (
+  schedules: Array<AttendanceScheduleTime | undefined>,
+  now = new Date(),
+): AttendanceType => {
+  const nightStartMinutes = schedules
+    .map((schedule) => getMinutesFromTime(schedule?.nightStartTime))
+    .filter((minutes): minutes is number => minutes !== null);
+
+  if (nightStartMinutes.length === 0) {
+    return now.getHours() < 12 ? 'MORNING' : 'NIGHT';
+  }
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  return currentMinutes >= Math.min(...nightStartMinutes) ? 'NIGHT' : 'MORNING';
+};
 
 const STATUS_MAP: Record<DisplayAttendanceStatus, AttendanceStatus> = {
   출석: 'PRESENT',
@@ -245,14 +261,8 @@ const hasAttendanceWindowEnded = (
 };
 
 export default function Check() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [attendanceType, setAttendanceType] = useState<AttendanceType>(() =>
-    searchParams.get('attendanceType') === 'MORNING' ||
-    searchParams.get('attendanceType') === 'NIGHT'
-      ? (searchParams.get('attendanceType') as AttendanceType)
-      : new Date().getHours() < 12
-        ? 'MORNING'
-        : 'NIGHT',
+    getTimeBasedAttendanceType([]),
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [currentDate, setCurrentDate] = useState(
@@ -266,16 +276,6 @@ export default function Check() {
     null,
   );
   const excelMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const queryAttendanceType = searchParams.get('attendanceType');
-    if (
-      (queryAttendanceType === 'MORNING' || queryAttendanceType === 'NIGHT') &&
-      queryAttendanceType !== attendanceType
-    ) {
-      setAttendanceType(queryAttendanceType);
-    }
-  }, [attendanceType, searchParams]);
 
   // 바깥 클릭 시 메뉴 닫기
   useEffect(() => {
@@ -325,6 +325,22 @@ export default function Check() {
     queryFn: () => scheduleService.getScheduleByDate(currentDate, 'FEMALE'),
     retry: false,
   });
+
+  useEffect(() => {
+    const updateAttendanceType = () => {
+      setAttendanceType(
+        getTimeBasedAttendanceType([maleSchedule, femaleSchedule]),
+      );
+    };
+
+    updateAttendanceType();
+    const interval = window.setInterval(
+      updateAttendanceType,
+      REFRESH_INTERVAL,
+    );
+
+    return () => window.clearInterval(interval);
+  }, [femaleSchedule, maleSchedule]);
 
   const [students, setStudents] = useState<Student[]>([]);
   const [scheduleCache, setScheduleCache] = useState<
@@ -846,10 +862,6 @@ export default function Check() {
   );
 
   const periodLabels = ATTENDANCE_PERIOD_LABELS[attendanceType];
-  const handleAttendanceTypeChange = (nextType: AttendanceType) => {
-    setAttendanceType(nextType);
-    setSearchParams({ attendanceType: nextType }, { replace: true });
-  };
 
   if (attendancesLoading) {
     return (
@@ -860,49 +872,6 @@ export default function Check() {
   }
   return (
     <div className="check-page">
-      <section
-        className={`attendance-period-header ${attendanceType.toLowerCase()}`}
-        aria-labelledby="attendance-period-title"
-      >
-        <div className="attendance-period-copy">
-          <span className="attendance-period-visual">
-            {attendanceType === 'MORNING' ? (
-              <SunIcon className="attendance-period-icon" />
-            ) : (
-              <MoonIcon className="attendance-period-icon" />
-            )}
-          </span>
-          <div>
-            <span>Attendance check</span>
-            <h1 id="attendance-period-title">{periodLabels.title}</h1>
-            <p>{periodLabels.description}</p>
-          </div>
-        </div>
-
-        <div className="attendance-period-tabs" role="tablist" aria-label="확인 시간대">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={attendanceType === 'MORNING'}
-            className={attendanceType === 'MORNING' ? 'active morning' : 'morning'}
-            onClick={() => handleAttendanceTypeChange('MORNING')}
-          >
-            <SunIcon className="attendance-tab-icon" />
-            아침 퇴실
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={attendanceType === 'NIGHT'}
-            className={attendanceType === 'NIGHT' ? 'active night' : 'night'}
-            onClick={() => handleAttendanceTypeChange('NIGHT')}
-          >
-            <MoonIcon className="attendance-tab-icon" />
-            저녁 입실
-          </button>
-        </div>
-      </section>
-
       <div className="controls-section">
         <div className="controls-left">
           <div className="date-picker">

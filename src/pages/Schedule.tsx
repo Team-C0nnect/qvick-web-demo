@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { scheduleService } from '../services/schedule.service';
 import ConfirmationModal from '../components/ConfirmationModal';
 import '../styles/Schedule.css';
-import { CalendarIcon } from '../components/Icons';
+import { CalendarIcon, MoonIcon, SunIcon } from '../components/Icons';
 import { getKoreanHolidayName } from '../constants/koreanHolidays';
 import type { AttendanceScheduleResponse, Gender } from '../types/api';
+import { formatLocalDate } from '../utils/date';
 
 interface CalendarDay {
   date: number;
@@ -62,7 +63,33 @@ const formatScheduleRange = (
   return `${formatTime(startTime)}${separator}${formatTime(endTime)}`;
 };
 
+const formatMorningScheduleRange = (
+  schedule?: AttendanceScheduleResponse,
+  separator = '~',
+) => {
+  if (!schedule?.morningStartTime || !schedule.morningEndTime) {
+    return '미설정';
+  }
+
+  return `${formatTime(schedule.morningStartTime)}${separator}${formatTime(schedule.morningEndTime)}`;
+};
+
+const formatScheduleSummary = (schedule?: AttendanceScheduleResponse) => {
+  const morningStart = schedule?.morningStartTime
+    ? formatTime(schedule.morningStartTime)
+    : '--:--';
+  const nightStart = schedule?.nightStartTime
+    ? formatTime(schedule.nightStartTime)
+    : '--:--';
+
+  return `☀ ${morningStart} · ☾ ${nightStart}`;
+};
+
 // 기본 시간 상수
+const MORNING_START_HOUR = '07';
+const MORNING_START_MINUTE = '00';
+const MORNING_END_HOUR = '08';
+const MORNING_END_MINUTE = '30';
 const DEFAULT_START_HOUR = '16';
 const DEFAULT_START_MINUTE = '00';
 const WEEKDAY_END_HOUR = '22';
@@ -72,7 +99,7 @@ const SUNDAY_END_MINUTE = '10';
 
 export default function Schedule() {
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = formatLocalDate(today);
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -104,13 +131,33 @@ export default function Schedule() {
     onConfirm: () => {},
   });
 
-  // 남기숙사 시간 상태
+  // 남기숙사 아침 퇴실 시간 상태
+  const [maleMorningStartHour, setMaleMorningStartHour] =
+    useState(MORNING_START_HOUR);
+  const [maleMorningStartMinute, setMaleMorningStartMinute] =
+    useState(MORNING_START_MINUTE);
+  const [maleMorningEndHour, setMaleMorningEndHour] =
+    useState(MORNING_END_HOUR);
+  const [maleMorningEndMinute, setMaleMorningEndMinute] =
+    useState(MORNING_END_MINUTE);
+
+  // 남기숙사 저녁 입실 시간 상태
   const [maleStartHour, setMaleStartHour] = useState(DEFAULT_START_HOUR);
   const [maleStartMinute, setMaleStartMinute] = useState(DEFAULT_START_MINUTE);
   const [maleEndHour, setMaleEndHour] = useState(WEEKDAY_END_HOUR);
   const [maleEndMinute, setMaleEndMinute] = useState(WEEKDAY_END_MINUTE);
 
-  // 여기숙사 시간 상태
+  // 여기숙사 아침 퇴실 시간 상태
+  const [femaleMorningStartHour, setFemaleMorningStartHour] =
+    useState(MORNING_START_HOUR);
+  const [femaleMorningStartMinute, setFemaleMorningStartMinute] =
+    useState(MORNING_START_MINUTE);
+  const [femaleMorningEndHour, setFemaleMorningEndHour] =
+    useState(MORNING_END_HOUR);
+  const [femaleMorningEndMinute, setFemaleMorningEndMinute] =
+    useState(MORNING_END_MINUTE);
+
+  // 여기숙사 저녁 입실 시간 상태
   const [femaleStartHour, setFemaleStartHour] = useState(DEFAULT_START_HOUR);
   const [femaleStartMinute, setFemaleStartMinute] =
     useState(DEFAULT_START_MINUTE);
@@ -266,10 +313,18 @@ export default function Schedule() {
 
   const applyDefaultTime = () => {
     const defaults = getDefaultTimeForSelection();
+    setMaleMorningStartHour(MORNING_START_HOUR);
+    setMaleMorningStartMinute(MORNING_START_MINUTE);
+    setMaleMorningEndHour(MORNING_END_HOUR);
+    setMaleMorningEndMinute(MORNING_END_MINUTE);
     setMaleStartHour(defaults.startHour);
     setMaleStartMinute(defaults.startMinute);
     setMaleEndHour(defaults.endHour);
     setMaleEndMinute(defaults.endMinute);
+    setFemaleMorningStartHour(MORNING_START_HOUR);
+    setFemaleMorningStartMinute(MORNING_START_MINUTE);
+    setFemaleMorningEndHour(MORNING_END_HOUR);
+    setFemaleMorningEndMinute(MORNING_END_MINUTE);
     setFemaleStartHour(defaults.startHour);
     setFemaleStartMinute(defaults.startMinute);
     setFemaleEndHour(defaults.endHour);
@@ -279,7 +334,25 @@ export default function Schedule() {
   const applyDayScheduleTime = (day: CalendarDay) => {
     const defaults = getDefaultTimeByCalendarDay(day);
 
-    // 기존 스케줄이 있으면 해당 시간으로 설정
+    const maleMorningStartTime = splitScheduleTime(
+      day.maleSchedule?.morningStartTime,
+    );
+    const maleMorningEndTime = splitScheduleTime(
+      day.maleSchedule?.morningEndTime,
+    );
+
+    if (maleMorningStartTime && maleMorningEndTime) {
+      setMaleMorningStartHour(maleMorningStartTime.hour);
+      setMaleMorningStartMinute(maleMorningStartTime.minute);
+      setMaleMorningEndHour(maleMorningEndTime.hour);
+      setMaleMorningEndMinute(maleMorningEndTime.minute);
+    } else {
+      setMaleMorningStartHour(MORNING_START_HOUR);
+      setMaleMorningStartMinute(MORNING_START_MINUTE);
+      setMaleMorningEndHour(MORNING_END_HOUR);
+      setMaleMorningEndMinute(MORNING_END_MINUTE);
+    }
+
     const maleStartTime = splitScheduleTime(
       getScheduleStartTime(day.maleSchedule),
     );
@@ -291,7 +364,29 @@ export default function Schedule() {
       setMaleEndHour(maleEndTime.hour);
       setMaleEndMinute(maleEndTime.minute);
     } else {
-      resetMaleTime(defaults);
+      setMaleStartHour(defaults.startHour);
+      setMaleStartMinute(defaults.startMinute);
+      setMaleEndHour(defaults.endHour);
+      setMaleEndMinute(defaults.endMinute);
+    }
+
+    const femaleMorningStartTime = splitScheduleTime(
+      day.femaleSchedule?.morningStartTime,
+    );
+    const femaleMorningEndTime = splitScheduleTime(
+      day.femaleSchedule?.morningEndTime,
+    );
+
+    if (femaleMorningStartTime && femaleMorningEndTime) {
+      setFemaleMorningStartHour(femaleMorningStartTime.hour);
+      setFemaleMorningStartMinute(femaleMorningStartTime.minute);
+      setFemaleMorningEndHour(femaleMorningEndTime.hour);
+      setFemaleMorningEndMinute(femaleMorningEndTime.minute);
+    } else {
+      setFemaleMorningStartHour(MORNING_START_HOUR);
+      setFemaleMorningStartMinute(MORNING_START_MINUTE);
+      setFemaleMorningEndHour(MORNING_END_HOUR);
+      setFemaleMorningEndMinute(MORNING_END_MINUTE);
     }
 
     const femaleStartTime = splitScheduleTime(
@@ -307,7 +402,10 @@ export default function Schedule() {
       setFemaleEndHour(femaleEndTime.hour);
       setFemaleEndMinute(femaleEndTime.minute);
     } else {
-      resetFemaleTime(defaults);
+      setFemaleStartHour(defaults.startHour);
+      setFemaleStartMinute(defaults.startMinute);
+      setFemaleEndHour(defaults.endHour);
+      setFemaleEndMinute(defaults.endMinute);
     }
   };
 
@@ -375,6 +473,10 @@ export default function Schedule() {
 
   // 시간 초기화 함수
   const resetMaleTime = (defaults = getDefaultTimeForSelection()) => {
+    setMaleMorningStartHour(MORNING_START_HOUR);
+    setMaleMorningStartMinute(MORNING_START_MINUTE);
+    setMaleMorningEndHour(MORNING_END_HOUR);
+    setMaleMorningEndMinute(MORNING_END_MINUTE);
     setMaleStartHour(defaults.startHour);
     setMaleStartMinute(defaults.startMinute);
     setMaleEndHour(defaults.endHour);
@@ -382,6 +484,10 @@ export default function Schedule() {
   };
 
   const resetFemaleTime = (defaults = getDefaultTimeForSelection()) => {
+    setFemaleMorningStartHour(MORNING_START_HOUR);
+    setFemaleMorningStartMinute(MORNING_START_MINUTE);
+    setFemaleMorningEndHour(MORNING_END_HOUR);
+    setFemaleMorningEndMinute(MORNING_END_MINUTE);
     setFemaleStartHour(defaults.startHour);
     setFemaleStartMinute(defaults.startMinute);
     setFemaleEndHour(defaults.endHour);
@@ -424,10 +530,16 @@ export default function Schedule() {
   const getGenderTime = (gender: Gender) => {
     const isMALE = gender === 'MALE';
     return {
-      startTime: isMALE
+      morningStartTime: isMALE
+        ? `${maleMorningStartHour.padStart(2, '0')}:${maleMorningStartMinute.padStart(2, '0')}`
+        : `${femaleMorningStartHour.padStart(2, '0')}:${femaleMorningStartMinute.padStart(2, '0')}`,
+      morningEndTime: isMALE
+        ? `${maleMorningEndHour.padStart(2, '0')}:${maleMorningEndMinute.padStart(2, '0')}`
+        : `${femaleMorningEndHour.padStart(2, '0')}:${femaleMorningEndMinute.padStart(2, '0')}`,
+      nightStartTime: isMALE
         ? `${maleStartHour.padStart(2, '0')}:${maleStartMinute.padStart(2, '0')}`
         : `${femaleStartHour.padStart(2, '0')}:${femaleStartMinute.padStart(2, '0')}`,
-      endTime: isMALE
+      nightEndTime: isMALE
         ? `${maleEndHour.padStart(2, '0')}:${maleEndMinute.padStart(2, '0')}`
         : `${femaleEndHour.padStart(2, '0')}:${femaleEndMinute.padStart(2, '0')}`,
     };
@@ -465,24 +577,20 @@ export default function Schedule() {
     });
 
     const promises = genders.flatMap((gender) => {
-      const { startTime, endTime } = getGenderTime(gender);
+      const scheduleTimes = getGenderTime(gender);
 
       return selectedDates.map(async (date) => {
         const shouldUpdate = hasSchedule(date, gender);
 
         try {
           if (shouldUpdate) {
-            await scheduleService.updateSchedule(date, gender, {
-              nightStartTime: startTime,
-              nightEndTime: endTime,
-            });
+            await scheduleService.updateSchedule(date, gender, scheduleTimes);
             updatedCount++;
           } else {
             await scheduleService.createSchedule({
               date,
               gender,
-              nightStartTime: startTime,
-              nightEndTime: endTime,
+              ...scheduleTimes,
             });
             createdCount++;
           }
@@ -650,8 +758,10 @@ export default function Schedule() {
     minute: string,
     setHour: (value: string) => void,
     setMinute: (value: string) => void,
+    presets?: string[],
   ) => {
-    const presets = label.includes('시작') ? ['16:00'] : ['21:10', '22:15'];
+    const timePresets =
+      presets ?? (label.includes('시작') ? ['16:00'] : ['21:10', '22:15']);
 
     return (
       <div className="time-control" aria-label={label}>
@@ -667,7 +777,7 @@ export default function Schedule() {
           aria-label={`${label} 직접 입력`}
         />
         <div className="time-preset-row">
-          {presets.map((time) => (
+          {timePresets.map((time) => (
             <button
               key={time}
               type="button"
@@ -855,10 +965,10 @@ export default function Schedule() {
                     ? `공휴일 ${day.holidayName}`
                     : '',
                   hasMaleSchedule
-                    ? `남기숙사 ${formatScheduleRange(day.maleSchedule, ' ~ ')}`
+                    ? `남기숙사\n☀ 아침 퇴실 ${formatMorningScheduleRange(day.maleSchedule, ' ~ ')}\n☾ 저녁 입실 ${formatScheduleRange(day.maleSchedule, ' ~ ')}`
                     : '',
                   hasFemaleSchedule
-                    ? `여기숙사 ${formatScheduleRange(day.femaleSchedule, ' ~ ')}`
+                    ? `여기숙사\n☀ 아침 퇴실 ${formatMorningScheduleRange(day.femaleSchedule, ' ~ ')}\n☾ 저녁 입실 ${formatScheduleRange(day.femaleSchedule, ' ~ ')}`
                     : '',
                 ]
                   .filter(Boolean)
@@ -908,7 +1018,7 @@ export default function Schedule() {
                             <div className="schedule-tag male">
                               <span>남</span>
                               <span className="schedule-tag-time">
-                                {formatScheduleRange(day.maleSchedule)}
+                                {formatScheduleSummary(day.maleSchedule)}
                               </span>
                             </div>
                           )}
@@ -916,7 +1026,7 @@ export default function Schedule() {
                             <div className="schedule-tag female">
                               <span>여</span>
                               <span className="schedule-tag-time">
-                                {formatScheduleRange(day.femaleSchedule)}
+                                {formatScheduleSummary(day.femaleSchedule)}
                               </span>
                             </div>
                           )}
@@ -954,7 +1064,7 @@ export default function Schedule() {
             <div className="workbench-heading">
               <div>
                 <span className="quick-apply-label">시간 설정</span>
-                <p>남/여 기숙사 시간을 한 화면에서 조정합니다.</p>
+                <p>아침 퇴실과 저녁 입실 시간을 함께 조정합니다.</p>
               </div>
               <button
                 className="ghost-reset-btn"
@@ -970,40 +1080,92 @@ export default function Schedule() {
             <div className="time-table">
               <div className="time-table-head">
                 <span>기숙사</span>
-                <span>시작</span>
-                <span>종료</span>
+                <span>시간대</span>
                 <span>작업</span>
               </div>
 
               <div className="time-table-row male">
                 <div className="dormitory-cell">
                   <span className="gender-badge male">남기숙사</span>
-                  {selectedDates.length === 1 &&
-                    selectedDayData?.maleSchedule && (
-                      <small>
-                        현재 {formatScheduleRange(
-                          selectedDayData.maleSchedule,
-                          '-',
-                        )}
-                      </small>
-                    )}
                 </div>
-                <div className="time-range-cell">
-                  {renderTimeControl(
-                    '남기숙사 시작 시간',
-                    maleStartHour,
-                    maleStartMinute,
-                    setMaleStartHour,
-                    setMaleStartMinute,
-                  )}
-                  <span className="time-range-mark">~</span>
-                  {renderTimeControl(
-                    '남기숙사 종료 시간',
-                    maleEndHour,
-                    maleEndMinute,
-                    setMaleEndHour,
-                    setMaleEndMinute,
-                  )}
+                <div className="attendance-periods">
+                  <div className="period-time-block morning">
+                    <div className="period-time-heading">
+                      <span className="period-icon-wrap">
+                        <SunIcon className="period-icon" />
+                      </span>
+                      <div>
+                        <strong>아침 퇴실</strong>
+                        {selectedDates.length === 1 &&
+                          selectedDayData?.maleSchedule && (
+                            <small>
+                              현재{' '}
+                              {formatMorningScheduleRange(
+                                selectedDayData.maleSchedule,
+                                '-',
+                              )}
+                            </small>
+                          )}
+                      </div>
+                    </div>
+                    <div className="time-range-cell">
+                      {renderTimeControl(
+                        '남기숙사 아침 퇴실 시작 시간',
+                        maleMorningStartHour,
+                        maleMorningStartMinute,
+                        setMaleMorningStartHour,
+                        setMaleMorningStartMinute,
+                        ['07:00', '07:30'],
+                      )}
+                      <span className="time-range-mark">~</span>
+                      {renderTimeControl(
+                        '남기숙사 아침 퇴실 종료 시간',
+                        maleMorningEndHour,
+                        maleMorningEndMinute,
+                        setMaleMorningEndHour,
+                        setMaleMorningEndMinute,
+                        ['08:00', '08:30'],
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="period-time-block night">
+                    <div className="period-time-heading">
+                      <span className="period-icon-wrap">
+                        <MoonIcon className="period-icon" />
+                      </span>
+                      <div>
+                        <strong>저녁 입실</strong>
+                        {selectedDates.length === 1 &&
+                          selectedDayData?.maleSchedule && (
+                            <small>
+                              현재{' '}
+                              {formatScheduleRange(
+                                selectedDayData.maleSchedule,
+                                '-',
+                              )}
+                            </small>
+                          )}
+                      </div>
+                    </div>
+                    <div className="time-range-cell">
+                      {renderTimeControl(
+                        '남기숙사 저녁 입실 시작 시간',
+                        maleStartHour,
+                        maleStartMinute,
+                        setMaleStartHour,
+                        setMaleStartMinute,
+                      )}
+                      <span className="time-range-mark">~</span>
+                      {renderTimeControl(
+                        '남기숙사 저녁 입실 종료 시간',
+                        maleEndHour,
+                        maleEndMinute,
+                        setMaleEndHour,
+                        setMaleEndMinute,
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <div className="row-actions">
                   <button
@@ -1026,33 +1188,85 @@ export default function Schedule() {
               <div className="time-table-row female">
                 <div className="dormitory-cell">
                   <span className="gender-badge female">여기숙사</span>
-                  {selectedDates.length === 1 &&
-                    selectedDayData?.femaleSchedule && (
-                      <small>
-                        현재{' '}
-                        {formatScheduleRange(
-                          selectedDayData.femaleSchedule,
-                          '-',
-                        )}
-                      </small>
-                    )}
                 </div>
-                <div className="time-range-cell">
-                  {renderTimeControl(
-                    '여기숙사 시작 시간',
-                    femaleStartHour,
-                    femaleStartMinute,
-                    setFemaleStartHour,
-                    setFemaleStartMinute,
-                  )}
-                  <span className="time-range-mark">~</span>
-                  {renderTimeControl(
-                    '여기숙사 종료 시간',
-                    femaleEndHour,
-                    femaleEndMinute,
-                    setFemaleEndHour,
-                    setFemaleEndMinute,
-                  )}
+                <div className="attendance-periods">
+                  <div className="period-time-block morning">
+                    <div className="period-time-heading">
+                      <span className="period-icon-wrap">
+                        <SunIcon className="period-icon" />
+                      </span>
+                      <div>
+                        <strong>아침 퇴실</strong>
+                        {selectedDates.length === 1 &&
+                          selectedDayData?.femaleSchedule && (
+                            <small>
+                              현재{' '}
+                              {formatMorningScheduleRange(
+                                selectedDayData.femaleSchedule,
+                                '-',
+                              )}
+                            </small>
+                          )}
+                      </div>
+                    </div>
+                    <div className="time-range-cell">
+                      {renderTimeControl(
+                        '여기숙사 아침 퇴실 시작 시간',
+                        femaleMorningStartHour,
+                        femaleMorningStartMinute,
+                        setFemaleMorningStartHour,
+                        setFemaleMorningStartMinute,
+                        ['07:00', '07:30'],
+                      )}
+                      <span className="time-range-mark">~</span>
+                      {renderTimeControl(
+                        '여기숙사 아침 퇴실 종료 시간',
+                        femaleMorningEndHour,
+                        femaleMorningEndMinute,
+                        setFemaleMorningEndHour,
+                        setFemaleMorningEndMinute,
+                        ['08:00', '08:30'],
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="period-time-block night">
+                    <div className="period-time-heading">
+                      <span className="period-icon-wrap">
+                        <MoonIcon className="period-icon" />
+                      </span>
+                      <div>
+                        <strong>저녁 입실</strong>
+                        {selectedDates.length === 1 &&
+                          selectedDayData?.femaleSchedule && (
+                            <small>
+                              현재{' '}
+                              {formatScheduleRange(
+                                selectedDayData.femaleSchedule,
+                                '-',
+                              )}
+                            </small>
+                          )}
+                      </div>
+                    </div>
+                    <div className="time-range-cell">
+                      {renderTimeControl(
+                        '여기숙사 저녁 입실 시작 시간',
+                        femaleStartHour,
+                        femaleStartMinute,
+                        setFemaleStartHour,
+                        setFemaleStartMinute,
+                      )}
+                      <span className="time-range-mark">~</span>
+                      {renderTimeControl(
+                        '여기숙사 저녁 입실 종료 시간',
+                        femaleEndHour,
+                        femaleEndMinute,
+                        setFemaleEndHour,
+                        setFemaleEndMinute,
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <div className="row-actions">
                   <button

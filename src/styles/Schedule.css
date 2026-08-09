@@ -901,12 +901,93 @@
   white-space: nowrap;
 }
 
+.attendance-periods {
+  grid-area: range;
+  display: grid;
+  gap: 10px;
+}
+
+.period-time-block {
+  padding: 12px;
+  border: 1px solid #e6e6e7;
+  border-radius: 10px;
+}
+
+.period-time-block.morning {
+  border-color: #f6dfa4;
+  background: #fffaf0;
+}
+
+.period-time-block.night {
+  border-color: #ddd7f4;
+  background: #f8f7ff;
+}
+
+.period-time-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.period-time-heading > div {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.period-time-heading strong {
+  color: #2c2c2e;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.period-time-heading small {
+  overflow: hidden;
+  color: #747678;
+  font-size: 10px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.period-icon-wrap {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
+  border-radius: 8px;
+}
+
+.period-time-block.morning .period-icon-wrap {
+  background: #fff0bf;
+  color: #d48a00;
+}
+
+.period-time-block.night .period-icon-wrap {
+  background: #e9e5ff;
+  color: #5c4ac7;
+}
+
+.period-icon {
+  width: 17px;
+  height: 17px;
+}
+
 .time-range-cell {
   grid-area: range;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 8px;
   align-items: center;
+}
+
+.period-time-block .time-range-cell {
+  grid-area: auto;
 }
 
 .time-range-mark {
@@ -1590,6 +1671,12 @@
   .time-table-row {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+  }
+
+  .period-time-heading > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .danger-zone div {

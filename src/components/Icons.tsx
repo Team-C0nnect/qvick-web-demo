@@ -320,3 +320,41 @@ export function TrashIcon({ className = '', style }: IconProps) {
     </svg>
   );
 }
+
+export function SunIcon({ className = '', style }: IconProps) {
+  return (
+    <svg
+      className={`icon ${className}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      style={style}
+    >
+      <circle cx="12" cy="12" r="4" fill="currentColor" />
+      <path
+        d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function MoonIcon({ className = '', style }: IconProps) {
+  return (
+    <svg
+      className={`icon ${className}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      style={style}
+    >
+      <path
+        d="M20.4 15.2A8.4 8.4 0 0 1 8.8 3.6 8.4 8.4 0 1 0 20.4 15.2Z"
+        fill="currentColor"
+      />
+      <circle cx="17.5" cy="5.5" r="1.25" fill="currentColor" />
+    </svg>
+  );
+}

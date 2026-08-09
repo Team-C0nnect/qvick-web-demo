@@ -13,7 +13,7 @@ const tempApiClient = axios.create({
 // Request interceptor to add auth token
 tempApiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('tempAccessToken');
+    const token = sessionStorage.getItem('tempAccessToken');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -4,6 +4,12 @@
 
 ## 기능
 
+## 보안 정책
+
+- 관리 API와 AI API는 Qvick access token을 요구하며 서버에서 사용자 역할을 검증합니다.
+- 문의 접수 및 AI 요청에는 본문 크기 제한과 호출 횟수 제한이 적용됩니다.
+- 패치노트와 문의 입력은 허용된 필드와 길이만 저장됩니다.
+
 ### 1. 공지사항 글 다듬기 (refineAnnouncement)
 OpenAI GPT-4o-mini를 사용하여 공지사항 내용을 자동으로 다듬어주는 기능입니다.
 
@@ -56,9 +62,10 @@ npm install -g azure-functions-core-tools@4 --unsafe-perm true
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "",
-    "FUNCTIONS_WORKER_RUNTIME": "node",
-    "OPENAI_API_KEY": "sk-your-actual-openai-api-key"
+      "AzureWebJobsStorage": "",
+      "FUNCTIONS_WORKER_RUNTIME": "node",
+      "OPENAI_API_KEY": "sk-your-actual-openai-api-key",
+      "QVICK_API_BASE_URL": "https://devapi.qvick.xyz"
   },
   "Host": {
     "CORS": "*",
@@ -84,6 +91,7 @@ Azure Static Web App의 Configuration 섹션에서 다음 환경 변수를 추�
 - `FIREBASE_PROJECT_ID`: Firebase 프로젝트 ID
 - `FIREBASE_CLIENT_EMAIL`: Firebase 서비스 계정 client_email
 - `FIREBASE_PRIVATE_KEY`: Firebase 서비스 계정 private_key
+- `QVICK_API_BASE_URL`: 사용자 토큰과 역할을 검증할 Qvick API 주소
 
 패치노트 API는 Firestore를 사용하므로 위 Firebase 환경 변수가 없으면 `/api/getPublishedPatchnotes`를 포함한 패치노트 엔드포인트가 500으로 실패합니다.
 

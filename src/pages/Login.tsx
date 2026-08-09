@@ -52,8 +52,8 @@ export default function Login() {
     mutationFn: authService.login,
     onSuccess: (data) => {
       // Store tokens
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+      sessionStorage.setItem('accessToken', data.accessToken);
+      sessionStorage.setItem('refreshToken', data.refreshToken);
       queryClient.clear();
       
       // Clear form and error

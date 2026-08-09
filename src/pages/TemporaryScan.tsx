@@ -42,7 +42,7 @@ export default function TemporaryScan() {
 
   // 인증 체크
   useEffect(() => {
-    const token = localStorage.getItem('tempAccessToken');
+    const token = sessionStorage.getItem('tempAccessToken');
     if (!token) {
       navigate('/temporary/login');
     }
@@ -252,8 +252,7 @@ export default function TemporaryScan() {
 
   const handleLogout = useCallback(() => {
     stopScanner();
-    localStorage.removeItem('tempAccessToken');
-    localStorage.removeItem('tempRefreshToken');
+    sessionStorage.removeItem('tempAccessToken');
     navigate('/temporary/login');
   }, [stopScanner, navigate]);
 

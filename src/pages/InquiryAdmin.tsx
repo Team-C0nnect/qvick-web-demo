@@ -11,17 +11,18 @@ import type {
 import { INQUIRY_TYPE_CONFIG, INQUIRY_STATUS_CONFIG, INQUIRY_PRIORITY_CONFIG } from '../types/inquiry';
 import { apiClient } from '../lib/api-client';
 import type { MyUserResponse } from '../types/api';
+import { authenticatedFetch } from '../lib/auth-fetch';
 import '../styles/InquiryAdmin.css';
 
 // API 호출 함수
 const fetchInquiries = async (): Promise<Inquiry[]> => {
-  const response = await fetch('/api/getInquiries');
+  const response = await authenticatedFetch('/api/getInquiries');
   if (!response.ok) throw new Error('문의 목록을 불러오는데 실패했습니다.');
   return response.json();
 };
 
 const updateInquiry = async ({ id, data }: { id: string; data: UpdateInquiryRequest }) => {
-  const response = await fetch(`/api/updateInquiry?id=${id}`, {
+  const response = await authenticatedFetch(`/api/updateInquiry?id=${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -31,7 +32,7 @@ const updateInquiry = async ({ id, data }: { id: string; data: UpdateInquiryRequ
 };
 
 const deleteInquiry = async (id: string) => {
-  const response = await fetch(`/api/deleteInquiry?id=${id}`, { method: 'DELETE' });
+  const response = await authenticatedFetch(`/api/deleteInquiry?id=${id}`, { method: 'DELETE' });
   if (!response.ok) throw new Error('문의 삭제에 실패했습니다.');
   return response.json();
 };

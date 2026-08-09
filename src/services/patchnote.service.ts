@@ -6,6 +6,7 @@ import type {
   UpdatePatchNoteRequest,
   PatchNoteVisibility
 } from '../types/patchnote';
+import { authenticatedFetch } from '../lib/auth-fetch';
 
 // Azure Static Web Apps는 /api를 Functions로 자동 라우팅
 const API_BASE_URL = '/api';
@@ -19,7 +20,7 @@ export const patchNoteService = {
   // 모든 패치노트 조회 (관리자용)
   async getAllPatchNotes(): Promise<PatchNote[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/getPatchnotes`);
+      const response = await authenticatedFetch(`${API_BASE_URL}/getPatchnotes`);
       if (!response.ok) {
         throw new Error('패치노트 조회 실패');
       }
@@ -37,7 +38,9 @@ export const patchNoteService = {
         ? `${API_BASE_URL}/getPublishedPatchnotes?visibility=${visibility}`
         : `${API_BASE_URL}/getPublishedPatchnotes`;
       
-      const response = await fetch(url);
+      const response = visibility === 'public'
+        ? await fetch(url)
+        : await authenticatedFetch(url);
       if (!response.ok) {
         throw new Error('발행된 패치노트 조회 실패');
       }
@@ -51,7 +54,7 @@ export const patchNoteService = {
   // 단일 패치노트 조회
   async getPatchNoteById(id: string): Promise<PatchNote | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/getPatchnoteById?id=${id}`);
+      const response = await authenticatedFetch(`${API_BASE_URL}/getPatchnoteById?id=${id}`);
       if (!response.ok) {
         if (response.status === 404) return null;
         throw new Error('패치노트 조회 실패');
@@ -65,7 +68,7 @@ export const patchNoteService = {
 
   // 패치노트 생성 (초안으로 생성)
   async createPatchNote(request: CreatePatchNoteRequest, author: string): Promise<PatchNote> {
-    const response = await fetch(`${API_BASE_URL}/createPatchnote`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/createPatchnote`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -83,7 +86,7 @@ export const patchNoteService = {
   // 패치노트 수정
   async updatePatchNote(id: string, request: UpdatePatchNoteRequest): Promise<PatchNote | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/updatePatchnote?id=${id}`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/updatePatchnote?id=${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +109,7 @@ export const patchNoteService = {
   // 패치노트 발행
   async publishPatchNote(id: string): Promise<PatchNote | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/publishPatchnote?id=${id}`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/publishPatchnote?id=${id}`, {
         method: 'POST',
       });
       
@@ -124,7 +127,7 @@ export const patchNoteService = {
   // 패치노트 발행 취소 (초안으로 변경)
   async unpublishPatchNote(id: string): Promise<PatchNote | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/unpublishPatchnote?id=${id}`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/unpublishPatchnote?id=${id}`, {
         method: 'POST',
       });
       
@@ -142,7 +145,7 @@ export const patchNoteService = {
   // 패치노트 삭제
   async deletePatchNote(id: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL}/deletePatchnote?id=${id}`, {
+      const response = await authenticatedFetch(`${API_BASE_URL}/deletePatchnote?id=${id}`, {
         method: 'POST',
       });
       

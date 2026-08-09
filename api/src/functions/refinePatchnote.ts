@@ -1,6 +1,13 @@
 // 패치노트 AI 다듬기 API 엔드포인트
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import OpenAI from "openai";
+import { requireRoles } from "../lib/auth";
+import {
+  checkRateLimit,
+  readJsonBody,
+  RequestValidationError,
+  validationErrorResponse,
+} from "../lib/request-security";
 
 function createOpenAIClient(): OpenAI | null {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -15,7 +22,6 @@ function createOpenAIClient(): OpenAI | null {
 // CORS 헤더
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -173,8 +179,21 @@ export async function refinePatchnote(request: HttpRequest, context: InvocationC
     };
   }
 
+  const auth = await requireRoles(request, ['ADMIN'], context);
+  if ('response' in auth) return auth.response;
+
+  const rateLimitResponse = checkRateLimit(
+    'refine-patchnote',
+    auth.user.email,
+    20,
+    60 * 60 * 1000,
+  );
+  if (rateLimitResponse) return rateLimitResponse;
+
+  let body: RefineRequest | null = null;
+
   try {
-    const body = await request.json() as RefineRequest;
+    body = await readJsonBody<RefineRequest>(request, 48 * 1024);
     const { version, title, content, images = [] } = body;
 
     // 입력 검증
@@ -187,6 +206,28 @@ export async function refinePatchnote(request: HttpRequest, context: InvocationC
           error: '제목이나 내용을 입력해주세요.' 
         }),
       };
+    }
+
+    if (
+      typeof version !== 'string' || version.length > 50 ||
+      typeof title !== 'string' || title.length > 200 ||
+      typeof content !== 'string' || content.length > 20_000
+    ) {
+      throw new RequestValidationError('패치노트 입력 길이가 허용 범위를 초과했습니다.');
+    }
+
+    if (
+      !Array.isArray(images) ||
+      images.length > 10 ||
+      images.some((image) =>
+        !image ||
+        typeof image.id !== 'string' || image.id.length > 100 ||
+        typeof image.alt !== 'string' || image.alt.length > 200 ||
+        image.caption !== undefined &&
+          (typeof image.caption !== 'string' || image.caption.length > 500)
+      )
+    ) {
+      throw new RequestValidationError('이미지 정보가 올바르지 않습니다.');
     }
 
     const openai = createOpenAIClient();
@@ -244,13 +285,15 @@ export async function refinePatchnote(request: HttpRequest, context: InvocationC
     };
 
   } catch (error) {
+    const validationResponse = validationErrorResponse(error);
+    if (validationResponse) return validationResponse;
+
     context.error('AI 다듬기 실패:', error);
     
     // 에러 발생 시 로컬 다듬기 폴백
     try {
-      const body = await request.text();
-      const parsed = JSON.parse(body) as RefineRequest;
-      const result = localRefine(parsed.version, parsed.title, parsed.content);
+      if (!body) throw error;
+      const result = localRefine(body.version, body.title, body.content);
       result.suggestions.unshift('AI 처리 중 오류가 발생하여 기본 다듬기가 적용되었습니다.');
       
       return {

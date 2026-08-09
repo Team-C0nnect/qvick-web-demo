@@ -33,7 +33,7 @@ export default function TemporaryLogin() {
 
   // 이미 로그인되어 있으면 스캔 페이지로 이동
   useEffect(() => {
-    const token = localStorage.getItem('tempAccessToken');
+    const token = sessionStorage.getItem('tempAccessToken');
     if (token) {
       navigate('/temporary/scan');
     }
@@ -49,8 +49,7 @@ export default function TemporaryLogin() {
   const loginMutation = useMutation({
     mutationFn: temporaryAttendanceService.login,
     onSuccess: (data) => {
-      localStorage.setItem('tempAccessToken', data.accessToken);
-      localStorage.setItem('tempRefreshToken', data.refreshToken);
+      sessionStorage.setItem('tempAccessToken', data.accessToken);
       toast.success('로그인 완료');
       navigate('/temporary/scan');
     },

@@ -1,5 +1,6 @@
 // 패치노트 AI 다듬기 서비스 (Azure Functions API 호출)
 import type { PatchNoteImage } from '../types/patchnote';
+import { authenticatedFetch } from '../lib/auth-fetch';
 
 // Azure Static Web Apps는 /api를 Functions로 자동 라우팅
 const API_BASE_URL = '/api';
@@ -42,7 +43,7 @@ export async function refinePatchNote(
       })),
     };
 
-    const response = await fetch(`${API_BASE_URL}/refinePatchnote`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/refinePatchnote`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

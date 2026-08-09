@@ -1,5 +1,12 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import OpenAI from "openai";
+import { requireRoles } from "../lib/auth";
+import {
+  checkRateLimit,
+  readJsonBody,
+  RequestValidationError,
+  validationErrorResponse,
+} from "../lib/request-security";
 
 function createOpenAIClient(): OpenAI | null {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -18,7 +25,6 @@ export async function refineAnnouncement(request: HttpRequest, context: Invocati
     // CORS 헤더 설정
     const headers = {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
@@ -40,8 +46,19 @@ export async function refineAnnouncement(request: HttpRequest, context: Invocati
       };
     }
 
+    const auth = await requireRoles(request, ['TEACHER', 'ADMIN', 'MANAGER'], context);
+    if ('response' in auth) return auth.response;
+
+    const rateLimitResponse = checkRateLimit(
+      'refine-announcement',
+      auth.user.email,
+      20,
+      60 * 60 * 1000,
+    );
+    if (rateLimitResponse) return rateLimitResponse;
+
     // 요청 본문 파싱
-    const body = await request.json() as { content: string };
+    const body = await readJsonBody<{ content?: unknown }>(request, 24 * 1024);
     const { content } = body;
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
@@ -50,6 +67,10 @@ export async function refineAnnouncement(request: HttpRequest, context: Invocati
         headers,
         body: JSON.stringify({ error: '내용을 입력해주세요.' }),
       };
+    }
+
+    if (content.length > 10_000) {
+      throw new RequestValidationError('내용은 10,000자 이내로 입력해주세요.');
     }
 
     const openai = createOpenAIClient();
@@ -124,13 +145,15 @@ export async function refineAnnouncement(request: HttpRequest, context: Invocati
     };
 
   } catch (error) {
+    const validationResponse = validationErrorResponse(error);
+    if (validationResponse) return validationResponse;
+
     context.error('Error refining announcement:', error);
     
     return {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({ 
         error: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' 

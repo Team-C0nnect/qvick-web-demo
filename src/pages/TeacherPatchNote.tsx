@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { patchNoteService } from '../services/patchnote.service';
 import { CATEGORY_CONFIG } from '../types/patchnote';
-import type { PatchNote, PatchNoteImage } from '../types/patchnote';
+import type { PatchNote } from '../types/patchnote';
+import { PatchNoteMarkdown } from '../components/PatchNoteMarkdown';
 import '../styles/TeacherPatchNote.css';
 
 export default function TeacherPatchNotePage() {
@@ -51,91 +52,6 @@ export default function TeacherPatchNotePage() {
       month: 'long',
       day: 'numeric',
     });
-  };
-
-  // 간단한 Markdown 렌더링 (이미지 지원 포함)
-  const renderMarkdown = (md: string, noteImages?: PatchNoteImage[]) => {
-    let html = md;
-    
-    // 패치노트 이미지를 실제 이미지로 변환
-    const imageList = noteImages || [];
-    imageList.forEach(img => {
-      const imgRegex = new RegExp(`!\\[([^\\]]*)\\]\\(${img.id}\\)`, 'g');
-      html = html.replace(imgRegex, `<img src="${img.url}" alt="$1" class="patchnote-image" />`);
-    });
-    
-    // 연속된 리스트 항목을 먼저 처리
-    const lines = html.split('\n');
-    const processedLines: string[] = [];
-    let inList = false;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const isListItem = /^- (.*)$/.test(line.trim());
-      
-      if (isListItem) {
-        if (!inList) {
-          processedLines.push('<ul>');
-          inList = true;
-        }
-        let content = line.trim().replace(/^- (.*)$/, '$1');
-        // 리스트 내부의 링크와 강조 처리
-        content = content
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/`(.*?)`/g, '<code>$1</code>')
-          .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-        processedLines.push(`<li>${content}</li>`);
-      } else {
-        if (inList) {
-          processedLines.push('</ul>');
-          inList = false;
-        }
-        processedLines.push(line);
-      }
-    }
-    if (inList) {
-      processedLines.push('</ul>');
-    }
-    
-    html = processedLines.join('\n');
-    
-    // 헤더와 외부 이미지를 먼저 처리
-    html = html
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-      .replace(/!\[(.*?)\]\((https?:\/\/[^)]+)\)/g, '<img src="$2" alt="$1" class="patchnote-image" />');
-    
-    // 리스트가 아닌 부분의 마크다운 처리 (라인별로)
-    const finalLines = html.split('\n').map(line => {
-      // ul, li, /ul 태그가 있는 라인은 이미 처리됨
-      if (line.includes('<ul>') || line.includes('</ul>') || line.includes('<li>')) {
-        return line;
-      }
-      // 나머지 라인 처리
-      return line
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code>$1</code>')
-        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-    });
-    
-    html = finalLines.join('\n');
-    
-    // 빈 줄을 단락으로 변환 (ul 태그 안에서는 제외)
-    html = html
-      .replace(/\n\n+/g, '</p><p>')
-      .replace(/(?<!<\/li>)\n(?!<)/g, '<br/>');
-    
-    // ul 태그 주변의 불필요한 br 제거
-    html = html
-      .replace(/<br\/?>\s*<ul>/g, '<ul>')
-      .replace(/<\/ul>\s*<br\/?>/g, '</ul>')
-      .replace(/<br\/?>\s*<\/ul>/g, '</ul>')
-      .replace(/<ul>\s*<br\/?>/g, '<ul>');
-    
-    return `<div>${html}</div>`;
   };
 
   // 스켈레톤 컴포넌트
@@ -264,10 +180,13 @@ export default function TeacherPatchNotePage() {
                       <span className="article-author">by {selectedNote.author}</span>
                     </div>
                   </div>
-                  <div 
-                    className="article-content"
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedNote.content, selectedNote.images) }}
-                  />
+                  <div className="article-content">
+                    <PatchNoteMarkdown
+                      content={selectedNote.content}
+                      images={selectedNote.images}
+                      imageClassName="patchnote-image"
+                    />
+                  </div>
                 </article>
               ) : (
                 <div className="no-selection">

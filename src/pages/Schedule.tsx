@@ -717,6 +717,13 @@ export default function Schedule() {
       return targetDates.map((date) => async () => {
         const existingSchedule = getSchedule(date, gender);
         const shouldUpdate = !!existingSchedule;
+        const calendarDay = calendarDays.find(
+          (day) => day.fullDate === date,
+        );
+        // 서버는 평일 신규 일정에 아침·저녁 슬롯을 모두 요구한다.
+        const canCreateNightOnly =
+          attendanceType === 'NIGHT' &&
+          (calendarDay?.dayOfWeek === 0 || calendarDay?.dayOfWeek === 6);
 
         try {
           if (shouldUpdate && existingSchedule) {
@@ -725,7 +732,7 @@ export default function Schedule() {
               ...periodTime,
             });
             updatedCount++;
-          } else if (attendanceType === 'NIGHT') {
+          } else if (canCreateNightOnly) {
             await scheduleService.createSchedule({
               date,
               gender,

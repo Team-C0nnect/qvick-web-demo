@@ -119,8 +119,8 @@ const MORNING_END_HOUR = '08';
 const MORNING_END_MINUTE = '05';
 const DEFAULT_START_HOUR = '16';
 const DEFAULT_START_MINUTE = '00';
-const WEEKDAY_END_HOUR = '22';
-const WEEKDAY_END_MINUTE = '15';
+const WEEKDAY_END_HOUR = '21';
+const WEEKDAY_END_MINUTE = '10';
 const SUNDAY_END_HOUR = '21';
 const SUNDAY_END_MINUTE = '10';
 
@@ -137,13 +137,7 @@ const QUICK_PERIOD_PRESETS: Array<{
     time: { startTime: '06:50', endTime: '08:05' },
   },
   {
-    label: '평일 입실 적용',
-    description: '16:00–22:15',
-    attendanceType: 'NIGHT',
-    time: { startTime: '16:00', endTime: '22:15' },
-  },
-  {
-    label: '일·공휴일 입실',
+    label: '저녁 입실 적용',
     description: '16:00–21:10',
     attendanceType: 'NIGHT',
     time: { startTime: '16:00', endTime: '21:10' },

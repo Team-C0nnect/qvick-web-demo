@@ -36,13 +36,6 @@ interface CalendarDay {
 type QuickSelectionMode = 'all' | 'sunday' | 'redDay' | 'schoolWeekdays';
 type EditorTarget = Gender | 'ALL';
 
-interface CompleteScheduleTime {
-  morningStartTime: string;
-  morningEndTime: string;
-  nightStartTime: string;
-  nightEndTime: string;
-}
-
 const getScheduleRequestError = (error: unknown) => {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as
@@ -116,13 +109,6 @@ const WEEKDAY_END_HOUR = '21';
 const WEEKDAY_END_MINUTE = '10';
 const SUNDAY_END_HOUR = '21';
 const SUNDAY_END_MINUTE = '10';
-
-const DEFAULT_COMPLETE_SCHEDULE: CompleteScheduleTime = {
-  morningStartTime: '06:50',
-  morningEndTime: '08:05',
-  nightStartTime: '16:00',
-  nightEndTime: '21:10',
-};
 
 const SCHEDULE_APPLY_CONCURRENCY = 4;
 
@@ -596,10 +582,7 @@ export default function Schedule() {
   const hasSchedule = (date: string, gender: Gender) =>
     !!getSchedule(date, gender);
 
-  const handleApplyCompleteSchedule = async (
-    target = activeEditorTarget,
-    override?: CompleteScheduleTime,
-  ) => {
+  const handleApplyCompleteSchedule = async (target = activeEditorTarget) => {
     if (selectedDates.length === 0) {
       showSelectDateAlert();
       return;
@@ -608,7 +591,7 @@ export default function Schedule() {
     const genders: Gender[] =
       target === 'ALL' ? ['MALE', 'FEMALE'] : [target];
     const sourceGender: Gender = target === 'FEMALE' ? 'FEMALE' : 'MALE';
-    const completeTime = override ?? getCompleteGenderTime(sourceGender);
+    const completeTime = getCompleteGenderTime(sourceGender);
     const total = selectedDates.length * genders.length;
     let completedCount = 0;
     let createdCount = 0;
@@ -1119,25 +1102,6 @@ export default function Schedule() {
         </div>
       )}
 
-      <section className="schedule-hero">
-        <div className="calendar-title-row">
-          <span className="calendar-title-icon-wrap">
-            <CalendarIcon className="calendar-title-icon" />
-          </span>
-          <div>
-            <span className="schedule-kicker">Attendance Schedule</span>
-            <h2 className="calendar-title">출석 스케줄 관리</h2>
-            <p className="schedule-description">
-              날짜를 선택하고 기숙사별 퇴실·입실 시간을 관리하세요.
-            </p>
-          </div>
-        </div>
-        <div className="schedule-hero-summary">
-          <span>{currentYear}년 {currentMonth}월</span>
-          <strong>{schedulesData?.length ?? 0}개 일정</strong>
-        </div>
-      </section>
-
       <section className="schedule-bulk-tools" aria-label="일정 빠른 관리">
         <div className="calendar-quick-select">
           <div className="quick-select-copy">
@@ -1192,42 +1156,6 @@ export default function Schedule() {
           </div>
         </div>
 
-        <div className="quick-schedule-apply">
-          <div className="quick-schedule-copy">
-            <span>빠른 적용</span>
-            <strong>
-              {selectedDates.length > 0
-                ? `선택한 ${selectedDates.length}일에 기본 일정 적용`
-                : '먼저 날짜를 선택해주세요'}
-            </strong>
-          </div>
-          <div className="quick-complete-preview">
-            <span className="morning">
-              <SunIcon />
-              <span>
-                <strong>아침 퇴실</strong>
-                <small>06:50–08:05</small>
-              </span>
-            </span>
-            <span className="night">
-              <MoonIcon />
-              <span>
-                <strong>저녁 입실</strong>
-                <small>16:00–21:10</small>
-              </span>
-            </span>
-          </div>
-          <button
-            type="button"
-            className="quick-complete-apply"
-            onClick={() =>
-              handleApplyCompleteSchedule('ALL', DEFAULT_COMPLETE_SCHEDULE)
-            }
-            disabled={selectedDates.length === 0 || loadingModal.isOpen}
-          >
-            일괄 적용
-          </button>
-        </div>
       </section>
 
       <section className="calendar-container" aria-label="월간 일정 달력">

@@ -7,16 +7,10 @@
     {
       "route": "/assets/*",
       "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
+        "Cache-Control": "public, max-age=31536000, immutable"
       }
     }
   ],
-  "responseOverrides": {
-    "404": {
-      "rewrite": "/index.html",
-      "statusCode": 200
-    }
-  },
   "mimeTypes": {
     ".js": "application/javascript",
     ".mjs": "application/javascript",
@@ -35,6 +29,7 @@
     ".html": "text/html"
   },
   "globalHeaders": {
+    "Cache-Control": "no-cache",
     "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.qvick.xyz https://devapi.qvick.xyz; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(self), microphone=(), geolocation=()",

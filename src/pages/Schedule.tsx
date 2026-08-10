@@ -4,7 +4,13 @@ import axios from 'axios';
 import { scheduleService } from '../services/schedule.service';
 import ConfirmationModal from '../components/ConfirmationModal';
 import '../styles/Schedule.css';
-import { CalendarIcon, MoonIcon, SunIcon } from '../components/Icons';
+import {
+  CalendarIcon,
+  MoonIcon,
+  PencilIcon,
+  SunIcon,
+  TrashIcon,
+} from '../components/Icons';
 import { getKoreanHolidayName } from '../constants/koreanHolidays';
 import type {
   AttendanceScheduleResponse,
@@ -106,24 +112,6 @@ const formatPeriodScheduleRange = (
     ? formatMorningScheduleRange(schedule, separator)
     : formatScheduleRange(schedule, separator);
 
-const renderCalendarSchedule = (
-  schedule: AttendanceScheduleResponse,
-  gender: Gender,
-) => (
-  <div className={`calendar-schedule-row ${gender.toLowerCase()}`}>
-    <span className="calendar-period-times">
-      <span className="calendar-period-time morning">
-        <SunIcon className="calendar-period-icon" />
-        {formatMorningScheduleRange(schedule, '–')}
-      </span>
-      <span className="calendar-period-time night">
-        <MoonIcon className="calendar-period-icon" />
-        {formatScheduleRange(schedule, '–')}
-      </span>
-    </span>
-  </div>
-);
-
 // 기본 시간 상수
 const MORNING_START_HOUR = '06';
 const MORNING_START_MINUTE = '50';
@@ -172,6 +160,8 @@ export default function Schedule() {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [activeSchedulePeriod, setActiveSchedulePeriod] =
     useState<AttendanceType>('MORNING');
+  const [activeEditorGender, setActiveEditorGender] =
+    useState<Gender>('MALE');
   const [activeQuickSelection, setActiveQuickSelection] =
     useState<QuickSelectionMode | null>(null);
 
@@ -489,6 +479,9 @@ export default function Schedule() {
       }
 
       applyDayScheduleTime(day);
+      setActiveEditorGender(
+        day.femaleSchedule && !day.maleSchedule ? 'FEMALE' : 'MALE',
+      );
       return [day.fullDate];
     });
   };
@@ -926,11 +919,6 @@ export default function Schedule() {
     </label>
   );
 
-  const formatDisplayDate = (dateStr: string) => {
-    const [year, month, day] = dateStr.split('-');
-    return `${year}. ${month}. ${day}.`;
-  };
-
   const sundayDates = calendarDays
     .filter((day) => day.isCurrentMonth && day.dayOfWeek === 0)
     .map((day) => day.fullDate);
@@ -976,8 +964,105 @@ export default function Schedule() {
     selectedDates.length === 0
       ? '날짜를 선택해주세요'
       : selectedDates.length === 1
-        ? formatDisplayDate(selectedDates[0])
+        ? new Intl.DateTimeFormat('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'short',
+          }).format(new Date(`${selectedDates[0]}T00:00:00`))
         : `${selectedDates.length}일 선택됨`;
+  const selectedScheduleCount = [
+    selectedDayData?.maleSchedule,
+    selectedDayData?.femaleSchedule,
+  ].filter(Boolean).length;
+  const selectionSubtitle =
+    selectedDates.length === 0
+      ? '달력에서 관리할 날짜를 선택하세요.'
+      : selectedDates.length === 1
+        ? `등록된 기숙사 일정 ${selectedScheduleCount}개`
+        : '선택한 날짜에 일정을 일괄 적용합니다.';
+
+  const renderSelectedScheduleCard = (gender: Gender) => {
+    const isMale = gender === 'MALE';
+    const schedule = isMale
+      ? selectedDayData?.maleSchedule
+      : selectedDayData?.femaleSchedule;
+    const genderName = isMale ? '남기숙사' : '여기숙사';
+
+    if (!schedule) {
+      return (
+        <button
+          type="button"
+          className={`selected-schedule-empty ${isMale ? 'male' : 'female'}`}
+          onClick={() => {
+            setActiveEditorGender(gender);
+            setActiveSchedulePeriod('MORNING');
+          }}
+        >
+          <span>+</span>
+          {genderName} 일정 추가
+        </button>
+      );
+    }
+
+    return (
+      <article
+        className={`selected-schedule-card ${isMale ? 'male' : 'female'}`}
+      >
+        <div className="selected-schedule-card-header">
+          <span className={`gender-badge ${isMale ? 'male' : 'female'}`}>
+            {genderName}
+          </span>
+          <span className="schedule-configured-badge">설정됨</span>
+          <button
+            type="button"
+            className="selected-schedule-delete"
+            onClick={() => handleDeleteSchedules(gender)}
+            aria-label={`${genderName} 일정 삭제`}
+            title="아침·저녁 일정을 모두 삭제합니다."
+          >
+            <TrashIcon />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          className="selected-period-row morning"
+          onClick={() => {
+            setActiveEditorGender(gender);
+            setActiveSchedulePeriod('MORNING');
+          }}
+        >
+          <span className="selected-period-icon">
+            <SunIcon />
+          </span>
+          <span>
+            <strong>아침 퇴실</strong>
+            <small>{formatMorningScheduleRange(schedule, '–')}</small>
+          </span>
+          <PencilIcon />
+        </button>
+
+        <button
+          type="button"
+          className="selected-period-row night"
+          onClick={() => {
+            setActiveEditorGender(gender);
+            setActiveSchedulePeriod('NIGHT');
+          }}
+        >
+          <span className="selected-period-icon">
+            <MoonIcon />
+          </span>
+          <span>
+            <strong>저녁 입실</strong>
+            <small>{formatScheduleRange(schedule, '–')}</small>
+          </span>
+          <PencilIcon />
+        </button>
+      </article>
+    );
+  };
 
   const renderDormitoryEditor = (gender: Gender) => {
     const isMale = gender === 'MALE';
@@ -1109,49 +1194,40 @@ export default function Schedule() {
         selectedDates.length === 0 ? 'no-selection-mode' : 'has-selection'
       }`}
     >
-      <div className="calendar-container">
-        {schedulesError && (
-          <div className="schedule-error" role="alert">
-            <div>
-              <strong>일정 정보를 불러오지 못했습니다.</strong>
-              <span>페이지는 계속 사용할 수 있으며, 연결을 확인한 뒤 다시 시도해주세요.</span>
-            </div>
-            <button type="button" onClick={() => refetchSchedules()}>
-              다시 시도
-            </button>
-          </div>
-        )}
-        <div className="schedule-hero">
-          <div className="calendar-title-row">
-            <span className="calendar-title-icon-wrap">
-              <CalendarIcon className="calendar-title-icon" />
+      {schedulesError && (
+        <div className="schedule-error" role="alert">
+          <div>
+            <strong>일정 정보를 불러오지 못했습니다.</strong>
+            <span>
+              페이지는 계속 사용할 수 있으며, 연결을 확인한 뒤 다시 시도해주세요.
             </span>
-            <div>
-              <span className="schedule-kicker">Attendance Schedule</span>
-              <h2 className="calendar-title">출석 스케줄 관리</h2>
-            </div>
           </div>
-          <div className="month-selector">
-            <button
-              className="nav-button prev"
-              onClick={handlePrevMonth}
-              aria-label="이전 달"
-            >
-              ←
-            </button>
-            <span className="month-text">
-              {currentYear}년 {currentMonth}월
-            </span>
-            <button
-              className="nav-button next"
-              onClick={handleNextMonth}
-              aria-label="다음 달"
-            >
-              →
-            </button>
+          <button type="button" onClick={() => refetchSchedules()}>
+            다시 시도
+          </button>
+        </div>
+      )}
+
+      <section className="schedule-hero">
+        <div className="calendar-title-row">
+          <span className="calendar-title-icon-wrap">
+            <CalendarIcon className="calendar-title-icon" />
+          </span>
+          <div>
+            <span className="schedule-kicker">Attendance Schedule</span>
+            <h2 className="calendar-title">출석 스케줄 관리</h2>
+            <p className="schedule-description">
+              날짜를 선택하고 기숙사별 퇴실·입실 시간을 관리하세요.
+            </p>
           </div>
         </div>
+        <div className="schedule-hero-summary">
+          <span>{currentYear}년 {currentMonth}월</span>
+          <strong>{schedulesData?.length ?? 0}개 일정</strong>
+        </div>
+      </section>
 
+      <section className="schedule-bulk-tools" aria-label="일정 빠른 관리">
         <div className="calendar-quick-select">
           <div className="quick-select-copy">
             <span className="quick-select-label">빠른 선택</span>
@@ -1243,22 +1319,34 @@ export default function Schedule() {
               </button>
             ))}
           </div>
-          <p>
-            기존 일정은 선택한 시간대만 수정됩니다. 새 일정은 서버 규격에 따라
-            다른 시간대의 기본값도 함께 생성됩니다.
-          </p>
         </div>
+      </section>
 
-        <div className="calendar-legend" aria-label="일정 표시 안내">
-          <span className="legend-period morning">
-            <SunIcon /> 아침 퇴실
-          </span>
-          <span className="legend-period night">
-            <MoonIcon /> 저녁 입실
-          </span>
-          <span className="legend-divider" aria-hidden="true" />
-          <span className="legend-gender male">남기숙사</span>
-          <span className="legend-gender female">여기숙사</span>
+      <section className="calendar-container" aria-label="월간 일정 달력">
+        <div className="calendar-panel-header">
+          <div>
+            <span>Monthly calendar</span>
+            <h3>월간 일정</h3>
+          </div>
+          <div className="month-selector">
+            <button
+              className="nav-button prev"
+              onClick={handlePrevMonth}
+              aria-label="이전 달"
+            >
+              ←
+            </button>
+            <span className="month-text">
+              {currentYear}년 {currentMonth}월
+            </span>
+            <button
+              className="nav-button next"
+              onClick={handleNextMonth}
+              aria-label="다음 달"
+            >
+              →
+            </button>
+          </div>
         </div>
 
         <div className="calendar">
@@ -1277,10 +1365,28 @@ export default function Schedule() {
             renderSkeletonCalendar()
           ) : (
             <div className="calendar-grid">
-              {calendarDays.map((day, i) => {
+              {calendarDays.map((day, index) => {
                 const isSelected = selectedDates.includes(day.fullDate);
                 const hasMaleSchedule = !!day.maleSchedule;
                 const hasFemaleSchedule = !!day.femaleSchedule;
+                const scheduleMarkers = [
+                  day.maleSchedule?.morningStartTime &&
+                  day.maleSchedule?.morningEndTime
+                    ? 'male morning'
+                    : '',
+                  day.maleSchedule?.nightStartTime &&
+                  day.maleSchedule?.nightEndTime
+                    ? 'male night'
+                    : '',
+                  day.femaleSchedule?.morningStartTime &&
+                  day.femaleSchedule?.morningEndTime
+                    ? 'female morning'
+                    : '',
+                  day.femaleSchedule?.nightStartTime &&
+                  day.femaleSchedule?.nightEndTime
+                    ? 'female night'
+                    : '',
+                ].filter(Boolean);
                 const scheduleTooltip = [
                   day.isHoliday && day.holidayName
                     ? `공휴일 ${day.holidayName}`
@@ -1296,147 +1402,212 @@ export default function Schedule() {
                   .join('\n');
 
                 return (
-                  <div
-                    key={i}
-                    className={`calendar-cell 
-                      ${!day.isCurrentMonth ? 'inactive' : ''} 
-                      ${day.isToday ? 'today' : ''} 
-                      ${isSelected ? 'selected' : ''} 
-                      ${day.isWeekend && day.isCurrentMonth ? 'weekend' : ''}
+                  <button
+                    type="button"
+                    key={index}
+                    className={`calendar-cell
+                      ${!day.isCurrentMonth ? 'inactive' : ''}
+                      ${day.isToday ? 'today' : ''}
+                      ${isSelected ? 'selected' : ''}
                       ${day.isRedDay ? 'red-day' : ''}
                       ${day.isSaturday && !day.isRedDay ? 'saturday' : ''}
-                      ${day.isHoliday ? 'holiday' : ''}
                     `}
                     onClick={() => handleDateClick(day)}
+                    disabled={!day.isCurrentMonth}
                     data-schedule-tooltip={scheduleTooltip || undefined}
                     aria-label={`${day.fullDate} ${isSelected ? '선택됨' : ''} ${scheduleTooltip}`}
                   >
-                    <div className="calendar-cell-top">
-                      <span
-                        className={`date-number ${day.isToday ? 'today-number' : ''}`}
-                      >
-                        {day.date}
-                      </span>
-                      {day.isCurrentMonth &&
-                        (hasMaleSchedule || hasFemaleSchedule) && (
-                          <div className="schedule-dots">
-                            {hasMaleSchedule && (
-                              <span className="schedule-dot male"></span>
-                            )}
-                            {hasFemaleSchedule && (
-                              <span className="schedule-dot female"></span>
-                            )}
-                          </div>
-                        )}
-                    </div>
-                    {day.isHoliday && day.holidayName && (
+                    <span
+                      className={`date-number ${day.isToday ? 'today-number' : ''}`}
+                    >
+                      {day.date}
+                    </span>
+                    {day.holidayName && (
                       <span className="holiday-label">{day.holidayName}</span>
                     )}
-                    {day.isCurrentMonth && (
-                      <>
-                        <div className="schedule-indicators">
-                          {hasMaleSchedule && (
-                            renderCalendarSchedule(day.maleSchedule!, 'MALE')
-                          )}
-                          {hasFemaleSchedule && (
-                            renderCalendarSchedule(
-                              day.femaleSchedule!,
-                              'FEMALE',
-                            )
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                    <span className="calendar-slot-dots" aria-hidden="true">
+                      {scheduleMarkers.map((marker, markerIndex) => (
+                        <span
+                          key={`${day.fullDate}-${marker}-${markerIndex}`}
+                          className={`calendar-slot-dot ${marker}`}
+                        />
+                      ))}
+                    </span>
+                  </button>
                 );
               })}
             </div>
           )}
         </div>
-      </div>
 
-      <div className="scheduler-panel">
+        <div className="calendar-legend" aria-label="일정 표시 안내">
+          <span className="legend-gender male">남기숙사 일정</span>
+          <span className="legend-gender female">여기숙사 일정</span>
+          <span className="legend-selected-dot" /> 선택한 날짜
+        </div>
+      </section>
+
+      <aside className="scheduler-panel">
         <div className="panel-header">
-          <div>
-            <span className="panel-kicker">Schedule editor</span>
-            <h3 className="scheduler-title">{selectionTitle}</h3>
+          <div className="detail-title-group">
+            <span className="detail-calendar-icon">
+              <CalendarIcon />
+            </span>
+            <div>
+              <h3 className="scheduler-title">{selectionTitle}</h3>
+              <p>{selectionSubtitle}</p>
+            </div>
           </div>
-          <button
-            className="selection-tool-btn"
-            onClick={() => {
-              setSelectedDates([]);
-              setActiveQuickSelection(null);
-            }}
-            disabled={selectedDates.length === 0}
-          >
-            선택 해제
-          </button>
+          {selectedDates.length > 0 && (
+            <button
+              className="selection-tool-btn"
+              onClick={() => {
+                setSelectedDates([]);
+                setActiveQuickSelection(null);
+              }}
+            >
+              선택 해제
+            </button>
+          )}
         </div>
 
         {selectedDates.length > 0 ? (
-          <div className="schedule-workbench">
-            <div className="workbench-heading">
-              <div>
-                <span className="quick-apply-label">시간 설정</span>
-                <p>시간대를 고른 뒤 필요한 값만 수정하세요.</p>
+          <>
+            {selectedDates.length === 1 ? (
+              <div className="selected-schedule-list">
+                {renderSelectedScheduleCard('MALE')}
+                {renderSelectedScheduleCard('FEMALE')}
               </div>
-              <button
-                className="ghost-reset-btn"
-                onClick={() => {
-                  applyDefaultTime();
-                }}
-                type="button"
+            ) : (
+              <div className="bulk-selection-card">
+                <CalendarIcon />
+                <div>
+                  <strong>{selectedDates.length}일 일괄 설정</strong>
+                  <span>아래에서 기숙사와 시간대를 선택해 적용하세요.</span>
+                </div>
+              </div>
+            )}
+
+            <div className="schedule-workbench">
+              <div className="workbench-heading">
+                <div>
+                  <span className="quick-apply-label">시간 수정</span>
+                  <p>대상 기숙사와 시간대를 선택하세요.</p>
+                </div>
+                <button
+                  className="ghost-reset-btn"
+                  onClick={applyDefaultTime}
+                  type="button"
+                >
+                  기본값
+                </button>
+              </div>
+
+              <div
+                className="editor-gender-tabs"
+                role="tablist"
+                aria-label="수정할 기숙사"
               >
-                기본값
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeEditorGender === 'MALE'}
+                  className={
+                    activeEditorGender === 'MALE' ? 'active male' : 'male'
+                  }
+                  onClick={() => setActiveEditorGender('MALE')}
+                >
+                  남기숙사
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeEditorGender === 'FEMALE'}
+                  className={
+                    activeEditorGender === 'FEMALE'
+                      ? 'active female'
+                      : 'female'
+                  }
+                  onClick={() => setActiveEditorGender('FEMALE')}
+                >
+                  여기숙사
+                </button>
+              </div>
+
+              <div
+                className="editor-period-tabs"
+                role="tablist"
+                aria-label="수정할 시간대"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeSchedulePeriod === 'MORNING'}
+                  className={
+                    activeSchedulePeriod === 'MORNING'
+                      ? 'active morning'
+                      : 'morning'
+                  }
+                  onClick={() => setActiveSchedulePeriod('MORNING')}
+                >
+                  <SunIcon />
+                  아침 퇴실
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeSchedulePeriod === 'NIGHT'}
+                  className={
+                    activeSchedulePeriod === 'NIGHT'
+                      ? 'active night'
+                      : 'night'
+                  }
+                  onClick={() => setActiveSchedulePeriod('NIGHT')}
+                >
+                  <MoonIcon />
+                  저녁 입실
+                </button>
+              </div>
+
+              <div className="compact-editor-list">
+                {renderDormitoryEditor(activeEditorGender)}
+              </div>
+
+              <button
+                type="button"
+                className="apply-all-dormitories-btn"
+                onClick={() => handleApplySchedules(['MALE', 'FEMALE'])}
+                disabled={loadingModal.isOpen}
+              >
+                {activeSchedulePeriod === 'MORNING'
+                  ? '아침 퇴실'
+                  : '저녁 입실'}{' '}
+                남·여 함께 적용
               </button>
             </div>
-
-            <div className="editor-period-tabs" role="tablist" aria-label="수정할 시간대">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeSchedulePeriod === 'MORNING'}
-                className={activeSchedulePeriod === 'MORNING' ? 'active morning' : 'morning'}
-                onClick={() => setActiveSchedulePeriod('MORNING')}
-              >
-                <SunIcon />
-                아침 퇴실
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeSchedulePeriod === 'NIGHT'}
-                className={activeSchedulePeriod === 'NIGHT' ? 'active night' : 'night'}
-                onClick={() => setActiveSchedulePeriod('NIGHT')}
-              >
-                <MoonIcon />
-                저녁 입실
-              </button>
-            </div>
-
-            <div className="compact-editor-list">
-              {renderDormitoryEditor('MALE')}
-              {renderDormitoryEditor('FEMALE')}
-            </div>
-
-            <button
-              type="button"
-              className="apply-all-dormitories-btn"
-              onClick={() => handleApplySchedules(['MALE', 'FEMALE'])}
-              disabled={loadingModal.isOpen}
-            >
-              남·여 함께 적용
-            </button>
-          </div>
+          </>
         ) : (
           <div className="no-selection">
-            <p>날짜를 선택해주세요.</p>
-            <p className="hint">
-              날짜를 클릭하면 남/여 시간을 설정할 수 있습니다.
+            <span className="no-selection-icon">
+              <CalendarIcon />
+            </span>
+            <strong>날짜를 선택해주세요</strong>
+            <p>
+              왼쪽 달력에서 날짜를 누르면 등록된 일정과 수정 도구가
+              표시됩니다.
             </p>
           </div>
         )}
-      </div>
+
+        <div className="schedule-guide">
+          <strong>안내</strong>
+          <ul>
+            <li>달력의 점은 해당 날짜에 등록된 기숙사 일정을 의미합니다.</li>
+            <li>일정 카드를 누르면 해당 시간대를 바로 수정할 수 있습니다.</li>
+            <li>아침 퇴실은 평일에만 적용됩니다.</li>
+          </ul>
+        </div>
+      </aside>
 
       {/* 로딩 모달 */}
       {loadingModal.isOpen && (

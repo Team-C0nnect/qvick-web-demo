@@ -4,7 +4,7 @@ export type Gender = 'MALE' | 'FEMALE';
 
 export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'SLEEPOVER' | 'LATE';
 
-export type PhoneSubmissionStatus = 'SUBMITTED' | 'NOT_SUBMITTED' | 'SLEEPOVER';
+export type DeviceSubmissionStatus = 'SUBMITTED' | 'NOT_SUBMITTED' | 'SLEEPOVER';
 
 export type AttendanceType = 'MORNING' | 'NIGHT';
 
@@ -153,24 +153,42 @@ export interface AttendanceResponse {
   nightCheckedAt?: string; // format: date-time
   nightCheckStatus: AttendanceStatus;
   nightStudyAttendance?: boolean | null;
-  phoneSubmissionStatus: PhoneSubmissionStatus;
+  deviceSubmissionStatus: DeviceSubmissionStatus;
 }
 
-export interface PhoneSubmissionResponse {
+// Device Submission Types
+export interface DeviceSubmission {
   student: Student;
-  date: string; // format: date
-  status: PhoneSubmissionStatus;
+  status: DeviceSubmissionStatus;
   checkedAt?: string; // format: date-time
 }
 
-export interface UpdatePhoneSubmissionRequest {
-  studentId: number;
-  status: PhoneSubmissionStatus;
+export interface DeviceSubmissionPhoneBox {
+  id: number;
+  name: string;
+  gender: PhoneBoxGender;
+  submissions: DeviceSubmission[];
 }
 
-export interface UpdatePhoneSubmissionsRequest {
+export interface DeviceSubmissionResponse {
   date: string; // format: date
-  submissions: UpdatePhoneSubmissionRequest[];
+  phoneBoxes: DeviceSubmissionPhoneBox[];
+}
+
+export interface DeviceSubmissionQueryParams {
+  date?: string; // format: date
+  gender?: PhoneBoxGender;
+  phoneBoxId?: number;
+}
+
+export interface UpdateDeviceSubmissionRequest {
+  studentId: number;
+  status: DeviceSubmissionStatus;
+}
+
+export interface UpdateDeviceSubmissionsRequest {
+  date: string; // format: date
+  submissions: UpdateDeviceSubmissionRequest[];
 }
 
 export interface UpdateAttendanceRequest {

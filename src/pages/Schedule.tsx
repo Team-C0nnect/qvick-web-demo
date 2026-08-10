@@ -648,25 +648,7 @@ export default function Schedule() {
   const hasSchedule = (date: string, gender: Gender) =>
     !!getSchedule(date, gender);
 
-  const getPreservedGenderTime = (date: string, gender: Gender) => {
-    const schedule = getSchedule(date, gender);
-    if (!schedule) {
-      const completeTime = getCompleteGenderTime(gender);
-      const day = calendarDays.find(
-        (calendarDay) => calendarDay.fullDate === date,
-      );
-
-      if (day?.dayOfWeek === 0 || day?.dayOfWeek === 6) {
-        return {
-          ...completeTime,
-          morningStartTime: undefined,
-          morningEndTime: undefined,
-        };
-      }
-
-      return completeTime;
-    }
-
+  const getExistingScheduleTime = (schedule: AttendanceScheduleResponse) => {
     return {
       morningStartTime: schedule.morningStartTime,
       morningEndTime: schedule.morningEndTime,
@@ -739,21 +721,30 @@ export default function Schedule() {
       );
 
       return targetDates.map((date) => async () => {
-        const shouldUpdate = hasSchedule(date, gender);
-        const scheduleTimes = {
-          ...getPreservedGenderTime(date, gender),
-          ...periodTime,
-        };
+        const existingSchedule = getSchedule(date, gender);
+        const shouldUpdate = !!existingSchedule;
 
         try {
-          if (shouldUpdate) {
-            await scheduleService.updateSchedule(date, gender, scheduleTimes);
+          if (shouldUpdate && existingSchedule) {
+            await scheduleService.updateSchedule(date, gender, {
+              ...getExistingScheduleTime(existingSchedule),
+              ...periodTime,
+            });
             updatedCount++;
+          } else if (attendanceType === 'NIGHT') {
+            await scheduleService.createSchedule({
+              date,
+              gender,
+              nightStartTime: periodTime.nightStartTime!,
+              nightEndTime: periodTime.nightEndTime!,
+            });
+            createdCount++;
           } else {
             await scheduleService.createSchedule({
               date,
               gender,
-              ...scheduleTimes,
+              ...getCompleteGenderTime(gender),
+              ...periodTime,
             });
             createdCount++;
           }

@@ -1236,7 +1236,6 @@ export default function Schedule() {
                     `}
                     onClick={() => handleDateClick(day)}
                     disabled={!day.isCurrentMonth}
-                    data-schedule-tooltip={scheduleTooltip || undefined}
                     aria-label={`${day.fullDate} ${isSelected ? '선택됨' : ''} ${scheduleTooltip}`}
                   >
                     <span

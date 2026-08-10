@@ -1278,22 +1278,8 @@ export default function Schedule() {
                 const hasMaleSchedule = !!day.maleSchedule;
                 const hasFemaleSchedule = !!day.femaleSchedule;
                 const scheduleMarkers = [
-                  day.maleSchedule?.morningStartTime &&
-                  day.maleSchedule?.morningEndTime
-                    ? 'male morning'
-                    : '',
-                  day.maleSchedule?.nightStartTime &&
-                  day.maleSchedule?.nightEndTime
-                    ? 'male night'
-                    : '',
-                  day.femaleSchedule?.morningStartTime &&
-                  day.femaleSchedule?.morningEndTime
-                    ? 'female morning'
-                    : '',
-                  day.femaleSchedule?.nightStartTime &&
-                  day.femaleSchedule?.nightEndTime
-                    ? 'female night'
-                    : '',
+                  hasMaleSchedule ? 'male' : '',
+                  hasFemaleSchedule ? 'female' : '',
                 ].filter(Boolean);
                 const scheduleTooltip = [
                   day.isHoliday && day.holidayName

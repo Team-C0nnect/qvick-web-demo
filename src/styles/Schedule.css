@@ -2981,3 +2981,252 @@
     gap: 2px;
   }
 }
+
+/* 아침·저녁 통합 일정 설정 */
+.schedule-bulk-tools .quick-schedule-apply {
+  grid-template-columns: 164px minmax(0, 1fr) auto;
+}
+
+.quick-complete-preview {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.quick-complete-preview > span {
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid #e1e1e3;
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.quick-complete-preview > span > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.quick-complete-preview > span.morning > svg {
+  color: #b87500;
+}
+
+.quick-complete-preview > span.night > svg {
+  color: #5744bd;
+}
+
+.quick-complete-preview > span > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quick-complete-preview strong,
+.quick-complete-preview small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-complete-preview strong {
+  color: #49464d;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.quick-complete-preview small {
+  color: #77747b;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.quick-complete-apply {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #6d23ed;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.quick-complete-apply:hover:not(:disabled),
+.complete-schedule-apply-btn:hover:not(:disabled) {
+  background: #5d1fd3;
+}
+
+.quick-complete-apply:disabled,
+.complete-schedule-apply-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.editor-gender-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.editor-gender-tabs button.active.all {
+  background: #eee7ff;
+  color: #5f24c6;
+}
+
+.gender-badge.all {
+  background: #eee7ff;
+  color: #5f24c6;
+}
+
+.combined-schedule-editor {
+  padding: 11px;
+  border: 1px solid #e5e3e8;
+  border-radius: 11px;
+  background: #ffffff;
+}
+
+.combined-schedule-editor.all {
+  box-shadow: inset 3px 0 0 #6d23ed;
+}
+
+.combined-schedule-editor.male {
+  box-shadow: inset 3px 0 0 #1492fc;
+}
+
+.combined-schedule-editor.female {
+  box-shadow: inset 3px 0 0 #ed4ca4;
+}
+
+.combined-editor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.combined-editor-heading > span:last-child {
+  color: #77747b;
+  font-size: 9px;
+  font-weight: 750;
+  text-align: right;
+}
+
+.combined-period-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.combined-period-card {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+  border: 1px solid #eceaed;
+  border-radius: 9px;
+  background: #fcfcfd;
+}
+
+.combined-period-card.morning {
+  background: linear-gradient(100deg, rgba(255, 213, 71, 0.08), transparent 46%), #fcfcfd;
+}
+
+.combined-period-card.night {
+  background: linear-gradient(100deg, rgba(109, 35, 237, 0.06), transparent 46%), #fcfcfd;
+}
+
+.combined-period-card.disabled {
+  opacity: 0.58;
+}
+
+.combined-period-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.combined-period-heading > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.combined-period-heading strong {
+  color: #3d3941;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.combined-period-heading small {
+  overflow: hidden;
+  color: #817d85;
+  font-size: 8px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combined-time-range {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 5px;
+}
+
+.compact-time-field input:disabled {
+  background: #f0f0f2;
+  color: #99969c;
+  cursor: not-allowed;
+}
+
+.complete-schedule-apply-btn {
+  min-height: 42px;
+  border: 0;
+  border-radius: 9px;
+  background: #6d23ed;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .schedule-bulk-tools .quick-schedule-apply {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-complete-apply {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 520px) {
+  .quick-complete-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .combined-editor-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .combined-editor-heading > span:last-child {
+    text-align: left;
+  }
+
+  .combined-period-card {
+    grid-template-columns: 1fr;
+  }
+}

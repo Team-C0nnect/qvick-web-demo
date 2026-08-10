@@ -14,7 +14,6 @@ import {
 import { getKoreanHolidayName } from '../constants/koreanHolidays';
 import type {
   AttendanceScheduleResponse,
-  AttendanceType,
   Gender,
 } from '../types/api';
 import { formatLocalDate } from '../utils/date';
@@ -35,10 +34,13 @@ interface CalendarDay {
 }
 
 type QuickSelectionMode = 'all' | 'sunday' | 'redDay' | 'schoolWeekdays';
+type EditorTarget = Gender | 'ALL';
 
-interface PeriodTimeRange {
-  startTime: string;
-  endTime: string;
+interface CompleteScheduleTime {
+  morningStartTime: string;
+  morningEndTime: string;
+  nightStartTime: string;
+  nightEndTime: string;
 }
 
 const getScheduleRequestError = (error: unknown) => {
@@ -103,15 +105,6 @@ const formatMorningScheduleRange = (
   return `${formatTime(schedule.morningStartTime)}${separator}${formatTime(schedule.morningEndTime)}`;
 };
 
-const formatPeriodScheduleRange = (
-  schedule: AttendanceScheduleResponse | undefined,
-  attendanceType: AttendanceType,
-  separator = '–',
-) =>
-  attendanceType === 'MORNING'
-    ? formatMorningScheduleRange(schedule, separator)
-    : formatScheduleRange(schedule, separator);
-
 // 기본 시간 상수
 const MORNING_START_HOUR = '06';
 const MORNING_START_MINUTE = '50';
@@ -124,25 +117,12 @@ const WEEKDAY_END_MINUTE = '10';
 const SUNDAY_END_HOUR = '21';
 const SUNDAY_END_MINUTE = '10';
 
-const QUICK_PERIOD_PRESETS: Array<{
-  label: string;
-  description: string;
-  attendanceType: AttendanceType;
-  time: PeriodTimeRange;
-}> = [
-  {
-    label: '아침 퇴실 적용',
-    description: '06:50–08:05',
-    attendanceType: 'MORNING',
-    time: { startTime: '06:50', endTime: '08:05' },
-  },
-  {
-    label: '저녁 입실 적용',
-    description: '16:00–21:10',
-    attendanceType: 'NIGHT',
-    time: { startTime: '16:00', endTime: '21:10' },
-  },
-];
+const DEFAULT_COMPLETE_SCHEDULE: CompleteScheduleTime = {
+  morningStartTime: '06:50',
+  morningEndTime: '08:05',
+  nightStartTime: '16:00',
+  nightEndTime: '21:10',
+};
 
 const SCHEDULE_APPLY_CONCURRENCY = 4;
 
@@ -152,10 +132,8 @@ export default function Schedule() {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [activeSchedulePeriod, setActiveSchedulePeriod] =
-    useState<AttendanceType>('MORNING');
-  const [activeEditorGender, setActiveEditorGender] =
-    useState<Gender>('MALE');
+  const [activeEditorTarget, setActiveEditorTarget] =
+    useState<EditorTarget>('ALL');
   const [activeQuickSelection, setActiveQuickSelection] =
     useState<QuickSelectionMode | null>(null);
 
@@ -473,8 +451,12 @@ export default function Schedule() {
       }
 
       applyDayScheduleTime(day);
-      setActiveEditorGender(
-        day.femaleSchedule && !day.maleSchedule ? 'FEMALE' : 'MALE',
+      setActiveEditorTarget(
+        day.maleSchedule && !day.femaleSchedule
+          ? 'MALE'
+          : day.femaleSchedule && !day.maleSchedule
+            ? 'FEMALE'
+            : 'ALL',
       );
       return [day.fullDate];
     });
@@ -503,6 +485,7 @@ export default function Schedule() {
 
     setSelectedDates(dates);
     setActiveQuickSelection(mode);
+    setActiveEditorTarget('ALL');
 
     const firstDay = calendarDays.find((day) => day.fullDate === dates[0]);
     if (firstDay) {
@@ -605,35 +588,6 @@ export default function Schedule() {
     };
   };
 
-  const getGenderPeriodTime = (
-    gender: Gender,
-    attendanceType: AttendanceType,
-    override?: PeriodTimeRange,
-  ) => {
-    if (override) {
-      return attendanceType === 'MORNING'
-        ? {
-            morningStartTime: override.startTime,
-            morningEndTime: override.endTime,
-          }
-        : {
-            nightStartTime: override.startTime,
-            nightEndTime: override.endTime,
-          };
-    }
-
-    const completeTime = getCompleteGenderTime(gender);
-    return attendanceType === 'MORNING'
-      ? {
-          morningStartTime: completeTime.morningStartTime,
-          morningEndTime: completeTime.morningEndTime,
-        }
-      : {
-          nightStartTime: completeTime.nightStartTime,
-          nightEndTime: completeTime.nightEndTime,
-        };
-  };
-
   const getSchedule = (date: string, gender: Gender) => {
     const day = calendarDays.find((calendarDay) => calendarDay.fullDate === date);
     return gender === 'MALE' ? day?.maleSchedule : day?.femaleSchedule;
@@ -642,110 +596,64 @@ export default function Schedule() {
   const hasSchedule = (date: string, gender: Gender) =>
     !!getSchedule(date, gender);
 
-  const getExistingScheduleTime = (schedule: AttendanceScheduleResponse) => {
-    return {
-      morningStartTime: schedule.morningStartTime,
-      morningEndTime: schedule.morningEndTime,
-      nightStartTime: schedule.nightStartTime,
-      nightEndTime: schedule.nightEndTime,
-    };
-  };
-
-  const handleApplySchedules = async (
-    genders: Gender[],
-    attendanceType = activeSchedulePeriod,
-    override?: PeriodTimeRange,
+  const handleApplyCompleteSchedule = async (
+    target = activeEditorTarget,
+    override?: CompleteScheduleTime,
   ) => {
     if (selectedDates.length === 0) {
       showSelectDateAlert();
       return;
     }
 
-    const targetDates =
-      attendanceType === 'MORNING'
-        ? selectedDates.filter((date) => {
-            const day = calendarDays.find(
-              (calendarDay) => calendarDay.fullDate === date,
-            );
-            return !!day && day.dayOfWeek >= 1 && day.dayOfWeek <= 5;
-          })
-        : selectedDates;
-    const skippedDateCount = selectedDates.length - targetDates.length;
-
-    if (targetDates.length === 0) {
-      setConfirmModal({
-        isOpen: true,
-        title: '적용할 평일이 없습니다',
-        message: '아침 퇴실은 월요일부터 금요일까지만 설정할 수 있습니다.',
-        confirmText: '확인',
-        onConfirm: () =>
-          setConfirmModal((prev) => ({ ...prev, isOpen: false })),
-      });
-      return;
-    }
-
-    const total = targetDates.length * genders.length;
+    const genders: Gender[] =
+      target === 'ALL' ? ['MALE', 'FEMALE'] : [target];
+    const sourceGender: Gender = target === 'FEMALE' ? 'FEMALE' : 'MALE';
+    const completeTime = override ?? getCompleteGenderTime(sourceGender);
+    const total = selectedDates.length * genders.length;
     let completedCount = 0;
     let createdCount = 0;
     let updatedCount = 0;
     let failCount = 0;
     let firstErrorMessage = '';
-    const genderName =
-      genders.length > 1
+    const targetName =
+      target === 'ALL'
         ? '남/여 기숙사'
-        : genders[0] === 'MALE'
+        : target === 'MALE'
           ? '남기숙사'
           : '여기숙사';
-    const periodName =
-      attendanceType === 'MORNING' ? '아침 퇴실' : '저녁 입실';
 
     setLoadingModal({
       isOpen: true,
-      title: `${genderName} ${periodName} 적용 중...`,
+      title: `${targetName} 일정 적용 중...`,
       current: 0,
       total,
       action: 'update',
     });
 
-    const tasks = genders.flatMap((gender) => {
-      const periodTime = getGenderPeriodTime(
-        gender,
-        attendanceType,
-        override,
-      );
-
-      return targetDates.map((date) => async () => {
+    const tasks = genders.flatMap((gender) =>
+      selectedDates.map((date) => async () => {
         const existingSchedule = getSchedule(date, gender);
-        const shouldUpdate = !!existingSchedule;
         const calendarDay = calendarDays.find(
           (day) => day.fullDate === date,
         );
-        // 서버는 평일 신규 일정에 아침·저녁 슬롯을 모두 요구한다.
-        const canCreateNightOnly =
-          attendanceType === 'NIGHT' &&
-          (calendarDay?.dayOfWeek === 0 || calendarDay?.dayOfWeek === 6);
+        const isWeekend =
+          calendarDay?.dayOfWeek === 0 || calendarDay?.dayOfWeek === 6;
+        const scheduleTime = isWeekend
+          ? {
+              nightStartTime: completeTime.nightStartTime,
+              nightEndTime: completeTime.nightEndTime,
+            }
+          : completeTime;
 
         try {
-          if (shouldUpdate && existingSchedule) {
-            await scheduleService.updateSchedule(date, gender, {
-              ...getExistingScheduleTime(existingSchedule),
-              ...periodTime,
-            });
+          if (existingSchedule) {
+            await scheduleService.updateSchedule(date, gender, scheduleTime);
             updatedCount++;
-          } else if (canCreateNightOnly) {
-            await scheduleService.createSchedule({
-              date,
-              gender,
-              nightStartTime: periodTime.nightStartTime!,
-              nightEndTime: periodTime.nightEndTime!,
-            });
-            createdCount++;
           } else {
             await scheduleService.createSchedule({
               date,
               gender,
-              ...getCompleteGenderTime(gender),
-              ...periodTime,
+              ...scheduleTime,
             });
             createdCount++;
           }
@@ -761,8 +669,8 @@ export default function Schedule() {
             current: completedCount,
           }));
         }
-      });
-    });
+      }),
+    );
 
     let nextTaskIndex = 0;
     const runWorker = async () => {
@@ -782,16 +690,14 @@ export default function Schedule() {
 
     queryClient.invalidateQueries({ queryKey: ['schedules'] });
 
-    const skippedMessage =
-      skippedDateCount > 0 ? `\n주말 ${skippedDateCount}일 제외` : '';
     const resultMessage =
       failCount > 0
-        ? `${createdCount}개 생성, ${updatedCount}개 수정 완료\n${failCount}개 실패\n${firstErrorMessage}${skippedMessage}`
-        : `${createdCount}개 생성, ${updatedCount}개 수정 완료${skippedMessage}`;
+        ? `${createdCount}개 생성, ${updatedCount}개 수정 완료\n${failCount}개 실패\n${firstErrorMessage}`
+        : `${createdCount}개 생성, ${updatedCount}개 수정 완료`;
 
     setConfirmModal({
       isOpen: true,
-      title: `${periodName} 적용 완료`,
+      title: '일정 적용 완료',
       message: resultMessage,
       confirmText: '확인',
       onConfirm: () =>
@@ -897,6 +803,7 @@ export default function Schedule() {
     minute: string,
     setHour: (value: string) => void,
     setMinute: (value: string) => void,
+    disabled = false,
   ) => (
     <label className="compact-time-field">
       <span>{label}</span>
@@ -907,6 +814,7 @@ export default function Schedule() {
           setTimeValue(event.target.value, setHour, setMinute)
         }
         aria-label={label}
+        disabled={disabled}
       />
     </label>
   );
@@ -973,6 +881,10 @@ export default function Schedule() {
       : selectedDates.length === 1
         ? `등록된 기숙사 일정 ${selectedScheduleCount}개`
         : '선택한 날짜에 일정을 일괄 적용합니다.';
+  const hasSelectedWeekday = selectedDates.some((date) => {
+    const day = calendarDays.find((calendarDay) => calendarDay.fullDate === date);
+    return !!day && day.dayOfWeek >= 1 && day.dayOfWeek <= 5;
+  });
 
   const renderSelectedScheduleCard = (gender: Gender) => {
     const isMale = gender === 'MALE';
@@ -986,10 +898,7 @@ export default function Schedule() {
         <button
           type="button"
           className={`selected-schedule-empty ${isMale ? 'male' : 'female'}`}
-          onClick={() => {
-            setActiveEditorGender(gender);
-            setActiveSchedulePeriod('MORNING');
-          }}
+          onClick={() => setActiveEditorTarget(gender)}
         >
           <span>+</span>
           {genderName} 일정 추가
@@ -1020,10 +929,7 @@ export default function Schedule() {
         <button
           type="button"
           className="selected-period-row morning"
-          onClick={() => {
-            setActiveEditorGender(gender);
-            setActiveSchedulePeriod('MORNING');
-          }}
+          onClick={() => setActiveEditorTarget(gender)}
         >
           <span className="selected-period-icon">
             <SunIcon />
@@ -1038,10 +944,7 @@ export default function Schedule() {
         <button
           type="button"
           className="selected-period-row night"
-          onClick={() => {
-            setActiveEditorGender(gender);
-            setActiveSchedulePeriod('NIGHT');
-          }}
+          onClick={() => setActiveEditorTarget(gender)}
         >
           <span className="selected-period-icon">
             <MoonIcon />
@@ -1056,110 +959,126 @@ export default function Schedule() {
     );
   };
 
-  const renderDormitoryEditor = (gender: Gender) => {
-    const isMale = gender === 'MALE';
-    const schedule = isMale
-      ? selectedDayData?.maleSchedule
-      : selectedDayData?.femaleSchedule;
-    const isMorning = activeSchedulePeriod === 'MORNING';
-    const draft = isMorning
-      ? isMale
-        ? {
-            startHour: maleMorningStartHour,
-            startMinute: maleMorningStartMinute,
-            endHour: maleMorningEndHour,
-            endMinute: maleMorningEndMinute,
-            setStartHour: setMaleMorningStartHour,
-            setStartMinute: setMaleMorningStartMinute,
-            setEndHour: setMaleMorningEndHour,
-            setEndMinute: setMaleMorningEndMinute,
-          }
-        : {
-            startHour: femaleMorningStartHour,
-            startMinute: femaleMorningStartMinute,
-            endHour: femaleMorningEndHour,
-            endMinute: femaleMorningEndMinute,
-            setStartHour: setFemaleMorningStartHour,
-            setStartMinute: setFemaleMorningStartMinute,
-            setEndHour: setFemaleMorningEndHour,
-            setEndMinute: setFemaleMorningEndMinute,
-          }
-      : isMale
-        ? {
-            startHour: maleStartHour,
-            startMinute: maleStartMinute,
-            endHour: maleEndHour,
-            endMinute: maleEndMinute,
-            setStartHour: setMaleStartHour,
-            setStartMinute: setMaleStartMinute,
-            setEndHour: setMaleEndHour,
-            setEndMinute: setMaleEndMinute,
-          }
-        : {
-            startHour: femaleStartHour,
-            startMinute: femaleStartMinute,
-            endHour: femaleEndHour,
-            endMinute: femaleEndMinute,
-            setStartHour: setFemaleStartHour,
-            setStartMinute: setFemaleStartMinute,
-            setEndHour: setFemaleEndHour,
-            setEndMinute: setFemaleEndMinute,
-          };
+  const renderCombinedScheduleEditor = (target: EditorTarget) => {
+    const sourceGender: Gender = target === 'FEMALE' ? 'FEMALE' : 'MALE';
+    const isMaleSource = sourceGender === 'MALE';
+    const targetName =
+      target === 'ALL'
+        ? '남·여 함께'
+        : target === 'MALE'
+          ? '남기숙사'
+          : '여기숙사';
+    const targetClass =
+      target === 'ALL' ? 'all' : target === 'MALE' ? 'male' : 'female';
+    const morningDraft = isMaleSource
+      ? {
+          startHour: maleMorningStartHour,
+          startMinute: maleMorningStartMinute,
+          endHour: maleMorningEndHour,
+          endMinute: maleMorningEndMinute,
+          setStartHour: setMaleMorningStartHour,
+          setStartMinute: setMaleMorningStartMinute,
+          setEndHour: setMaleMorningEndHour,
+          setEndMinute: setMaleMorningEndMinute,
+        }
+      : {
+          startHour: femaleMorningStartHour,
+          startMinute: femaleMorningStartMinute,
+          endHour: femaleMorningEndHour,
+          endMinute: femaleMorningEndMinute,
+          setStartHour: setFemaleMorningStartHour,
+          setStartMinute: setFemaleMorningStartMinute,
+          setEndHour: setFemaleMorningEndHour,
+          setEndMinute: setFemaleMorningEndMinute,
+        };
+    const nightDraft = isMaleSource
+      ? {
+          startHour: maleStartHour,
+          startMinute: maleStartMinute,
+          endHour: maleEndHour,
+          endMinute: maleEndMinute,
+          setStartHour: setMaleStartHour,
+          setStartMinute: setMaleStartMinute,
+          setEndHour: setMaleEndHour,
+          setEndMinute: setMaleEndMinute,
+        }
+      : {
+          startHour: femaleStartHour,
+          startMinute: femaleStartMinute,
+          endHour: femaleEndHour,
+          endMinute: femaleEndMinute,
+          setStartHour: setFemaleStartHour,
+          setStartMinute: setFemaleStartMinute,
+          setEndHour: setFemaleEndHour,
+          setEndMinute: setFemaleEndMinute,
+        };
+
+    const renderTimeRange = (
+      draft: typeof morningDraft,
+      disabled = false,
+    ) => (
+      <div className="combined-time-range">
+        {renderCompactTimeInput(
+          '시작 시간',
+          draft.startHour,
+          draft.startMinute,
+          draft.setStartHour,
+          draft.setStartMinute,
+          disabled,
+        )}
+        <span className="compact-time-separator">–</span>
+        {renderCompactTimeInput(
+          '종료 시간',
+          draft.endHour,
+          draft.endMinute,
+          draft.setEndHour,
+          draft.setEndMinute,
+          disabled,
+        )}
+      </div>
+    );
 
     return (
-      <div className={`compact-schedule-editor ${isMale ? 'male' : 'female'}`}>
-        <div className="compact-editor-heading">
-          <span className={`gender-badge ${isMale ? 'male' : 'female'}`}>
-            {isMale ? '남기숙사' : '여기숙사'}
-          </span>
-          {selectedDates.length === 1 && schedule && (
-            <small>
-              현재{' '}
-              {formatPeriodScheduleRange(
-                schedule,
-                activeSchedulePeriod,
-                '–',
-              )}
-            </small>
-          )}
+      <div className={`combined-schedule-editor ${targetClass}`}>
+        <div className="combined-editor-heading">
+          <span className={`gender-badge ${targetClass}`}>{targetName}</span>
+          <span>아침과 저녁 시간을 한 번에 저장합니다.</span>
         </div>
 
-        <div className="compact-editor-controls">
-          <div className="compact-time-range">
-            {renderCompactTimeInput(
-              '시작 시간',
-              draft.startHour,
-              draft.startMinute,
-              draft.setStartHour,
-              draft.setStartMinute,
-            )}
-            <span className="compact-time-separator">–</span>
-            {renderCompactTimeInput(
-              '종료 시간',
-              draft.endHour,
-              draft.endMinute,
-              draft.setEndHour,
-              draft.setEndMinute,
-            )}
-          </div>
+        <div className="combined-period-list">
+          <section
+            className={`combined-period-card morning ${
+              hasSelectedWeekday ? '' : 'disabled'
+            }`}
+          >
+            <div className="combined-period-heading">
+              <span className="selected-period-icon">
+                <SunIcon />
+              </span>
+              <div>
+                <strong>아침 퇴실</strong>
+                <small>
+                  {hasSelectedWeekday
+                    ? '평일에 적용됩니다.'
+                    : '주말에는 적용되지 않습니다.'}
+                </small>
+              </div>
+            </div>
+            {renderTimeRange(morningDraft, !hasSelectedWeekday)}
+          </section>
 
-          <div className="compact-editor-actions">
-            <button
-              className="row-apply-btn"
-              onClick={() => handleApplySchedules([gender])}
-              disabled={loadingModal.isOpen}
-            >
-              적용
-            </button>
-            <button
-              className="row-delete-btn"
-              onClick={() => handleDeleteSchedules(gender)}
-              disabled={loadingModal.isOpen}
-              title="선택한 날짜의 아침·저녁 일정을 모두 삭제합니다."
-            >
-              삭제
-            </button>
-          </div>
+          <section className="combined-period-card night">
+            <div className="combined-period-heading">
+              <span className="selected-period-icon">
+                <MoonIcon />
+              </span>
+              <div>
+                <strong>저녁 입실</strong>
+                <small>선택한 모든 날짜에 적용됩니다.</small>
+              </div>
+            </div>
+            {renderTimeRange(nightDraft)}
+          </section>
         </div>
       </div>
     );
@@ -1278,39 +1197,36 @@ export default function Schedule() {
             <span>빠른 적용</span>
             <strong>
               {selectedDates.length > 0
-                ? `선택한 ${selectedDates.length}일에 남·여 함께 적용`
+                ? `선택한 ${selectedDates.length}일에 기본 일정 적용`
                 : '먼저 날짜를 선택해주세요'}
             </strong>
           </div>
-          <div className="quick-schedule-actions">
-            {QUICK_PERIOD_PRESETS.map((preset) => (
-              <button
-                type="button"
-                key={`${preset.attendanceType}-${preset.label}`}
-                className={preset.attendanceType.toLowerCase()}
-                onClick={() =>
-                  handleApplySchedules(
-                    ['MALE', 'FEMALE'],
-                    preset.attendanceType,
-                    preset.time,
-                  )
-                }
-                disabled={selectedDates.length === 0 || loadingModal.isOpen}
-              >
-                <span className="quick-schedule-icon" aria-hidden="true">
-                  {preset.attendanceType === 'MORNING' ? (
-                    <SunIcon />
-                  ) : (
-                    <MoonIcon />
-                  )}
-                </span>
-                <span>
-                  <strong>{preset.label}</strong>
-                  <small>{preset.description}</small>
-                </span>
-              </button>
-            ))}
+          <div className="quick-complete-preview">
+            <span className="morning">
+              <SunIcon />
+              <span>
+                <strong>아침 퇴실</strong>
+                <small>06:50–08:05</small>
+              </span>
+            </span>
+            <span className="night">
+              <MoonIcon />
+              <span>
+                <strong>저녁 입실</strong>
+                <small>16:00–21:10</small>
+              </span>
+            </span>
           </div>
+          <button
+            type="button"
+            className="quick-complete-apply"
+            onClick={() =>
+              handleApplyCompleteSchedule('ALL', DEFAULT_COMPLETE_SCHEDULE)
+            }
+            disabled={selectedDates.length === 0 || loadingModal.isOpen}
+          >
+            남·여 한 번에 적용
+          </button>
         </div>
       </section>
 
@@ -1475,7 +1391,7 @@ export default function Schedule() {
                 <CalendarIcon />
                 <div>
                   <strong>{selectedDates.length}일 일괄 설정</strong>
-                  <span>아래에서 기숙사와 시간대를 선택해 적용하세요.</span>
+                  <span>아래에서 대상과 전체 시간을 설정해 적용하세요.</span>
                 </div>
               </div>
             )}
@@ -1483,8 +1399,8 @@ export default function Schedule() {
             <div className="schedule-workbench">
               <div className="workbench-heading">
                 <div>
-                  <span className="quick-apply-label">시간 수정</span>
-                  <p>대상 기숙사와 시간대를 선택하세요.</p>
+                  <span className="quick-apply-label">일정 설정</span>
+                  <p>대상과 아침·저녁 시간을 확인하세요.</p>
                 </div>
                 <button
                   className="ghost-reset-btn"
@@ -1498,83 +1414,56 @@ export default function Schedule() {
               <div
                 className="editor-gender-tabs"
                 role="tablist"
-                aria-label="수정할 기숙사"
+                aria-label="일정을 적용할 기숙사"
               >
                 <button
                   type="button"
                   role="tab"
-                  aria-selected={activeEditorGender === 'MALE'}
+                  aria-selected={activeEditorTarget === 'ALL'}
+                  className={activeEditorTarget === 'ALL' ? 'active all' : 'all'}
+                  onClick={() => setActiveEditorTarget('ALL')}
+                >
+                  남·여 함께
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeEditorTarget === 'MALE'}
                   className={
-                    activeEditorGender === 'MALE' ? 'active male' : 'male'
+                    activeEditorTarget === 'MALE' ? 'active male' : 'male'
                   }
-                  onClick={() => setActiveEditorGender('MALE')}
+                  onClick={() => setActiveEditorTarget('MALE')}
                 >
                   남기숙사
                 </button>
                 <button
                   type="button"
                   role="tab"
-                  aria-selected={activeEditorGender === 'FEMALE'}
+                  aria-selected={activeEditorTarget === 'FEMALE'}
                   className={
-                    activeEditorGender === 'FEMALE'
+                    activeEditorTarget === 'FEMALE'
                       ? 'active female'
                       : 'female'
                   }
-                  onClick={() => setActiveEditorGender('FEMALE')}
+                  onClick={() => setActiveEditorTarget('FEMALE')}
                 >
                   여기숙사
                 </button>
               </div>
 
-              <div
-                className="editor-period-tabs"
-                role="tablist"
-                aria-label="수정할 시간대"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeSchedulePeriod === 'MORNING'}
-                  className={
-                    activeSchedulePeriod === 'MORNING'
-                      ? 'active morning'
-                      : 'morning'
-                  }
-                  onClick={() => setActiveSchedulePeriod('MORNING')}
-                >
-                  <SunIcon />
-                  아침 퇴실
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeSchedulePeriod === 'NIGHT'}
-                  className={
-                    activeSchedulePeriod === 'NIGHT'
-                      ? 'active night'
-                      : 'night'
-                  }
-                  onClick={() => setActiveSchedulePeriod('NIGHT')}
-                >
-                  <MoonIcon />
-                  저녁 입실
-                </button>
-              </div>
-
-              <div className="compact-editor-list">
-                {renderDormitoryEditor(activeEditorGender)}
-              </div>
+              {renderCombinedScheduleEditor(activeEditorTarget)}
 
               <button
                 type="button"
-                className="apply-all-dormitories-btn"
-                onClick={() => handleApplySchedules(['MALE', 'FEMALE'])}
+                className="complete-schedule-apply-btn"
+                onClick={() => handleApplyCompleteSchedule()}
                 disabled={loadingModal.isOpen}
               >
-                {activeSchedulePeriod === 'MORNING'
-                  ? '아침 퇴실'
-                  : '저녁 입실'}{' '}
-                남·여 함께 적용
+                {activeEditorTarget === 'ALL'
+                  ? '남·여 일정 한 번에 적용'
+                  : activeEditorTarget === 'MALE'
+                    ? '남기숙사 일정 적용'
+                    : '여기숙사 일정 적용'}
               </button>
             </div>
           </>
@@ -1595,8 +1484,8 @@ export default function Schedule() {
           <strong>안내</strong>
           <ul>
             <li>달력의 점은 해당 날짜에 등록된 기숙사 일정을 의미합니다.</li>
-            <li>일정 카드를 누르면 해당 시간대를 바로 수정할 수 있습니다.</li>
-            <li>아침 퇴실은 평일에만 적용됩니다.</li>
+            <li>아침·저녁 시간을 설정한 뒤 한 번에 적용할 수 있습니다.</li>
+            <li>주말에는 저녁 입실만 적용됩니다.</li>
           </ul>
         </div>
       </aside>

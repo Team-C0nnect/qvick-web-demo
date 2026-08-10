@@ -170,6 +170,7 @@
   flex-direction: column;
   gap: 16px;
   width: min(1180px, 100%);
+  margin: 0 auto;
 }
 
 .skeleton-dashboard-hero,

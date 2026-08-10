@@ -2762,3 +2762,71 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 400px) {
+  .schedule-page {
+    gap: 12px;
+    padding: 14px 8px 20px;
+  }
+
+  .calendar-container {
+    padding: 10px;
+  }
+
+  .calendar-panel-header {
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+
+  .calendar-container .calendar-grid {
+    gap: 2px;
+  }
+
+  .calendar-container .weekday {
+    padding: 7px 1px 8px;
+    font-size: 10px;
+  }
+
+  .calendar-container .calendar-cell {
+    min-height: 48px;
+    padding: 4px 2px;
+  }
+
+  .calendar-container .date-number,
+  .calendar-container .calendar-cell:not(.selected):not(.today) .date-number {
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .calendar-container .month-text {
+    min-width: 86px;
+    font-size: 12px;
+  }
+
+  .scheduler-panel {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .scheduler-panel .panel-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .scheduler-panel .scheduler-title {
+    overflow: visible;
+    white-space: normal;
+  }
+
+  .scheduler-panel .selection-tool-btn {
+    width: 100%;
+  }
+
+  .scheduler-panel .schedule-workbench {
+    padding: 10px;
+  }
+}

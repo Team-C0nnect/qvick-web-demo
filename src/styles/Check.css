@@ -401,6 +401,41 @@
   width: 15%;
 }
 
+.check-page .student-table-attendance-only th:nth-child(1),
+.check-page .student-table-attendance-only td:nth-child(1) {
+  width: 11%;
+}
+
+.check-page .student-table-attendance-only th:nth-child(2),
+.check-page .student-table-attendance-only td:nth-child(2) {
+  width: 15%;
+}
+
+.check-page .student-table-attendance-only th:nth-child(3),
+.check-page .student-table-attendance-only td:nth-child(3) {
+  width: 17%;
+}
+
+.check-page .student-table-attendance-only th:nth-child(4),
+.check-page .student-table-attendance-only td:nth-child(4) {
+  width: 9%;
+}
+
+.check-page .student-table-attendance-only th:nth-child(5),
+.check-page .student-table-attendance-only td:nth-child(5) {
+  width: 14%;
+}
+
+.check-page .student-table-attendance-only th:nth-child(6),
+.check-page .student-table-attendance-only td:nth-child(6) {
+  width: 15%;
+}
+
+.check-page .student-table-attendance-only th:nth-child(7),
+.check-page .student-table-attendance-only td:nth-child(7) {
+  width: 19%;
+}
+
 .check-page .student-table-focused th:nth-child(1),
 .check-page .student-table-focused td:nth-child(1) {
   width: 12%;

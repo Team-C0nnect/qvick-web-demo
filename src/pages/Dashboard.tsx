@@ -1,27 +1,154 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { attendanceService } from '../services/attendance.service';
 import { announcementService } from '../services/announcement.service';
+import { scheduleService } from '../services/schedule.service';
 import type {
   AnnouncementResponse,
   AttendanceResponse,
   AttendanceStatus,
+  AttendanceType,
 } from '../types/api';
 import { DashboardSkeleton } from '../components/Skeleton';
+import { MoonIcon, SunIcon } from '../components/Icons';
+import { formatLocalDate } from '../utils/date';
 import '../styles/Dashboard.css';
+
+interface AttendanceSummary {
+  total: number;
+  target: number;
+  present: number;
+  absent: number;
+  late: number;
+  sleepover: number;
+  attended: number;
+  rate: number;
+  presentRate: number;
+  lateRate: number;
+  maleAbsent: number;
+  femaleAbsent: number;
+}
+
+const PERIOD_REFRESH_INTERVAL = 30 * 1000;
+
+const getMinutesFromTime = (time?: string) => {
+  if (!time) return null;
+  const [hours, minutes] = time.split(':').map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  return hours * 60 + minutes;
+};
+
+const getTimeBasedAttendanceType = (
+  nightStartTimes: Array<string | undefined>,
+  now = new Date(),
+): AttendanceType => {
+  const startMinutes = nightStartTimes
+    .map(getMinutesFromTime)
+    .filter((minutes): minutes is number => minutes !== null);
+
+  if (startMinutes.length === 0) {
+    return now.getHours() < 12 ? 'MORNING' : 'NIGHT';
+  }
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  return currentMinutes >= Math.min(...startMinutes) ? 'NIGHT' : 'MORNING';
+};
+
+const PERIOD_CONFIG: Record<
+  AttendanceType,
+  {
+    title: string;
+    eyebrow: string;
+    rateLabel: string;
+    completeLabel: string;
+    absentLabel: string;
+    lateLabel: string;
+  }
+> = {
+  MORNING: {
+    title: '아침 퇴실',
+    eyebrow: 'Morning check-out',
+    rateLabel: '퇴실 확인률',
+    completeLabel: '퇴실 완료',
+    absentLabel: '미퇴실',
+    lateLabel: '지연 퇴실',
+  },
+  NIGHT: {
+    title: '저녁 입실',
+    eyebrow: 'Evening check-in',
+    rateLabel: '입실 확인률',
+    completeLabel: '입실 완료',
+    absentLabel: '미입실',
+    lateLabel: '지연 입실',
+  },
+};
 
 const getAttendanceStatus = (
   attendance: AttendanceResponse,
-): AttendanceStatus | undefined =>
-  attendance.nightCheckStatus ??
-  attendance.status ??
-  attendance.morningCheckStatus;
+  attendanceType: AttendanceType,
+): AttendanceStatus =>
+  attendanceType === 'MORNING'
+    ? attendance.morningCheckStatus
+    : attendance.nightCheckStatus;
+
+const buildAttendanceSummary = (
+  attendances: AttendanceResponse[],
+  attendanceType: AttendanceType,
+): AttendanceSummary => {
+  const summary = attendances.reduce(
+    (result, attendance) => {
+      const status = getAttendanceStatus(attendance, attendanceType);
+
+      if (status === 'PRESENT') result.present += 1;
+      if (status === 'ABSENT') {
+        result.absent += 1;
+        if (attendance.student.gender === 'MALE') result.maleAbsent += 1;
+        if (attendance.student.gender === 'FEMALE') result.femaleAbsent += 1;
+      }
+      if (status === 'LATE') result.late += 1;
+      if (status === 'SLEEPOVER') result.sleepover += 1;
+
+      return result;
+    },
+    {
+      present: 0,
+      absent: 0,
+      late: 0,
+      sleepover: 0,
+      maleAbsent: 0,
+      femaleAbsent: 0,
+    },
+  );
+
+  const total = attendances.length;
+  const target = Math.max(0, total - summary.sleepover);
+  const attended = summary.present + summary.late;
+  const rate = target > 0 ? Math.round((attended / target) * 100) : 0;
+  const presentRate =
+    target > 0 ? Math.min(100, (summary.present / target) * 100) : 0;
+  const lateRate =
+    target > 0
+      ? Math.min(100 - presentRate, (summary.late / target) * 100)
+      : 0;
+
+  return {
+    ...summary,
+    total,
+    target,
+    attended,
+    rate,
+    presentRate,
+    lateRate,
+  };
+};
 
 export default function Dashboard() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatLocalDate();
   const navigate = useNavigate();
+  const [currentAttendanceType, setCurrentAttendanceType] =
+    useState<AttendanceType>(() => getTimeBasedAttendanceType([]));
 
-  // Fetch dashboard data
   const { data: attendancesData, isLoading: attendancesLoading } = useQuery({
     queryKey: ['attendances', today],
     queryFn: () => attendanceService.getAttendances(today),
@@ -32,39 +159,47 @@ export default function Dashboard() {
     queryFn: () => announcementService.getAnnouncements({ page: 0, size: 6 }),
   });
 
+  const { data: maleSchedule } = useQuery({
+    queryKey: ['schedule', today, 'MALE'],
+    queryFn: () => scheduleService.getScheduleByDate(today, 'MALE'),
+    retry: false,
+  });
+
+  const { data: femaleSchedule } = useQuery({
+    queryKey: ['schedule', today, 'FEMALE'],
+    queryFn: () => scheduleService.getScheduleByDate(today, 'FEMALE'),
+    retry: false,
+  });
+
+  useEffect(() => {
+    const updateAttendanceType = () => {
+      setCurrentAttendanceType(
+        getTimeBasedAttendanceType([
+          maleSchedule?.nightStartTime,
+          femaleSchedule?.nightStartTime,
+        ]),
+      );
+    };
+
+    updateAttendanceType();
+    const interval = window.setInterval(
+      updateAttendanceType,
+      PERIOD_REFRESH_INTERVAL,
+    );
+
+    return () => window.clearInterval(interval);
+  }, [femaleSchedule?.nightStartTime, maleSchedule?.nightStartTime]);
+
   const isLoading = attendancesLoading || announcementsLoading;
+  const attendances = attendancesData ?? [];
+  const currentSummary = buildAttendanceSummary(
+    attendances,
+    currentAttendanceType,
+  );
+  const currentPeriodConfig = PERIOD_CONFIG[currentAttendanceType];
+  const announcements: AnnouncementResponse[] =
+    announcementsData?.content ?? [];
 
-  // 출석 현황 계산
-  const presentCount = attendancesData?.filter((a) => getAttendanceStatus(a) === 'PRESENT').length || 0;
-  const absentCount = attendancesData?.filter((a) => getAttendanceStatus(a) === 'ABSENT').length || 0;
-  const totalCount = attendancesData?.length || 0;
-
-  // 남/여 기숙사 미출석 계산
-  const maleAbsent = attendancesData?.filter((a) => getAttendanceStatus(a) === 'ABSENT' && a.student.gender === 'MALE').length || 0;
-  const femaleAbsent = attendancesData?.filter((a) => getAttendanceStatus(a) === 'ABSENT' && a.student.gender === 'FEMALE').length || 0;
-
-  // 오늘 외박 인원 (SLEEPOVER 상태)
-  const todaySleepover = attendancesData?.filter((a) => getAttendanceStatus(a) === 'SLEEPOVER').length || 0;
-  const lateCount = attendancesData?.filter((a) => getAttendanceStatus(a) === 'LATE').length || 0;
-  const attendanceTargetCount = Math.max(0, totalCount - todaySleepover);
-  const attendedCount = presentCount + lateCount;
-  const attendanceRate =
-    attendanceTargetCount > 0
-      ? Math.round((attendedCount / attendanceTargetCount) * 100)
-      : 0;
-  const presentRate =
-    attendanceTargetCount > 0
-      ? Math.min(100, (presentCount / attendanceTargetCount) * 100)
-      : 0;
-  const lateRate =
-    attendanceTargetCount > 0
-      ? Math.min(100 - presentRate, (lateCount / attendanceTargetCount) * 100)
-      : 0;
-
-  // 공지사항 목록
-  const announcements: AnnouncementResponse[] = announcementsData?.content || [];
-
-  // 날짜 포맷
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const year = date.getFullYear();
@@ -76,7 +211,7 @@ export default function Dashboard() {
     const displayHours = hours > 12 ? hours - 12 : hours;
     return {
       date: `${year}.${month}.${day}.`,
-      time: `${period} ${displayHours}:${minutes}`
+      time: `${period} ${displayHours}:${minutes}`,
     };
   };
 
@@ -85,23 +220,6 @@ export default function Dashboard() {
     day: 'numeric',
     weekday: 'long',
   });
-
-  const metricCards = [
-    { label: '출석', value: presentCount, tone: 'present', helper: '점호 완료' },
-    { label: '미출석', value: absentCount, tone: 'absent', helper: '즉시 확인' },
-    { label: '지연', value: lateCount, tone: 'late', helper: '지각 처리' },
-    { label: '외박', value: todaySleepover, tone: 'sleepover', helper: '외박 승인' },
-  ];
-
-  const getMetricRate = (value: number) => (
-    attendanceTargetCount > 0
-      ? Math.min(100, Math.round((value / attendanceTargetCount) * 100))
-      : 0
-  );
-
-  const getSleepoverRate = () => (
-    totalCount > 0 ? Math.min(100, Math.round((todaySleepover / totalCount) * 100)) : 0
-  );
 
   if (isLoading) {
     return (
@@ -114,87 +232,133 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-content">
-        <section className="dashboard-hero">
+        <section
+          className={`dashboard-hero dashboard-period-hero ${currentAttendanceType.toLowerCase()}`}
+        >
           <div className="hero-copy">
             <span className="hero-kicker">{todayLabel}</span>
-            <h1>오늘의 기숙사</h1>
-            <p>오늘 점호 흐름을 빠르게 정리했어요.</p>
+            <h1>오늘의 기숙사 출결</h1>
+            <p>{currentPeriodConfig.title} 현황을 확인하세요.</p>
           </div>
 
-          <div className="hero-actions">
-            <button className="hero-action" onClick={() => navigate('/check')}>
-              인원 확인
-            </button>
-          </div>
-        </section>
-
-        <section className="summary-card">
-          <div className="summary-main">
-            <div>
-              <span className="summary-label">오늘 출석률</span>
-              <strong>{attendanceRate}%</strong>
-            </div>
-            <span className="summary-count">
-              {attendedCount}/{attendanceTargetCount}명
+          <div className="hero-period-visual" aria-hidden="true">
+            <span
+              className={`hero-period-orb ${currentAttendanceType.toLowerCase()}`}
+            >
+              {currentAttendanceType === 'MORNING' ? (
+                <SunIcon />
+              ) : (
+                <MoonIcon />
+              )}
             </span>
           </div>
-          <div className="summary-progress" aria-label={`출석률 ${attendanceRate}%`}>
-            <span
-              className="summary-progress-present"
-              style={{ width: `${presentRate}%` }}
-            />
-            <span
-              className="summary-progress-late"
-              style={{ width: `${lateRate}%` }}
-            />
-          </div>
-          <div className="summary-meta">
-            <span>미출석 {absentCount}명</span>
-            <span>지연출석 {lateCount}명</span>
-          </div>
         </section>
 
-        <section className="metrics-strip" aria-label="오늘 출결 요약">
-          {metricCards.map((metric) => {
-            const metricRate =
-              metric.tone === 'sleepover'
-                ? getSleepoverRate()
-                : getMetricRate(metric.value);
-            return (
-              <div className={`metric-card ${metric.tone}`} key={metric.label}>
-                <div className="metric-card-top">
-                  <span className="metric-label">{metric.label}</span>
-                  <span className="metric-helper">{metric.helper}</span>
-                </div>
-                <strong>{metric.value}명</strong>
-                <div className="metric-bar" aria-hidden="true">
-                  <span style={{ width: `${metricRate}%` }} />
-                </div>
-                <span className="metric-rate">{metricRate}%</span>
+        <section
+          className="period-overview-grid"
+          aria-label={`오늘의 ${currentPeriodConfig.title} 출결`}
+        >
+          <article
+            className={`period-overview-card ${currentAttendanceType.toLowerCase()} current`}
+          >
+            <div className="period-card-heading">
+              <span className="period-card-icon">
+                {currentAttendanceType === 'MORNING' ? (
+                  <SunIcon />
+                ) : (
+                  <MoonIcon />
+                )}
+              </span>
+              <div>
+                <span>{currentPeriodConfig.eyebrow}</span>
+                <h2>{currentPeriodConfig.title}</h2>
               </div>
-            );
-          })}
+              <em>현재 시간대</em>
+            </div>
+
+            <div className="period-card-rate">
+              <div>
+                <span>{currentPeriodConfig.rateLabel}</span>
+                <strong>{currentSummary.rate}%</strong>
+              </div>
+              <span>
+                {currentSummary.attended}/{currentSummary.target}명
+              </span>
+            </div>
+
+            <div
+              className="period-progress"
+              aria-label={`${currentPeriodConfig.rateLabel} ${currentSummary.rate}%`}
+            >
+              <span
+                className="period-progress-complete"
+                style={{ width: `${currentSummary.presentRate}%` }}
+              />
+              <span
+                className="period-progress-late"
+                style={{ width: `${currentSummary.lateRate}%` }}
+              />
+            </div>
+
+            <div className="period-card-metrics">
+              <div>
+                <span>{currentPeriodConfig.completeLabel}</span>
+                <strong>{currentSummary.present}명</strong>
+              </div>
+              <div className="attention">
+                <span>{currentPeriodConfig.absentLabel}</span>
+                <strong>{currentSummary.absent}명</strong>
+              </div>
+              <div className="late">
+                <span>{currentPeriodConfig.lateLabel}</span>
+                <strong>{currentSummary.late}명</strong>
+              </div>
+              <div>
+                <span>외박</span>
+                <strong>{currentSummary.sleepover}명</strong>
+              </div>
+            </div>
+
+            <div className="period-card-footer">
+              <span>
+                남 {currentPeriodConfig.absentLabel}{' '}
+                {currentSummary.maleAbsent}명 · 여{' '}
+                {currentPeriodConfig.absentLabel}{' '}
+                {currentSummary.femaleAbsent}명
+              </span>
+              <button type="button" onClick={() => navigate('/check')}>
+                인원 확인
+              </button>
+            </div>
+          </article>
         </section>
 
         <section className="dashboard-grid">
-          <div className="insight-panel">
+          <div className="insight-panel attendance-attention-panel">
             <div className="section-heading">
-              <span>Details</span>
-              <h2>출결 세부 현황</h2>
+              <span>Needs attention</span>
+              <h2>확인 필요 인원</h2>
             </div>
 
             <div className="detail-list">
-              <div className="detail-row">
-                <span className="detail-label">남기숙사 미출석</span>
-                <span className="detail-value">{maleAbsent}명</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">여기숙사 미출석</span>
-                <span className="detail-value">{femaleAbsent}명</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">확인 필요 인원</span>
-                <span className="detail-value">{absentCount + lateCount}명</span>
+              <div className="detail-row period-detail-row">
+                <span
+                  className={`detail-period-icon ${currentAttendanceType.toLowerCase()}`}
+                >
+                  {currentAttendanceType === 'MORNING' ? (
+                    <SunIcon />
+                  ) : (
+                    <MoonIcon />
+                  )}
+                </span>
+                <span className="detail-label">
+                  <strong>{currentPeriodConfig.title}</strong>
+                  {currentPeriodConfig.absentLabel} +{' '}
+                  {currentPeriodConfig.lateLabel}
+                </span>
+                <span className="detail-value">
+                  {currentSummary.absent + currentSummary.late}명
+                </span>
               </div>
             </div>
           </div>
@@ -227,7 +391,9 @@ export default function Dashboard() {
                       className="notice-item"
                       onClick={() => navigate(`/notice/${notice.id}`)}
                     >
-                      <span className="notice-index">{String(index + 1).padStart(2, '0')}</span>
+                      <span className="notice-index">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
                       <span className="notice-title">{notice.title}</span>
                       <span className="notice-meta">
                         <span>{date}</span>

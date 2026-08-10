@@ -15,6 +15,7 @@
 .dashboard-hero,
 .summary-card,
 .metric-card,
+.period-overview-card,
 .insight-panel,
 .notice-section {
   border: 1px solid #e6e6e7;
@@ -70,6 +71,323 @@
   align-items: center;
   justify-content: flex-end;
   flex-shrink: 0;
+}
+
+.dashboard-period-hero {
+  min-height: 142px;
+}
+
+.dashboard-period-hero.morning {
+  background:
+    radial-gradient(circle at 84% 18%, rgba(255, 205, 74, 0.16), transparent 19%),
+    linear-gradient(90deg, rgba(109, 35, 237, 0.08), rgba(109, 35, 237, 0) 46%),
+    #ffffff;
+}
+
+.dashboard-period-hero.night {
+  background:
+    radial-gradient(circle at 90% 50%, rgba(87, 68, 189, 0.16), transparent 24%),
+    linear-gradient(90deg, rgba(109, 35, 237, 0.08), rgba(109, 35, 237, 0) 46%),
+    #ffffff;
+}
+
+.hero-period-visual {
+  min-width: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.hero-period-orb {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  flex: 0 0 58px;
+  place-items: center;
+  border-radius: 18px;
+}
+
+.hero-period-orb svg {
+  width: 31px;
+  height: 31px;
+}
+
+.hero-period-orb.morning {
+  background: #ffedb1;
+  color: #d48600;
+  box-shadow: 0 12px 28px rgba(212, 134, 0, 0.17);
+}
+
+.hero-period-orb.night {
+  background: #e4dfff;
+  color: #5744bd;
+  box-shadow: 0 12px 28px rgba(87, 68, 189, 0.15);
+}
+
+.period-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.period-overview-card {
+  min-width: 0;
+  padding: 22px;
+  border-color: #e6e6e7;
+  box-shadow: 0 5px 18px rgba(15, 15, 16, 0.045);
+}
+
+.period-overview-card.morning {
+  background:
+    linear-gradient(135deg, rgba(255, 239, 190, 0.48), transparent 45%),
+    #ffffff;
+}
+
+.period-overview-card.night {
+  background:
+    linear-gradient(135deg, rgba(229, 224, 255, 0.55), transparent 45%),
+    #ffffff;
+}
+
+.period-overview-card.current.morning {
+  border-color: #edcd70;
+  box-shadow: 0 9px 26px rgba(205, 141, 0, 0.1);
+}
+
+.period-overview-card.current.night {
+  border-color: #bbb0e7;
+  box-shadow: 0 9px 26px rgba(87, 68, 189, 0.1);
+}
+
+.period-card-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 20px;
+}
+
+.period-card-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.period-card-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+.period-overview-card.morning .period-card-icon {
+  background: #ffedb1;
+  color: #c67d00;
+}
+
+.period-overview-card.night .period-card-icon {
+  background: #e4dfff;
+  color: #5744bd;
+}
+
+.period-card-heading > div > span {
+  color: #77727e;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.period-card-heading h2 {
+  margin: 2px 0 0;
+  color: #171519;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.period-card-heading em {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #5d5961;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.period-card-rate {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.period-card-rate > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.period-card-rate > div > span,
+.period-card-rate > span {
+  color: #706d73;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.period-card-rate strong {
+  color: #171519;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.period-progress {
+  height: 9px;
+  display: flex;
+  margin: 13px 0 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ecebed;
+}
+
+.period-progress > span {
+  display: block;
+  height: 100%;
+}
+
+.period-overview-card.morning .period-progress-complete {
+  background: #e3a81d;
+}
+
+.period-overview-card.night .period-progress-complete {
+  background: #6d56d7;
+}
+
+.period-progress-late {
+  background: #f59e0b;
+}
+
+.period-card-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.period-card-metrics > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid rgba(228, 227, 230, 0.9);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.period-card-metrics span {
+  overflow: hidden;
+  color: #77727e;
+  font-size: 10px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.period-card-metrics strong {
+  color: #2b292d;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.period-card-metrics .attention strong {
+  color: #dc3939;
+}
+
+.period-card-metrics .late strong {
+  color: #d98600;
+}
+
+.period-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(222, 220, 225, 0.9);
+}
+
+.period-card-footer > span {
+  color: #706d73;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.period-card-footer button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.period-overview-card.morning .period-card-footer button {
+  background: #bd7900;
+}
+
+.period-overview-card.night .period-card-footer button {
+  background: #5744bd;
+}
+
+.period-card-footer button:hover {
+  filter: brightness(0.92);
+}
+
+.period-detail-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.detail-period-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+}
+
+.detail-period-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.detail-period-icon.morning {
+  background: #fff0bd;
+  color: #bd7900;
+}
+
+.detail-period-icon.night {
+  background: #e9e5ff;
+  color: #5744bd;
+}
+
+.period-detail-row .detail-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.period-detail-row .detail-label strong {
+  color: #29272b;
+  font-size: 14px;
 }
 
 .hero-action,
@@ -431,6 +749,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .period-card-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -450,6 +772,15 @@
   .hero-actions,
   .hero-action {
     width: 100%;
+  }
+
+  .hero-period-visual {
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .period-overview-grid {
+    grid-template-columns: 1fr;
   }
 
   .hero-copy h1 {
@@ -478,6 +809,7 @@
 
   .dashboard-hero,
   .summary-card,
+  .period-overview-card,
   .insight-panel,
   .notice-section {
     padding: 18px;
@@ -501,6 +833,39 @@
 
   .metrics-strip {
     grid-template-columns: 1fr;
+  }
+
+  .hero-period-orb {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    border-radius: 14px;
+  }
+
+  .hero-period-line {
+    width: 42px;
+  }
+
+  .period-card-heading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .period-card-heading em {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+
+  .period-card-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .period-card-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .period-card-footer button {
+    min-height: 40px;
   }
 
   .dashboard-page .notice-register-btn {

@@ -15,9 +15,11 @@ import { SearchIcon, ExcelIcon } from '../components/Icons';
 import type {
   AttendanceStatus,
   AttendanceResponse,
+  AttendanceType,
   PhoneSubmissionStatus,
   UpdateAttendancesRequest,
 } from '../types/api';
+import { formatLocalDate } from '../utils/date';
 
 interface Student {
   id: number | null;
@@ -41,8 +43,9 @@ interface Student {
 type DisplayAttendanceStatus = Student['status'];
 type NightAttendanceDisplayStatus = '출석' | '미출석' | '-';
 type PhoneSubmissionDisplayStatus = '제출' | '미제출' | '외박' | '-';
-type NightScheduleTime = {
-  endTime?: string;
+type AttendanceScheduleTime = {
+  morningEndTime?: string;
+  nightStartTime?: string;
   nightEndTime?: string;
 };
 type SortKey =
@@ -55,6 +58,35 @@ type SortKey =
   | 'nightAttendance'
   | 'phoneSubmission';
 type SortDirection = 'asc' | 'desc' | null;
+
+const ATTENDANCE_PERIOD_LABELS: Record<
+  AttendanceType,
+  {
+    title: string;
+    description: string;
+    complete: string;
+    absent: string;
+    late: string;
+    time: string;
+  }
+> = {
+  MORNING: {
+    title: '아침 퇴실',
+    description: '등교 전 기숙사 퇴실 현황',
+    complete: '퇴실 완료',
+    absent: '미퇴실',
+    late: '지연 퇴실',
+    time: '퇴실 시간',
+  },
+  NIGHT: {
+    title: '저녁 입실',
+    description: '저녁 점호 기숙사 입실 현황',
+    complete: '입실 완료',
+    absent: '미입실',
+    late: '지연 입실',
+    time: '입실 시간',
+  },
+};
 
 interface AttendanceStats {
   total: number;
@@ -74,6 +106,22 @@ interface AttendanceStats {
 // 자동 새로고침 간격 (30초)
 const REFRESH_INTERVAL = 30 * 1000;
 
+const getTimeBasedAttendanceType = (
+  schedules: Array<AttendanceScheduleTime | undefined>,
+  now = new Date(),
+): AttendanceType => {
+  const nightStartMinutes = schedules
+    .map((schedule) => getMinutesFromTime(schedule?.nightStartTime))
+    .filter((minutes): minutes is number => minutes !== null);
+
+  if (nightStartMinutes.length === 0) {
+    return now.getHours() < 12 ? 'MORNING' : 'NIGHT';
+  }
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  return currentMinutes >= Math.min(...nightStartMinutes) ? 'NIGHT' : 'MORNING';
+};
+
 const STATUS_MAP: Record<DisplayAttendanceStatus, AttendanceStatus> = {
   출석: 'PRESENT',
   미출석: 'ABSENT',
@@ -81,15 +129,21 @@ const STATUS_MAP: Record<DisplayAttendanceStatus, AttendanceStatus> = {
   지연출석: 'LATE',
 };
 
-const getPrimaryAttendanceStatus = (
+const getAttendanceStatus = (
   attendance: AttendanceResponse,
-): AttendanceStatus | undefined =>
-  attendance.nightCheckStatus ??
-  attendance.status ??
-  attendance.morningCheckStatus;
+  attendanceType: AttendanceType,
+): AttendanceStatus =>
+  attendanceType === 'MORNING'
+    ? attendance.morningCheckStatus
+    : attendance.nightCheckStatus;
 
-const getPrimaryCheckedAt = (attendance: AttendanceResponse): string | undefined =>
-  attendance.nightCheckedAt ?? attendance.checkedAt ?? attendance.morningCheckedAt;
+const getCheckedAt = (
+  attendance: AttendanceResponse,
+  attendanceType: AttendanceType,
+): string | undefined =>
+  attendanceType === 'MORNING'
+    ? attendance.morningCheckedAt
+    : attendance.nightCheckedAt;
 
 const getNightAttendanceDisplayStatus = (
   status: boolean | null | undefined,
@@ -163,14 +217,6 @@ const getCurrentTimeString = (): string => {
   return `${hours}:${minutes}`;
 };
 
-const getLocalDateString = (): string => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = (now.getMonth() + 1).toString().padStart(2, '0');
-  const day = now.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 const getMinutesFromTime = (time: string | undefined): number | null => {
   if (!time || time === '-') return null;
 
@@ -194,15 +240,19 @@ const isLateAttendance = (
   return checkedMinutes > endMinutes;
 };
 
-const getNightScheduleEndTime = (
-  schedule: NightScheduleTime | undefined,
-): string | undefined => schedule?.nightEndTime ?? schedule?.endTime;
+const getScheduleEndTime = (
+  schedule: AttendanceScheduleTime | undefined,
+  attendanceType: AttendanceType,
+): string | undefined =>
+  attendanceType === 'MORNING'
+    ? schedule?.morningEndTime
+    : schedule?.nightEndTime;
 
 const hasAttendanceWindowEnded = (
   attendanceDate: string,
   endTime: string | undefined,
 ): boolean => {
-  const today = getLocalDateString();
+  const today = formatLocalDate();
 
   if (attendanceDate < today) return true;
   if (attendanceDate > today) return false;
@@ -211,9 +261,12 @@ const hasAttendanceWindowEnded = (
 };
 
 export default function Check() {
+  const [attendanceType, setAttendanceType] = useState<AttendanceType>(() =>
+    getTimeBasedAttendanceType([]),
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [currentDate, setCurrentDate] = useState(
-    () => new Date().toISOString().split('T')[0],
+    () => formatLocalDate(),
   );
   const [sortKey, setSortKey] = useState<SortKey | null>('room');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -264,20 +317,38 @@ export default function Check() {
   const { data: maleSchedule } = useQuery({
     queryKey: ['schedule', currentDate, 'MALE'],
     queryFn: () => scheduleService.getScheduleByDate(currentDate, 'MALE'),
+    retry: false,
   });
 
   const { data: femaleSchedule } = useQuery({
     queryKey: ['schedule', currentDate, 'FEMALE'],
     queryFn: () => scheduleService.getScheduleByDate(currentDate, 'FEMALE'),
+    retry: false,
   });
+
+  useEffect(() => {
+    const updateAttendanceType = () => {
+      setAttendanceType(
+        getTimeBasedAttendanceType([maleSchedule, femaleSchedule]),
+      );
+    };
+
+    updateAttendanceType();
+    const interval = window.setInterval(
+      updateAttendanceType,
+      REFRESH_INTERVAL,
+    );
+
+    return () => window.clearInterval(interval);
+  }, [femaleSchedule, maleSchedule]);
 
   const [students, setStudents] = useState<Student[]>([]);
   const [scheduleCache, setScheduleCache] = useState<
     Map<
       string,
       {
-        maleSchedule?: NightScheduleTime;
-        femaleSchedule?: NightScheduleTime;
+        maleSchedule?: AttendanceScheduleTime;
+        femaleSchedule?: AttendanceScheduleTime;
       }
     >
   >(new Map());
@@ -329,10 +400,12 @@ export default function Check() {
       const dateSchedules = scheduleCache.get(currentDate);
       const endTime =
         student.gender === '남'
-          ? (getNightScheduleEndTime(dateSchedules?.maleSchedule) ??
-            getNightScheduleEndTime(maleSchedule))
-          : (getNightScheduleEndTime(dateSchedules?.femaleSchedule) ??
-            getNightScheduleEndTime(femaleSchedule));
+          ? (getScheduleEndTime(dateSchedules?.maleSchedule, attendanceType) ??
+            getScheduleEndTime(maleSchedule, attendanceType))
+          : (getScheduleEndTime(
+              dateSchedules?.femaleSchedule,
+              attendanceType,
+            ) ?? getScheduleEndTime(femaleSchedule, attendanceType));
       const effectiveDisplayStatus: DisplayAttendanceStatus =
         newDisplayStatus === '출석' &&
         hasAttendanceWindowEnded(currentDate, endTime)
@@ -345,7 +418,7 @@ export default function Check() {
           {
             studentId: student.id,
             status: STATUS_MAP[effectiveDisplayStatus],
-            attendanceType: 'NIGHT',
+            attendanceType,
           },
         ],
       });
@@ -365,6 +438,7 @@ export default function Check() {
     },
     [
       currentDate,
+      attendanceType,
       femaleSchedule,
       maleSchedule,
       scheduleCache,
@@ -408,7 +482,13 @@ export default function Check() {
         const { exportMergedAttendanceToExcel } = await import(
           '../services/excel.service'
         );
-        exportMergedAttendanceToExcel(mergedData, gender, exportMode);
+        exportMergedAttendanceToExcel(
+          mergedData,
+          gender,
+          exportMode,
+          attendanceType,
+          currentDate,
+        );
       } catch (error) {
         console.error('엑셀 내보내기 실패:', error);
         alert('엑셀 내보내기에 실패했습니다.');
@@ -416,7 +496,7 @@ export default function Check() {
         setIsExporting(false);
       }
     },
-    [students],
+    [attendanceType, currentDate, students],
   );
 
   // 출석 데이터의 각 날짜별 스케줄을 로드
@@ -429,7 +509,9 @@ export default function Check() {
     ];
 
     // 이미 로드된 날짜는 스킵
-    const datesToLoad = uniqueDates.filter((date) => !scheduleCache.has(date));
+    const datesToLoad = uniqueDates.filter(
+      (date) => date !== currentDate && !scheduleCache.has(date),
+    );
 
     if (datesToLoad.length === 0) return;
 
@@ -441,8 +523,7 @@ export default function Check() {
           .then((schedule) => {
             return { date, gender: 'MALE', schedule };
           })
-          .catch((err) => {
-            console.error(`[Schedule Error] ${date} MALE:`, err);
+          .catch(() => {
             return { date, gender: 'MALE', schedule: undefined };
           }),
         scheduleService
@@ -450,8 +531,7 @@ export default function Check() {
           .then((schedule) => {
             return { date, gender: 'FEMALE', schedule };
           })
-          .catch((err) => {
-            console.error(`[Schedule Error] ${date} FEMALE:`, err);
+          .catch(() => {
             return { date, gender: 'FEMALE', schedule: undefined };
           }),
       ]),
@@ -472,7 +552,7 @@ export default function Check() {
 
       setScheduleCache(newCache);
     });
-  }, [attendancesData, scheduleCache]);
+  }, [attendancesData, currentDate, scheduleCache]);
 
   // 신버전 출석 데이터 매핑
   useEffect(() => {
@@ -499,8 +579,8 @@ export default function Check() {
         const studentIdStr = `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
         const studentInfo = studentInfoMap.get(studentIdStr);
         const actualId = studentInfo?.id ?? student.id ?? null;
-        const attendanceStatus = getPrimaryAttendanceStatus(att);
-        const checkedAt = getPrimaryCheckedAt(att);
+        const attendanceStatus = getAttendanceStatus(att, attendanceType);
+        const checkedAt = getCheckedAt(att, attendanceType);
 
         const isOvernight = attendanceStatus === 'SLEEPOVER';
         const isPresent = attendanceStatus === 'PRESENT';
@@ -520,19 +600,22 @@ export default function Check() {
         let endTime: string | undefined;
         if (student.gender === 'MALE') {
           endTime =
-            getNightScheduleEndTime(dateSchedules?.maleSchedule) ??
+            getScheduleEndTime(dateSchedules?.maleSchedule, attendanceType) ??
             (canUseCurrentScheduleFallback
-              ? getNightScheduleEndTime(maleSchedule)
+              ? getScheduleEndTime(maleSchedule, attendanceType)
               : undefined);
         } else {
           endTime =
-            getNightScheduleEndTime(dateSchedules?.femaleSchedule) ??
+            getScheduleEndTime(
+              dateSchedules?.femaleSchedule,
+              attendanceType,
+            ) ??
             (canUseCurrentScheduleFallback
-              ? getNightScheduleEndTime(femaleSchedule)
+              ? getScheduleEndTime(femaleSchedule, attendanceType)
               : undefined);
         }
 
-        const isCheckedAttendance = isPresent || isLate || Boolean(checkedAt);
+        const isCheckedAttendance = isPresent || isLate;
         const isLateBySchedule = isLateAttendance(checkedTime, endTime);
 
         let displayStatus: '출석' | '미출석' | '외박' | '지연출석' = '미출석';
@@ -583,6 +666,7 @@ export default function Check() {
     currentDate,
     maleSchedule,
     femaleSchedule,
+    attendanceType,
   ]);
 
   // Sort function
@@ -777,6 +861,8 @@ export default function Check() {
     </span>
   );
 
+  const periodLabels = ATTENDANCE_PERIOD_LABELS[attendanceType];
+
   if (attendancesLoading) {
     return (
       <div className="check-page">
@@ -809,36 +895,43 @@ export default function Check() {
         <div className="stats-section">
           <div className="stat-box">전체 : {stats.total}명</div>
           <div className="stat-box attendance">
-            출석 : <span className="positive">{stats.present}</span>명
+            {periodLabels.complete} :{' '}
+            <span className="positive">{stats.present}</span>명
           </div>
           <div className="stat-box absence">
-            미출석 : <span className="negative">{stats.absent}</span>명
+            {periodLabels.absent} :{' '}
+            <span className="negative">{stats.absent}</span>명
           </div>
           <div className="stat-box late">
-            지연출석 : <span className="warning">{stats.late}</span>명
+            {periodLabels.late} :{' '}
+            <span className="warning">{stats.late}</span>명
           </div>
           <div className="stat-box sleepover">
             외박 : <span className="sleepover-count">{stats.sleepover}</span>명
           </div>
-          <div className="stat-box night-absence">
-            심자 출석 : <span className="positive">{stats.nightPresent}</span>명
-          </div>
-          <div className="stat-box night-absence">
-            심자 미출석 : <span className="negative">{stats.nightAbsent}</span>명
-          </div>
-          <div className="stat-box phone-submission">
-            휴대폰 미제출 :{' '}
-            <span className="phone-submission-count">
-              {stats.phoneNotSubmitted}
-            </span>
-            명
-          </div>
+          {attendanceType === 'NIGHT' && (
+            <>
+              <div className="stat-box night-absence">
+                심자 출석 : <span className="positive">{stats.nightPresent}</span>명
+              </div>
+              <div className="stat-box night-absence">
+                심자 미출석 : <span className="negative">{stats.nightAbsent}</span>명
+              </div>
+              <div className="stat-box phone-submission">
+                휴대폰 미제출 :{' '}
+                <span className="phone-submission-count">
+                  {stats.phoneNotSubmitted}
+                </span>
+                명
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       <div className="filter-section">
         <div className="filter-group">
-          <label className="filter-label">출석 상태:</label>
+          <label className="filter-label">{periodLabels.title} 상태:</label>
           <div className="filter-buttons">
             <button
               type="button"
@@ -852,21 +945,21 @@ export default function Check() {
               className={`filter-btn ${statusFilter === '출석' ? 'active' : ''}`}
               onClick={() => setStatusFilter('출석')}
             >
-              출석
+              {periodLabels.complete}
             </button>
             <button
               type="button"
               className={`filter-btn ${statusFilter === '미출석' ? 'active' : ''}`}
               onClick={() => setStatusFilter('미출석')}
             >
-              미출석
+              {periodLabels.absent}
             </button>
             <button
               type="button"
               className={`filter-btn ${statusFilter === '지연출석' ? 'active' : ''}`}
               onClick={() => setStatusFilter('지연출석')}
             >
-              지연출석
+              {periodLabels.late}
             </button>
             <button
               type="button"
@@ -985,7 +1078,7 @@ export default function Check() {
                     >
                       <span className="excel-menu-item-title">전체 명단</span>
                       <span className="excel-menu-item-desc">
-                        출석부 전체 양식 다운로드
+                        {periodLabels.title} 전체 양식 다운로드
                       </span>
                     </button>
                     <button
@@ -993,10 +1086,10 @@ export default function Check() {
                       onClick={() => handleExportExcel(selectedGender, 'absent')}
                     >
                       <span className="excel-menu-item-title">
-                        미출석 명단
+                        {periodLabels.absent} 명단
                       </span>
                       <span className="excel-menu-item-desc">
-                        A4 체크리스트 다운로드
+                        {periodLabels.title} A4 체크리스트
                       </span>
                     </button>
                     <button
@@ -1027,17 +1120,23 @@ export default function Check() {
       </div>
 
       <div className="table-container">
-        <table className="student-table">
+        <table
+          className={`student-table ${
+            attendanceType === 'MORNING' ? 'student-table-attendance-only' : ''
+          }`}
+        >
           <thead>
             <tr>
               {renderSortableHeader('room', '호실')}
               {renderSortableHeader('name', '이름')}
-              {renderSortableHeader('status', '상태')}
+              {renderSortableHeader('status', `${periodLabels.title} 상태`)}
               {renderSortableHeader('gender', '성별')}
               {renderSortableHeader('studentId', '학번')}
-              {renderSortableHeader('time', '출석 시간')}
-              {renderSortableHeader('nightAttendance', '심자 출석')}
-              {renderSortableHeader('phoneSubmission', '휴대폰 제출')}
+              {renderSortableHeader('time', periodLabels.time)}
+              {attendanceType === 'NIGHT' &&
+                renderSortableHeader('nightAttendance', '심자 출석')}
+              {attendanceType === 'NIGHT' &&
+                renderSortableHeader('phoneSubmission', '휴대폰 제출')}
               <th>연락처</th>
             </tr>
           </thead>
@@ -1050,7 +1149,7 @@ export default function Check() {
                 <tr key={index}>
                   <td className="room-cell" data-label="호실">{student.room}</td>
                   <td data-label="이름">{student.name}</td>
-                  <td data-label="상태">
+                  <td data-label={`${periodLabels.title} 상태`}>
                     {student.status === '외박' ? (
                       <span className="status-sleepover">외박</span>
                     ) : (
@@ -1075,21 +1174,25 @@ export default function Check() {
                               : 'status-absent'
                         }`}
                       >
-                        <option value="출석">출석</option>
-                        <option value="지연출석">지연출석</option>
-                        <option value="미출석">미출석</option>
+                        <option value="출석">{periodLabels.complete}</option>
+                        <option value="지연출석">{periodLabels.late}</option>
+                        <option value="미출석">{periodLabels.absent}</option>
                       </select>
                     )}
                   </td>
                   <td data-label="성별">{student.gender}</td>
                   <td data-label="학번">{student.studentId}</td>
-                  <td data-label="출석 시간">{student.time}</td>
-                  <td data-label="심자 출석">
-                    {renderNightAttendance(nightAttendance)}
-                  </td>
-                  <td data-label="휴대폰 제출">
-                    {renderPhoneSubmission(phoneSubmission)}
-                  </td>
+                  <td data-label={periodLabels.time}>{student.time}</td>
+                  {attendanceType === 'NIGHT' && (
+                    <td data-label="심자 출석">
+                      {renderNightAttendance(nightAttendance)}
+                    </td>
+                  )}
+                  {attendanceType === 'NIGHT' && (
+                    <td data-label="휴대폰 제출">
+                      {renderPhoneSubmission(phoneSubmission)}
+                    </td>
+                  )}
                   <td data-label="연락처">{student.phone}</td>
                 </tr>
               );

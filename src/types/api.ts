@@ -8,6 +8,17 @@ export type PhoneSubmissionStatus = 'SUBMITTED' | 'NOT_SUBMITTED' | 'SLEEPOVER';
 
 export type AttendanceType = 'MORNING' | 'NIGHT';
 
+export type AttendanceScheduleGender = Gender | 'ALL';
+
+export type DayOfWeek =
+  | 'MONDAY'
+  | 'TUESDAY'
+  | 'WEDNESDAY'
+  | 'THURSDAY'
+  | 'FRIDAY'
+  | 'SATURDAY'
+  | 'SUNDAY';
+
 export type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN' | 'MANAGER';
 
 // Auth Types
@@ -137,14 +148,12 @@ export interface NightStudySyncResponse {
 export interface AttendanceResponse {
   student: Student;
   date: string; // format: date (YYYY-MM-DD)
-  checkedAt?: string; // legacy format: date-time
-  status?: AttendanceStatus; // legacy attendance status
   morningCheckedAt?: string; // format: date-time
-  morningCheckStatus?: AttendanceStatus;
+  morningCheckStatus: AttendanceStatus;
   nightCheckedAt?: string; // format: date-time
-  nightCheckStatus?: AttendanceStatus;
+  nightCheckStatus: AttendanceStatus;
   nightStudyAttendance?: boolean | null;
-  phoneSubmissionStatus?: PhoneSubmissionStatus;
+  phoneSubmissionStatus: PhoneSubmissionStatus;
 }
 
 export interface PhoneSubmissionResponse {
@@ -186,26 +195,40 @@ export interface MyAttendanceResponse {
 export interface AttendanceScheduleResponse {
   id: number;
   date: string; // format: date
-  gender: Gender; // 남/여 기숙사 구분
-  startTime?: string;
-  endTime?: string;
+  gender: AttendanceScheduleGender; // 남/여/전체 기숙사 구분
+  morningStartTime?: string;
+  morningEndTime?: string;
+  nightStartTime: string;
+  nightEndTime: string;
+}
+
+export interface TeacherCreateAttendanceScheduleRequest {
+  date: string; // format: date
+  gender?: AttendanceScheduleGender;
+  morningStartTime?: string;
+  morningEndTime?: string;
+  nightStartTime: string;
+  nightEndTime: string;
+}
+
+export interface TeacherUpdateAttendanceScheduleRequest {
   morningStartTime?: string;
   morningEndTime?: string;
   nightStartTime?: string;
   nightEndTime?: string;
 }
 
-export interface TeacherCreateAttendanceScheduleRequest {
-  date: string; // format: date
-  gender: Gender; // 남/여 기숙사 구분
-  startTime: string;
-  endTime: string;
+export interface DefaultAttendanceSchedule {
+  dayOfWeek: DayOfWeek;
+  gender: AttendanceScheduleGender;
+  morningStartTime?: string;
+  morningEndTime?: string;
+  nightStartTime: string;
+  nightEndTime: string;
 }
 
-export interface TeacherUpdateAttendanceScheduleRequest {
-  startTime?: string;
-  endTime?: string;
-}
+export type TeacherUpdateDefaultAttendanceScheduleRequest =
+  TeacherUpdateAttendanceScheduleRequest;
 
 // Announcement Types
 export interface AnnouncementAuthorResponse {

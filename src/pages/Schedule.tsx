@@ -964,7 +964,7 @@ export default function Schedule() {
     const isMaleSource = sourceGender === 'MALE';
     const targetName =
       target === 'ALL'
-        ? '남·여 함께'
+        ? '일괄 적용'
         : target === 'MALE'
           ? '남기숙사'
           : '여기숙사';
@@ -1225,7 +1225,7 @@ export default function Schedule() {
             }
             disabled={selectedDates.length === 0 || loadingModal.isOpen}
           >
-            남·여 한 번에 적용
+            일괄 적용
           </button>
         </div>
       </section>
@@ -1423,7 +1423,7 @@ export default function Schedule() {
                   className={activeEditorTarget === 'ALL' ? 'active all' : 'all'}
                   onClick={() => setActiveEditorTarget('ALL')}
                 >
-                  남·여 함께
+                  일괄 적용
                 </button>
                 <button
                   type="button"
@@ -1460,7 +1460,7 @@ export default function Schedule() {
                 disabled={loadingModal.isOpen}
               >
                 {activeEditorTarget === 'ALL'
-                  ? '남·여 일정 한 번에 적용'
+                  ? '일괄 적용'
                   : activeEditorTarget === 'MALE'
                     ? '남기숙사 일정 적용'
                     : '여기숙사 일정 적용'}

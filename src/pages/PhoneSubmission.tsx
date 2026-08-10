@@ -1,31 +1,42 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { phoneSubmissionService } from '../services/phone-submission.service';
+import { deviceSubmissionService } from '../services/device-submission.service';
 import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { SearchIcon } from '../components/Icons';
 import '../styles/Check.css';
 import '../styles/Sleepover.css';
-import type { PhoneSubmissionResponse, PhoneSubmissionStatus } from '../types/api';
+import type { DeviceSubmission, DeviceSubmissionStatus, Gender } from '../types/api';
 
-type PhoneSubmissionDisplayStatus = '제출' | '미제출' | '외박';
+type DeviceSubmissionDisplayStatus = '제출' | '미제출' | '외박';
+type GenderLabel = '남' | '여' | '-';
 
-interface PhoneSubmissionStudent {
+interface DeviceSubmissionStudent {
   id: number | null;
   room: string;
   name: string;
-  gender: '남' | '여';
+  gender: GenderLabel;
   studentId: string;
   grade: number;
   phone: string;
-  status: PhoneSubmissionStatus;
-  displayStatus: PhoneSubmissionDisplayStatus;
+  status: DeviceSubmissionStatus;
+  displayStatus: DeviceSubmissionDisplayStatus;
   checkedAt: string;
+  phoneBoxId: number;
+  phoneBoxName: string;
 }
 
 const getStudentNumber = (
-  student: Pick<PhoneSubmissionResponse['student'], 'grade' | 'classroom' | 'number'>,
+  student: Pick<DeviceSubmission['student'], 'grade' | 'classroom' | 'number'>,
 ) => `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
+
+// 성별을 알 수 없으면 '여'로 흘려보내지 않고 '-'로 표시한다.
+// (제출 현황 응답의 student.gender 는 MALE/FEMALE 외의 값이 올 수 있음)
+const getGenderLabel = (gender?: Gender | 'ALL' | null): GenderLabel => {
+  if (gender === 'MALE') return '남';
+  if (gender === 'FEMALE') return '여';
+  return '-';
+};
 
 const formatPhoneNumber = (phone?: string): string => {
   if (!phone) return '-';
@@ -51,9 +62,9 @@ const formatCheckedAt = (checkedAt?: string): string => {
   return `${hours}:${minutes}`;
 };
 
-const getPhoneSubmissionDisplayStatus = (
-  status: PhoneSubmissionStatus,
-): PhoneSubmissionDisplayStatus => {
+const getDeviceSubmissionDisplayStatus = (
+  status: DeviceSubmissionStatus,
+): DeviceSubmissionDisplayStatus => {
   switch (status) {
     case 'SUBMITTED':
       return '제출';
@@ -64,8 +75,8 @@ const getPhoneSubmissionDisplayStatus = (
   }
 };
 
-const getPhoneSubmissionStatusClassName = (
-  status: PhoneSubmissionDisplayStatus,
+const getDeviceSubmissionStatusClassName = (
+  status: DeviceSubmissionDisplayStatus,
 ): string => {
   switch (status) {
     case '제출':
@@ -87,8 +98,9 @@ export default function PhoneSubmission() {
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
 
   const { data: submissionsData, isLoading } = useQuery({
-    queryKey: ['phone-submissions', currentDate],
-    queryFn: () => phoneSubmissionService.getPhoneSubmissions(currentDate),
+    queryKey: ['device-submissions', currentDate],
+    queryFn: () =>
+      deviceSubmissionService.getDeviceSubmissions({ date: currentDate }),
   });
 
   const { data: studentsData } = useQuery({
@@ -103,55 +115,64 @@ export default function PhoneSubmission() {
       status,
     }: {
       studentId: number;
-      status: PhoneSubmissionStatus;
+      status: DeviceSubmissionStatus;
     }) =>
-      phoneSubmissionService.updatePhoneSubmissions({
+      deviceSubmissionService.updateDeviceSubmissions({
         date: currentDate,
         submissions: [{ studentId, status }],
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['phone-submissions', currentDate],
+        queryKey: ['device-submissions', currentDate],
       });
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
     },
   });
 
-  const phoneSubmissionStudents = useMemo<PhoneSubmissionStudent[]>(() => {
-    const studentInfoMap = new Map<string, { id: number; phoneNumber?: string }>();
+  const deviceSubmissionStudents = useMemo<DeviceSubmissionStudent[]>(() => {
+    const studentInfoMap = new Map<
+      string,
+      { id: number; phoneNumber?: string; gender: Gender }
+    >();
 
     studentsData?.content.forEach((student) => {
       studentInfoMap.set(getStudentNumber(student), {
         id: student.id,
         phoneNumber: student.phoneNumber,
+        gender: student.gender,
       });
     });
 
-    return (submissionsData ?? []).map((submission) => {
-      const student = submission.student;
-      const studentId = getStudentNumber(student);
-      const studentInfo = studentInfoMap.get(studentId);
-      const displayStatus = getPhoneSubmissionDisplayStatus(submission.status);
+    // 응답이 제출함별로 중첩되어 오므로 테이블용으로 평탄화한다.
+    return (submissionsData?.phoneBoxes ?? []).flatMap((phoneBox) =>
+      phoneBox.submissions.map((submission) => {
+        const student = submission.student;
+        const studentId = getStudentNumber(student);
+        const studentInfo = studentInfoMap.get(studentId);
+        const displayStatus = getDeviceSubmissionDisplayStatus(submission.status);
 
-      return {
-        id: studentInfo?.id ?? student.id ?? null,
-        room: student.room,
-        name: student.name,
-        gender: student.gender === 'MALE' ? '남' : '여',
-        studentId,
-        grade: student.grade,
-        phone: formatPhoneNumber(studentInfo?.phoneNumber),
-        status: submission.status,
-        displayStatus,
-        checkedAt: formatCheckedAt(submission.checkedAt),
-      };
-    });
+        return {
+          id: student.id ?? studentInfo?.id ?? null,
+          room: student.room,
+          name: student.name,
+          gender: getGenderLabel(studentInfo?.gender ?? student.gender),
+          studentId,
+          grade: student.grade,
+          phone: formatPhoneNumber(studentInfo?.phoneNumber),
+          status: submission.status,
+          displayStatus,
+          checkedAt: formatCheckedAt(submission.checkedAt),
+          phoneBoxId: phoneBox.id,
+          phoneBoxName: phoneBox.name,
+        };
+      }),
+    );
   }, [studentsData, submissionsData]);
 
   const filteredStudents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return [...phoneSubmissionStudents]
+    return [...deviceSubmissionStudents]
       .sort((a, b) => {
         const roomDiff = a.room.localeCompare(b.room, 'ko-KR', {
           numeric: true,
@@ -171,7 +192,12 @@ export default function PhoneSubmission() {
           if (!isMatched) return false;
         }
 
-        if (genderFilter !== '전체' && student.gender !== genderFilter) {
+        // 성별 불명('-')은 필터로 걸러내지 않는다. 누락되면 확인 자체가 불가능해지므로.
+        if (
+          genderFilter !== '전체' &&
+          student.gender !== '-' &&
+          student.gender !== genderFilter
+        ) {
           return false;
         }
 
@@ -181,7 +207,7 @@ export default function PhoneSubmission() {
 
         return true;
       });
-  }, [genderFilter, gradeFilter, phoneSubmissionStudents, searchQuery]);
+  }, [genderFilter, gradeFilter, deviceSubmissionStudents, searchQuery]);
 
   const stats = filteredStudents.reduce(
     (acc, student) => {
@@ -195,8 +221,8 @@ export default function PhoneSubmission() {
   );
 
   const handleStatusChange = (
-    student: PhoneSubmissionStudent,
-    status: PhoneSubmissionStatus,
+    student: DeviceSubmissionStudent,
+    status: DeviceSubmissionStatus,
   ) => {
     if (!student.id) {
       alert('학생 ID를 찾을 수 없습니다.');
@@ -306,7 +332,7 @@ export default function PhoneSubmission() {
               </tr>
             ) : filteredStudents.length > 0 ? (
               filteredStudents.map((student) => (
-                <tr key={`${currentDate}-${student.studentId}`}>
+                <tr key={`${currentDate}-${student.phoneBoxId}-${student.studentId}`}>
                   <td className="room-cell" data-label="호실">
                     {student.room}
                   </td>
@@ -322,11 +348,11 @@ export default function PhoneSubmission() {
                         onChange={(e) =>
                           handleStatusChange(
                             student,
-                            e.target.value as PhoneSubmissionStatus,
+                            e.target.value as DeviceSubmissionStatus,
                           )
                         }
                         disabled={updateMutation.isPending}
-                        className={`phone-submission-select ${getPhoneSubmissionStatusClassName(
+                        className={`phone-submission-select ${getDeviceSubmissionStatusClassName(
                           student.displayStatus,
                         )}`}
                       >

@@ -16,7 +16,7 @@ import type {
   AttendanceStatus,
   AttendanceResponse,
   AttendanceType,
-  PhoneSubmissionStatus,
+  DeviceSubmissionStatus,
   UpdateAttendancesRequest,
 } from '../types/api';
 import { formatLocalDate } from '../utils/date';
@@ -154,7 +154,7 @@ const getNightAttendanceDisplayStatus = (
 };
 
 const getPhoneSubmissionDisplayStatus = (
-  status: PhoneSubmissionStatus | undefined,
+  status: DeviceSubmissionStatus | undefined,
   isSleepover: boolean,
 ): PhoneSubmissionDisplayStatus => {
   switch (status) {
@@ -650,7 +650,7 @@ export default function Check() {
             studentInfo?.phoneNumber ?? student.phoneNumber,
           ),
           phoneSubmission: getPhoneSubmissionDisplayStatus(
-            att.phoneSubmissionStatus,
+            att.deviceSubmissionStatus,
             isOvernight,
           ),
           dormitory: student.room.startsWith('2') ? '여기숙사' : '남기숙사',

@@ -84,7 +84,7 @@
 }
 
 /* 반응형 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .sidebar {
     width: 60px;
     padding: 8px 6px;

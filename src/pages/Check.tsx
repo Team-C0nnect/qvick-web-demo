@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useOutletContext } from 'react-router-dom';
 import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
 import { scheduleService } from '../services/schedule.service';
+import type { LayoutOutletContext } from '../components/Layout';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import type {
   AttendanceExportMode,
@@ -260,10 +262,19 @@ const hasAttendanceWindowEnded = (
   return isLateAttendance(getCurrentTimeString(), endTime);
 };
 
+const getAdjacentDate = (date: string, days: number): string => {
+  const result = new Date(`${date}T12:00:00`);
+  result.setDate(result.getDate() + days);
+  return formatLocalDate(result);
+};
+
 export default function Check() {
+  const { setHeaderActions } = useOutletContext<LayoutOutletContext>();
   const [attendanceType, setAttendanceType] = useState<AttendanceType>(() =>
     getTimeBasedAttendanceType([]),
   );
+  const [isPeriodManuallySelected, setIsPeriodManuallySelected] =
+    useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentDate, setCurrentDate] = useState(
     () => formatLocalDate(),
@@ -327,6 +338,8 @@ export default function Check() {
   });
 
   useEffect(() => {
+    if (isPeriodManuallySelected) return;
+
     const updateAttendanceType = () => {
       setAttendanceType(
         getTimeBasedAttendanceType([maleSchedule, femaleSchedule]),
@@ -340,7 +353,91 @@ export default function Check() {
     );
 
     return () => window.clearInterval(interval);
-  }, [femaleSchedule, maleSchedule]);
+  }, [femaleSchedule, isPeriodManuallySelected, maleSchedule]);
+
+  const handlePreviousAttendancePeriod = useCallback(() => {
+    setIsPeriodManuallySelected(true);
+
+    if (attendanceType === 'NIGHT') {
+      setAttendanceType('MORNING');
+      return;
+    }
+
+    setCurrentDate((date) => getAdjacentDate(date, -1));
+    setAttendanceType('NIGHT');
+  }, [attendanceType]);
+
+  const handleNextAttendancePeriod = useCallback(() => {
+    setIsPeriodManuallySelected(true);
+
+    if (attendanceType === 'MORNING') {
+      setAttendanceType('NIGHT');
+      return;
+    }
+
+    setCurrentDate((date) => getAdjacentDate(date, 1));
+    setAttendanceType('MORNING');
+  }, [attendanceType]);
+
+  const isViewingCurrentAttendancePeriod =
+    currentDate === formatLocalDate() &&
+    attendanceType === getTimeBasedAttendanceType([maleSchedule, femaleSchedule]);
+
+  useEffect(() => {
+    if (isPeriodManuallySelected && isViewingCurrentAttendancePeriod) {
+      setIsPeriodManuallySelected(false);
+    }
+  }, [isPeriodManuallySelected, isViewingCurrentAttendancePeriod]);
+
+  useEffect(() => {
+    setHeaderActions(
+      <div className="header-attendance-period-controls">
+        <span
+          className={`header-attendance-period-summary ${
+            isViewingCurrentAttendancePeriod ? 'is-current' : ''
+          }`}
+        >
+          <span className="header-attendance-period-date">
+            {isViewingCurrentAttendancePeriod ? '현재' : currentDate}
+          </span>
+          <span>{ATTENDANCE_PERIOD_LABELS[attendanceType].title}</span>
+        </span>
+        <div
+          className="header-attendance-period-navigation"
+          aria-label="점호 회차 이동"
+        >
+          <button
+            type="button"
+            className="header-attendance-period-button"
+            onClick={handlePreviousAttendancePeriod}
+          >
+            ← 이전 점호
+          </button>
+          <button
+            type="button"
+            className="header-attendance-period-button"
+            onClick={handleNextAttendancePeriod}
+          >
+            다음 점호 →
+          </button>
+        </div>
+      </div>,
+    );
+  }, [
+    attendanceType,
+    currentDate,
+    handleNextAttendancePeriod,
+    handlePreviousAttendancePeriod,
+    isViewingCurrentAttendancePeriod,
+    setHeaderActions,
+  ]);
+
+  useEffect(
+    () => () => {
+      setHeaderActions(null);
+    },
+    [setHeaderActions],
+  );
 
   const [students, setStudents] = useState<Student[]>([]);
   const [scheduleCache, setScheduleCache] = useState<
@@ -878,7 +975,10 @@ export default function Check() {
             <input
               type="date"
               value={currentDate}
-              onChange={(e) => setCurrentDate(e.target.value)}
+              onChange={(e) => {
+                setCurrentDate(e.target.value);
+                setIsPeriodManuallySelected(true);
+              }}
             />
           </div>
           <div className="search-box">
@@ -1150,35 +1250,34 @@ export default function Check() {
                   <td className="room-cell" data-label="호실">{student.room}</td>
                   <td data-label="이름">{student.name}</td>
                   <td data-label={`${periodLabels.title} 상태`}>
-                    {student.status === '외박' ? (
-                      <span className="status-sleepover">외박</span>
-                    ) : (
-                      <select
-                        value={student.status}
-                        onChange={(e) =>
-                          handleStatusChange(
-                            student,
-                            e.target.value as
-                              | '출석'
-                              | '미출석'
-                              | '외박'
-                              | '지연출석',
-                          )
-                        }
-                        disabled={updateAttendancesMutation.isPending}
-                        className={`status-select ${
-                          student.status === '출석'
-                            ? 'status-present'
-                            : student.status === '지연출석'
-                              ? 'status-late'
+                    <select
+                      value={student.status}
+                      onChange={(e) =>
+                        handleStatusChange(
+                          student,
+                          e.target.value as
+                            | '출석'
+                            | '미출석'
+                            | '외박'
+                            | '지연출석',
+                        )
+                      }
+                      disabled={updateAttendancesMutation.isPending}
+                      className={`status-select ${
+                        student.status === '출석'
+                          ? 'status-present'
+                          : student.status === '지연출석'
+                            ? 'status-late'
+                            : student.status === '외박'
+                              ? 'status-sleepover'
                               : 'status-absent'
-                        }`}
-                      >
-                        <option value="출석">{periodLabels.complete}</option>
-                        <option value="지연출석">{periodLabels.late}</option>
-                        <option value="미출석">{periodLabels.absent}</option>
-                      </select>
-                    )}
+                      }`}
+                    >
+                      <option value="출석">{periodLabels.complete}</option>
+                      <option value="지연출석">{periodLabels.late}</option>
+                      <option value="미출석">{periodLabels.absent}</option>
+                      <option value="외박">외박</option>
+                    </select>
                   </td>
                   <td data-label="성별">{student.gender}</td>
                   <td data-label="학번">{student.studentId}</td>

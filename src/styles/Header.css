@@ -45,6 +45,70 @@
   gap: 16px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-attendance-period-controls,
+.header-attendance-period-navigation {
+  display: flex;
+  align-items: center;
+}
+
+.header-attendance-period-controls {
+  gap: 8px;
+}
+
+.header-attendance-period-navigation {
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid #e6e6e7;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.header-attendance-period-button {
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #4b4b4d;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 7px;
+  transition: background-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.header-attendance-period-button:hover {
+  background: #f1eafe;
+  color: #6d23ed;
+}
+
+.header-attendance-period-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #4b4b4d;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.header-attendance-period-summary.is-current {
+  color: #6d23ed;
+}
+
+.header-attendance-period-summary.is-current .header-attendance-period-date {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: #f1eafe;
+}
+
 .user-name {
   font-size: 14px;
   font-weight: 600;
@@ -97,6 +161,10 @@
 
 /* 반응형 */
 @media (max-width: 768px) {
+  .header-actions {
+    gap: 8px;
+  }
+
   .user-name {
     display: none;
   }
@@ -127,5 +195,22 @@
   .logo-icon {
     width: 24px;
     height: 24px;
+  }
+
+  .header-attendance-period-navigation {
+    gap: 2px;
+  }
+
+  .header-attendance-period-controls {
+    gap: 5px;
+  }
+
+  .header-attendance-period-summary:not(.is-current) .header-attendance-period-date {
+    display: none;
+  }
+
+  .header-attendance-period-button {
+    font-size: 11px;
+    padding: 5px;
   }
 }

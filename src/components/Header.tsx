@@ -1,9 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import apiClient from '../lib/api-client';
 import { authService } from '../services/auth.service';
 import '../styles/Header.css';
 import type { MyUserResponse } from '../types/api';
+
+interface HeaderProps {
+  actions?: ReactNode;
+}
 
 function HeaderLogoIcon() {
   return (
@@ -23,7 +28,7 @@ function HeaderLogoIcon() {
   );
 }
 
-export default function Header() {
+export default function Header({ actions }: HeaderProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -55,14 +60,17 @@ export default function Header() {
         <h1 className="logo-text">Qvick</h1>
       </Link>
       
-      {user && (
-        <div className="header-user">
-          <span className="user-name">{displayName}</span>
-          <button className="logout-button" onClick={handleLogout}>
-            로그아웃
-          </button>
-        </div>
-      )}
+      <div className="header-actions">
+        {actions}
+        {user && (
+          <div className="header-user">
+            <span className="user-name">{displayName}</span>
+            <button className="logout-button" onClick={handleLogout}>
+              로그아웃
+            </button>
+          </div>
+        )}
+      </div>
     </header>
   );
 }

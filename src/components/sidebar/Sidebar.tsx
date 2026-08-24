@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { ComponentType } from 'react';
@@ -18,6 +19,8 @@ import AccountIcon from './svg/account.svg?react';
 import StudentIcon from './svg/student.svg?react';
 import { apiClient } from '../../lib/api-client';
 import type { MyUserResponse } from '../../types/api';
+import { useSelectedDate } from '../../context/SelectedDateContext';
+import { getAdjacentDate } from '../../utils/date';
 
 type SidebarIcon = ComponentType<{ className?: string }>;
 
@@ -39,6 +42,20 @@ const MENU_ICONS: Record<string, SidebarIcon> = {
 };
 
 export default function Sidebar() {
+  const { selectedDate, setSelectedDate } = useSelectedDate();
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const openDatePicker = () => {
+    const input = dateInputRef.current;
+    if (!input) return;
+    try {
+      input.showPicker();
+    } catch {
+      // showPicker 미지원 브라우저는 포커스만 이동
+      input.focus();
+    }
+  };
+
   // 사용자 정보 조회
   const { data: user } = useQuery<MyUserResponse>({
     queryKey: ['user', 'me'],
@@ -80,6 +97,43 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
+      <div className="sidebar-date">
+        <button
+          type="button"
+          className="sidebar-date-arrow"
+          aria-label="이전 날짜"
+          onClick={() => setSelectedDate(getAdjacentDate(selectedDate, -1))}
+        >
+          ‹
+        </button>
+        <button
+          type="button"
+          className="sidebar-date-value"
+          onClick={openDatePicker}
+        >
+          <span className="menu-text">{selectedDate}</span>
+        </button>
+        <input
+          ref={dateInputRef}
+          type="date"
+          className="sidebar-date-native-input"
+          value={selectedDate}
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={(e) => {
+            if (e.target.value) setSelectedDate(e.target.value);
+          }}
+        />
+        <button
+          type="button"
+          className="sidebar-date-arrow"
+          aria-label="다음 날짜"
+          onClick={() => setSelectedDate(getAdjacentDate(selectedDate, 1))}
+        >
+          ›
+        </button>
+      </div>
+
       <div className="sidebar-section">
         {menuItems.map((item) => (
           <NavLink

@@ -5,3 +5,9 @@ export const formatLocalDate = (date = new Date()): string => {
 
   return `${year}-${month}-${day}`;
 };
+
+export const getAdjacentDate = (date: string, days: number): string => {
+  const result = new Date(`${date}T12:00:00`);
+  result.setDate(result.getDate() + days);
+  return formatLocalDate(result);
+};

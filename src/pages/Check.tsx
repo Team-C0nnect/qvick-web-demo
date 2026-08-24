@@ -21,7 +21,8 @@ import type {
   DeviceSubmissionStatus,
   UpdateAttendancesRequest,
 } from '../types/api';
-import { formatLocalDate } from '../utils/date';
+import { formatLocalDate, getAdjacentDate } from '../utils/date';
+import { useSelectedDate } from '../context/SelectedDateContext';
 
 interface Student {
   id: number | null;
@@ -262,23 +263,16 @@ const hasAttendanceWindowEnded = (
   return isLateAttendance(getCurrentTimeString(), endTime);
 };
 
-const getAdjacentDate = (date: string, days: number): string => {
-  const result = new Date(`${date}T12:00:00`);
-  result.setDate(result.getDate() + days);
-  return formatLocalDate(result);
-};
-
 export default function Check() {
   const { setHeaderActions } = useOutletContext<LayoutOutletContext>();
+  const { selectedDate: currentDate, setSelectedDate: setCurrentDate } =
+    useSelectedDate();
   const [attendanceType, setAttendanceType] = useState<AttendanceType>(() =>
     getTimeBasedAttendanceType([]),
   );
   const [isPeriodManuallySelected, setIsPeriodManuallySelected] =
     useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentDate, setCurrentDate] = useState(
-    () => formatLocalDate(),
-  );
   const [sortKey, setSortKey] = useState<SortKey | null>('room');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [isExporting, setIsExporting] = useState(false);
@@ -363,9 +357,9 @@ export default function Check() {
       return;
     }
 
-    setCurrentDate((date) => getAdjacentDate(date, -1));
+    setCurrentDate(getAdjacentDate(currentDate, -1));
     setAttendanceType('NIGHT');
-  }, [attendanceType]);
+  }, [attendanceType, currentDate, setCurrentDate]);
 
   const handleNextAttendancePeriod = useCallback(() => {
     setIsPeriodManuallySelected(true);
@@ -375,9 +369,9 @@ export default function Check() {
       return;
     }
 
-    setCurrentDate((date) => getAdjacentDate(date, 1));
+    setCurrentDate(getAdjacentDate(currentDate, 1));
     setAttendanceType('MORNING');
-  }, [attendanceType]);
+  }, [attendanceType, currentDate, setCurrentDate]);
 
   const isViewingCurrentAttendancePeriod =
     currentDate === formatLocalDate() &&

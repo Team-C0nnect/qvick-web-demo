@@ -9,6 +9,7 @@ import { SearchIcon } from '../components/Icons';
 import '../styles/Check.css';
 import '../styles/Sleepover.css';
 import type { AttendanceResponse } from '../types/api';
+import { useSelectedDate } from '../context/SelectedDateContext';
 
 type NightStudyDisplayStatus = '출석' | '미출석' | '-';
 
@@ -96,9 +97,8 @@ const renderNightStudyStatus = (status: NightStudyDisplayStatus) => {
 
 export default function NightStudy() {
   const queryClient = useQueryClient();
-  const [currentDate, setCurrentDate] = useState(
-    () => new Date().toISOString().split('T')[0],
-  );
+  const { selectedDate: currentDate, setSelectedDate: setCurrentDate } =
+    useSelectedDate();
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(
     '전체',

@@ -7,6 +7,7 @@ import { SearchIcon } from '../components/Icons';
 import '../styles/Check.css';
 import '../styles/Sleepover.css';
 import type { DeviceSubmission, DeviceSubmissionStatus, Gender } from '../types/api';
+import { useSelectedDate } from '../context/SelectedDateContext';
 
 type DeviceSubmissionDisplayStatus = '제출' | '미제출' | '외박';
 type GenderLabel = '남' | '여' | '-';
@@ -90,9 +91,8 @@ const getDeviceSubmissionStatusClassName = (
 
 export default function PhoneSubmission() {
   const queryClient = useQueryClient();
-  const [currentDate, setCurrentDate] = useState(
-    () => new Date().toISOString().split('T')[0],
-  );
+  const { selectedDate: currentDate, setSelectedDate: setCurrentDate } =
+    useSelectedDate();
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');

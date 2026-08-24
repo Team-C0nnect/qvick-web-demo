@@ -82,6 +82,72 @@
   font-weight: 600;
 }
 
+/* 사이드바 날짜 변경 */
+.sidebar-date {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 38px;
+  padding: 8px 6px;
+  margin-bottom: 12px;
+  border: none;
+  border-radius: 8px;
+  color: #52525b;
+}
+
+.sidebar-date-arrow {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  outline: none;
+}
+
+.sidebar-date-value {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+.sidebar-date-value .menu-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: inherit;
+  white-space: nowrap;
+}
+
+.sidebar-date-native-input {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* 반응형 */
 @media (max-width: 1024px) {
   .sidebar {
@@ -100,5 +166,16 @@
   .menu-item {
     justify-content: center;
     padding: 8px;
+  }
+
+  .sidebar-date {
+    justify-content: center;
+    gap: 0;
+    padding: 8px;
+  }
+
+  .sidebar-date-value,
+  .sidebar-date-native-input {
+    display: none;
   }
 }

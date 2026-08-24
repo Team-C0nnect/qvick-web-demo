@@ -3,61 +3,6 @@ interface IconProps {
   style?: React.CSSProperties;
 }
 
-export function DocumentIcon({ className = '', style }: IconProps) {
-  return (
-    <svg
-      width="20"
-      height="25"
-      viewBox="0 0 20 25"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`icon ${className}`}
-      style={style}
-    >
-      <path
-        d="M9.02539 0C9.75448 0.000110149 10.4541 0.290177 10.9697 0.805664L18.6943 8.53027C19.2098 9.04588 19.4999 9.74552 19.5 10.4746V21.125C19.5 22.0864 19.1183 23.0087 18.4385 23.6885C17.7587 24.3683 16.8364 24.75 15.875 24.75H3.625C2.66359 24.75 1.74134 24.3683 1.06152 23.6885C0.381704 23.0087 0 22.0864 0 21.125V3.625C0 2.66359 0.381704 1.74134 1.06152 1.06152C1.74134 0.381704 2.66359 0 3.625 0H9.02539ZM3.625 2C3.19402 2 2.78033 2.17084 2.47559 2.47559C2.17084 2.78033 2 3.19402 2 3.625V21.125C2 21.556 2.17084 21.9697 2.47559 22.2744C2.78033 22.5792 3.19402 22.75 3.625 22.75H15.875C16.306 22.75 16.7197 22.5792 17.0244 22.2744C17.3292 21.9697 17.5 21.556 17.5 21.125V11.1562H11.5C10.7707 11.1562 10.0714 10.8663 9.55566 10.3506C9.03994 9.83486 8.75 9.1356 8.75 8.40625V2H3.625ZM14.125 17.9062C14.6773 17.9062 15.125 18.354 15.125 18.9062C15.125 19.4585 14.6773 19.9062 14.125 19.9062H5.375C4.82272 19.9062 4.375 19.4585 4.375 18.9062C4.375 18.354 4.82272 17.9062 5.375 17.9062H14.125ZM14.125 13.5312C14.6773 13.5312 15.125 13.979 15.125 14.5312C15.125 15.0835 14.6773 15.5312 14.125 15.5312H5.375C4.82272 15.5312 4.375 15.0835 4.375 14.5312C4.375 13.979 4.82272 13.5312 5.375 13.5312H14.125ZM10.75 8.40625C10.75 8.60516 10.8291 8.79587 10.9697 8.93652C11.1104 9.07718 11.3011 9.15625 11.5 9.15625H16.4922L10.75 3.41406V8.40625Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-
-export function NoticeIcon({ className = '', style }: IconProps) {
-  return (
-    <svg
-      width="25"
-      height="25"
-      viewBox="0 0 25 25"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`icon ${className}`}
-      style={style}
-    >
-      <path
-        d="M4.25 14.25H3.75C2.64543 14.25 1.75 13.3546 1.75 12.25V10.25C1.75 9.14543 2.64543 8.25 3.75 8.25H7.25L17.25 4.25V18.25L7.25 14.25H4.25Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path
-        d="M7.25 14.25L8.75 21.25H5.75L4.25 14.25"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path
-        d="M20.25 8.25C21.0074 8.96376 21.5 10.0302 21.5 11.25C21.5 12.4698 21.0074 13.5362 20.25 14.25"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
-
 export function CalendarIcon({ className = '', style }: IconProps) {
   return (
     <svg
@@ -90,25 +35,6 @@ export function ChevronDownIcon({ className = '', style }: IconProps) {
     >
       <path
         d="M10.001 11.5C10.3851 11.4959 10.7161 11.3523 11.009 11.048L19.629 2.24295C19.876 1.9865 20 1.68085 20 1.3116C20 0.58445 19.4293 0 18.6954 0C18.3378 0 18.0068 0.1456 17.7496 0.3977L10.003 8.347L2.2523 0.3977C1.9973 0.14765 1.6736 0 1.3046 0C0.5727 0 0 0.58445 0 1.3116C0 1.67675 0.124 1.9865 0.3803 2.24295L8.9931 11.048C9.2952 11.3544 9.619 11.5 10.001 11.5Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-
-export function DashboardIcon({ className = '', style }: IconProps) {
-  return (
-    <svg
-      width="23"
-      height="23"
-      viewBox="0 0 23 23"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`icon ${className}`}
-      style={style}
-    >
-      <path
-        d="M3 11.5H11.5V3H3V11.5ZM3 20H11.5V13.5H3V20ZM13.5 20H22V11.5H13.5V20ZM13.5 3V9.5H22V3H13.5Z"
         fill="currentColor"
       />
     </svg>
@@ -156,89 +82,6 @@ export function ExcelIcon({ className = '', style }: IconProps) {
     >
       <rect width="22" height="22" rx="4" fill="#164e8d" />
       <path d="M6 6H16V8H6V6ZM6 10H16V12H6V10ZM6 14H16V16H6V14Z" fill="white" />
-    </svg>
-  );
-}
-
-export function RoomIcon({ className = '', style }: IconProps) {
-  return (
-    <svg
-      width="23"
-      height="23"
-      viewBox="0 0 23 23"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`icon ${className}`}
-      style={style}
-    >
-      <path
-        d="M2 9L11.5 3L21 9V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H4C3.46957 21 2.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V9Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path
-        d="M8 21V11H15V21"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
-
-export function PatchNoteIcon({ className = '', style }: IconProps) {
-  return (
-    <svg
-      width="23"
-      height="23"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`icon ${className}`}
-      style={style}
-    >
-      <path
-        d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path
-        d="M14 2V8H20"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path
-        d="M16 13H8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M16 17H8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10 9H9H8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }

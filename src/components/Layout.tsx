@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
-import Sidebar from './Sidebar';
+import Sidebar from './sidebar/Sidebar';
 import '../styles/Layout.css';
 
 export interface LayoutOutletContext {

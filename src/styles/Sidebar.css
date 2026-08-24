@@ -1,47 +1,48 @@
 /* Sidebar Component Styles */
 .sidebar {
-  width: 204px;
-  background: rgba(255, 255, 255, 0.94);
+  width: 220px;
+  background: #ffffff;
   height: calc(100vh - 60px);
   position: fixed;
   left: 0;
   top: 60px;
   overflow-y: auto;
-  border-right: 1px solid rgba(109, 35, 237, 0.1);
-  box-shadow: 8px 0 28px rgba(61, 32, 112, 0.06);
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  padding: 12px 10px;
+  border-right: 1px solid #ececef;
 }
 
 .sidebar-section {
-  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
 }
 
 .sidebar-section-title {
-  font-size: 12px;
-  font-weight: 800;
-  color: #8b7fa3;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8e8e99;
   text-transform: uppercase;
-  letter-spacing: 0;
-  padding: 12px 12px 8px;
-  margin-bottom: 4px;
+  letter-spacing: 0.06em;
+  padding: 12px 10px 4px;
 }
 
 .sidebar-divider {
   height: 1px;
-  background: rgba(109, 35, 237, 0.12);
-  margin: 12px 4px;
+  background: #ececef;
+  margin: 6px 4px;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 48px;
-  padding: 12px 14px;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.15s ease, color 0.15s ease;
   text-decoration: none;
   color: inherit;
   border: none;
@@ -50,37 +51,35 @@
 }
 
 .menu-item:hover {
-  background-color: rgba(109, 35, 237, 0.08);
-  transform: translateX(2px);
+  background-color: rgba(109, 35, 237, 0.06);
 }
 
 .menu-item.active {
-  background: linear-gradient(135deg, #6d23ed, #7e57ff);
-  color: #ffffff;
-  box-shadow: 0 10px 24px rgba(109, 35, 237, 0.24);
+  background: #ede9fe;
+  color: #6d23ed;
 }
 
 .menu-icon {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
-  color: #5d5f60;
+  color: #52525b;
 }
 
 .menu-item.active .menu-icon {
-  color: #ffffff;
+  color: #6d23ed;
 }
 
 .menu-text {
   font-size: 15px;
-  font-weight: 700;
-  color: #5d5f60;
+  font-weight: 500;
+  color: #3f3f46;
   white-space: nowrap;
 }
 
 .menu-item.active .menu-text {
-  color: #ffffff;
-  font-weight: 700;
+  color: #6d23ed;
+  font-weight: 600;
 }
 
 /* 반응형 */
@@ -100,6 +99,6 @@
 
   .menu-item {
     justify-content: center;
-    padding: 14px 8px;
+    padding: 8px;
   }
 }

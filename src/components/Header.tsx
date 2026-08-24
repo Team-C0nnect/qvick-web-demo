@@ -59,7 +59,7 @@ export default function Header({ actions }: HeaderProps) {
         </div>
         <h1 className="logo-text">Qvick</h1>
       </Link>
-      
+
       <div className="header-actions">
         {actions}
         {user && (

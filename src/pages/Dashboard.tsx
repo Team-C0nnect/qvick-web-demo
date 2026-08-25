@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +12,6 @@ import type {
   AttendanceType,
 } from '../types/api';
 import { DashboardSkeleton } from '../components/Skeleton';
-import { MoonIcon, SunIcon } from '../components/Icons';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useAttendanceView } from '../context/AttendanceViewContext';
 import CheckIcon from '../components/sidebar/svg/check.svg?react';
@@ -109,18 +108,61 @@ const DONUT_SEGMENTS = [
   { key: 'sleepover', color: '#8b5cf6' },
 ] as const;
 
+const DONUT_DRAW_DURATION = 900;
+
+function useRouletteNumber(target: number, duration = 900): number {
+  const [display, setDisplay] = useState(target);
+
+  useEffect(() => {
+    let frameId: number;
+    const startTime = performance.now();
+
+    const tick = (now: number) => {
+      if (now - startTime >= duration) {
+        setDisplay(target);
+        return;
+      }
+      setDisplay(Math.floor(Math.random() * (target + 1)));
+      frameId = requestAnimationFrame(tick);
+    };
+
+    frameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameId);
+  }, [target, duration]);
+
+  return display;
+}
+
+function RouletteNumber({ value }: { value: number }) {
+  return <>{useRouletteNumber(value)}</>;
+}
+
 function PeriodDonut({ summary }: { summary: AttendanceSummary }) {
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
   const total = summary.total;
+  const [isDrawn, setIsDrawn] = useState(false);
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => setIsDrawn(true), 50);
+    return () => window.clearTimeout(timerId);
+  }, []);
 
   let accumulated = 0;
   const segments = DONUT_SEGMENTS.map(({ key, color }) => {
-    const length = total > 0 ? (summary[key] / total) * circumference : 0;
-    const segment = { key, color, length, offset: accumulated };
+    const ratio = total > 0 ? summary[key] / total : 0;
+    const length = ratio * circumference;
+    const segment = {
+      key,
+      color,
+      length,
+      offset: accumulated,
+      delay: (accumulated / circumference) * DONUT_DRAW_DURATION,
+      duration: Math.max(ratio * DONUT_DRAW_DURATION, 1),
+    };
     accumulated += length;
     return segment;
-  }).filter((segment) => segment.length > 0);
+  });
 
   return (
     <div className="period-donut">
@@ -136,20 +178,29 @@ function PeriodDonut({ summary }: { summary: AttendanceSummary }) {
         {segments.map((segment) => (
           <circle
             key={segment.key}
+            className="period-donut-segment"
             cx="50"
             cy="50"
             r={radius}
             fill="none"
             stroke={segment.color}
             strokeWidth="11"
-            strokeDasharray={`${segment.length} ${circumference - segment.length}`}
+            strokeDasharray={`${
+              isDrawn ? segment.length : 0
+            } ${circumference - (isDrawn ? segment.length : 0)}`}
             strokeDashoffset={-segment.offset}
+            style={{
+              transitionDuration: `${segment.duration}ms`,
+              transitionDelay: `${segment.delay}ms`,
+            }}
           />
         ))}
       </svg>
       <div className="period-donut-center">
         <span>전체</span>
-        <strong>{total}명</strong>
+        <strong>
+          <RouletteNumber value={total} />명
+        </strong>
       </div>
     </div>
   );
@@ -378,12 +429,7 @@ export default function Dashboard() {
                   className={`period-card ${type.toLowerCase()}`}
                 >
                   <div className="period-card-heading">
-                    <span className="period-card-label">
-                      <span className="period-card-icon">
-                        {type === 'MORNING' ? <SunIcon /> : <MoonIcon />}
-                      </span>
-                      {config.title}
-                    </span>
+                    <span className="period-card-label">{config.title}</span>
                   </div>
 
                   <div className="period-card-body">
@@ -417,7 +463,7 @@ export default function Dashboard() {
                             {item.label}
                           </span>
                           <span className="legend-value">
-                            {item.value}명{' '}
+                            <RouletteNumber value={item.value} />명{' '}
                             <em>({toPercent(item.value, summary.total)})</em>
                           </span>
                         </li>

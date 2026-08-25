@@ -119,31 +119,6 @@
   color: #3f3f46;
 }
 
-.period-card-icon {
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  background: #f4f4f5;
-  color: #747678;
-}
-
-.period-card-icon svg {
-  width: 16px;
-  height: 16px;
-}
-
-.period-card.morning .period-card-icon {
-  background: #fff7e8;
-  color: #d97706;
-}
-
-.period-card.night .period-card-icon {
-  background: #eef2ff;
-  color: #4f46e5;
-}
-
 .period-card-body {
   display: flex;
   align-items: center;
@@ -166,6 +141,11 @@
 
 .period-donut-track {
   stroke: #f1f1f3;
+}
+
+.period-donut-segment {
+  transition-property: stroke-dasharray;
+  transition-timing-function: linear;
 }
 
 .period-donut-center {

@@ -353,14 +353,14 @@
   line-height: 1;
 }
 
-/* 공지사항 */
-.notice-list {
+/* 공지사항 (공지사항 페이지와 전역 선택자 충돌 방지를 위해 페이지 블록으로 한정) */
+.dashboard-page .notice-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.notice-item {
+.dashboard-page .notice-item {
   width: 100%;
   min-height: 56px;
   display: grid;
@@ -377,11 +377,11 @@
   transition: border-color 0.15s ease;
 }
 
-.notice-item:hover {
+.dashboard-page .notice-item:hover {
   border-color: #c9c9cc;
 }
 
-.notice-index {
+.dashboard-page .notice-index {
   width: 32px;
   height: 32px;
   display: grid;
@@ -393,7 +393,7 @@
   font-weight: 800;
 }
 
-.notice-title {
+.dashboard-page .notice-title {
   min-width: 0;
   overflow: hidden;
   color: #0f0f10;
@@ -404,7 +404,7 @@
   white-space: nowrap;
 }
 
-.notice-meta {
+.dashboard-page .notice-meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -415,7 +415,7 @@
   white-space: nowrap;
 }
 
-.notice-empty {
+.dashboard-page .notice-empty {
   display: grid;
   min-height: 120px;
   place-items: center;
@@ -425,7 +425,7 @@
   padding: 18px;
 }
 
-.notice-empty p {
+.dashboard-page .notice-empty p {
   margin: 0;
   color: #747678;
   font-size: 14px;

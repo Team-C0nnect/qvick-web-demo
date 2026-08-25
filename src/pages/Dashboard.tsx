@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { attendanceService } from '../services/attendance.service';
@@ -12,7 +12,8 @@ import type {
 } from '../types/api';
 import { DashboardSkeleton } from '../components/Skeleton';
 import { MoonIcon, SunIcon } from '../components/Icons';
-import { formatLocalDate } from '../utils/date';
+import { useSelectedDate } from '../context/SelectedDateContext';
+import { useAttendanceView } from '../context/AttendanceViewContext';
 import '../styles/Dashboard.css';
 
 interface AttendanceSummary {
@@ -144,10 +145,13 @@ const buildAttendanceSummary = (
 };
 
 export default function Dashboard() {
-  const today = formatLocalDate();
+  const { selectedDate: today } = useSelectedDate();
   const navigate = useNavigate();
-  const [currentAttendanceType, setCurrentAttendanceType] =
-    useState<AttendanceType>(() => getTimeBasedAttendanceType([]));
+  const {
+    attendanceView: currentAttendanceType,
+    isManual,
+    syncAttendanceView,
+  } = useAttendanceView();
 
   const { data: attendancesData, isLoading: attendancesLoading } = useQuery({
     queryKey: ['attendances', today],
@@ -172,8 +176,10 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
+    if (isManual) return;
+
     const updateAttendanceType = () => {
-      setCurrentAttendanceType(
+      syncAttendanceView(
         getTimeBasedAttendanceType([
           maleSchedule?.nightStartTime,
           femaleSchedule?.nightStartTime,
@@ -188,7 +194,12 @@ export default function Dashboard() {
     );
 
     return () => window.clearInterval(interval);
-  }, [femaleSchedule?.nightStartTime, maleSchedule?.nightStartTime]);
+  }, [
+    femaleSchedule?.nightStartTime,
+    isManual,
+    maleSchedule?.nightStartTime,
+    syncAttendanceView,
+  ]);
 
   const isLoading = attendancesLoading || announcementsLoading;
   const attendances = attendancesData ?? [];
@@ -215,7 +226,7 @@ export default function Dashboard() {
     };
   };
 
-  const todayLabel = new Date().toLocaleDateString('ko-KR', {
+  const todayLabel = new Date(`${today}T00:00:00`).toLocaleDateString('ko-KR', {
     month: 'long',
     day: 'numeric',
     weekday: 'long',

@@ -8,7 +8,7 @@ export default function TopProgressbar() {
 
   useEffect(() => {
     setIsVisible(true);
-    const timerId = window.setTimeout(() => setIsVisible(false), 500);
+    const timerId = window.setTimeout(() => setIsVisible(false), 600);
 
     return () => window.clearTimeout(timerId);
   }, [pathname]);

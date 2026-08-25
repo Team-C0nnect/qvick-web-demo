@@ -173,11 +173,17 @@ export function SunIcon({ className = '', style }: IconProps) {
       aria-hidden="true"
       style={style}
     >
-      <circle cx="12" cy="12" r="4" fill="currentColor" />
-      <path
-        d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93"
+      <circle
+        cx="12"
+        cy="12"
+        r="4"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M12 2.5V4.5M12 19.5V21.5M4.6 4.6L6 6M18 18L19.4 19.4M2.5 12H4.5M19.5 12H21.5M4.6 19.4L6 18M18 6L19.4 4.6"
+        stroke="currentColor"
+        strokeWidth="1.8"
         strokeLinecap="round"
       />
     </svg>
@@ -194,10 +200,12 @@ export function MoonIcon({ className = '', style }: IconProps) {
       style={style}
     >
       <path
-        d="M20.4 15.2A8.4 8.4 0 0 1 8.8 3.6 8.4 8.4 0 1 0 20.4 15.2Z"
-        fill="currentColor"
+        d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <circle cx="17.5" cy="5.5" r="1.25" fill="currentColor" />
     </svg>
   );
 }

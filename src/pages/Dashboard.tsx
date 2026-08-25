@@ -309,7 +309,11 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { isManual, syncAttendanceView } = useAttendanceView();
 
-  const { data: attendancesData, isLoading: attendancesLoading } = useQuery({
+  const {
+    data: attendancesData,
+    isLoading: attendancesLoading,
+    isPlaceholderData,
+  } = useQuery({
     queryKey: ['attendances', today],
     queryFn: () => attendanceService.getAttendances(today),
     placeholderData: keepPreviousData,
@@ -391,6 +395,16 @@ export default function Dashboard() {
     },
   );
 
+  const [dateHeading, setDateHeading] = useState({
+    date: today,
+    label: selectedDateLabel,
+  });
+
+  useEffect(() => {
+    if (dateHeading.date === today || isPlaceholderData) return;
+    setDateHeading({ date: today, label: selectedDateLabel });
+  }, [dateHeading.date, isPlaceholderData, selectedDateLabel, today]);
+
   if (isLoading) {
     return (
       <div className="dashboard-page">
@@ -409,8 +423,8 @@ export default function Dashboard() {
 
         <section className="dashboard-section">
           <div className="dashboard-section-heading">
-            <h2 key={selectedDateLabel} className="dashboard-date-heading">
-              {selectedDateLabel} 출결
+            <h2 key={dateHeading.label} className="dashboard-date-heading">
+              {dateHeading.label} 출결
             </h2>
             <button
               type="button"

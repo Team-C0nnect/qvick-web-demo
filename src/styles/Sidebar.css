@@ -112,6 +112,11 @@
   line-height: 1;
   cursor: pointer;
   outline: none;
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-date-arrow:hover {
+  background-color: #f4f4f5;
 }
 
 .sidebar-date-value {
@@ -122,11 +127,17 @@
   justify-content: center;
   padding: 0;
   border: none;
+  border-radius: 6px;
   background: transparent;
   color: inherit;
   font-family: inherit;
   cursor: pointer;
   outline: none;
+  transition: background-color 0.15s ease;
+}
+
+.sidebar-date-value:hover {
+  background-color: #f4f4f5;
 }
 
 .sidebar-date-value .menu-text {
@@ -134,6 +145,34 @@
   font-weight: 500;
   color: inherit;
   white-space: nowrap;
+}
+
+/* 날짜 룰렛 애니메이션 */
+.sidebar-date-roll {
+  display: inline-flex;
+}
+
+.sidebar-date-digit {
+  display: inline-block;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.sidebar-date-digit-strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-date-digit-strip > span {
+  height: 1em;
+  line-height: 1;
+}
+
+.sidebar-date-separator {
+  height: 1em;
+  line-height: 1;
 }
 
 .sidebar-date-native-input {

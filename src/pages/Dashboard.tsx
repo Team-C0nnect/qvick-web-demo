@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useQuery,
+} from '@tanstack/react-query';
 import { attendanceService } from '../services/attendance.service';
 import { announcementService } from '../services/announcement.service';
 import { scheduleService } from '../services/schedule.service';
@@ -110,6 +113,7 @@ const DONUT_SEGMENTS = [
 ] as const;
 
 const DONUT_DRAW_DURATION = 900;
+const DONUT_MIN_SEGMENT_RATIO = 0.03;
 
 function PeriodDonut({ summary }: { summary: AttendanceSummary }) {
   const radius = 40;
@@ -122,9 +126,16 @@ function PeriodDonut({ summary }: { summary: AttendanceSummary }) {
     return () => window.clearTimeout(timerId);
   }, []);
 
-  let accumulated = 0;
-  const segments = DONUT_SEGMENTS.map(({ key, color }) => {
+  const adjustedRatios = DONUT_SEGMENTS.map(({ key }) => {
     const ratio = total > 0 ? summary[key] / total : 0;
+    return ratio > 0 ? Math.max(ratio, DONUT_MIN_SEGMENT_RATIO) : 0;
+  });
+  const ratioSum =
+    adjustedRatios.reduce((sum, ratio) => sum + ratio, 0) || 1;
+
+  let accumulated = 0;
+  const segments = DONUT_SEGMENTS.map(({ key, color }, index) => {
+    const ratio = adjustedRatios[index] / ratioSum;
     const length = ratio * circumference;
     const segment = {
       key,
@@ -285,6 +296,7 @@ export default function Dashboard() {
   const { data: attendancesData, isLoading: attendancesLoading } = useQuery({
     queryKey: ['attendances', today],
     queryFn: () => attendanceService.getAttendances(today),
+    placeholderData: keepPreviousData,
   });
 
   const { data: announcementsData, isLoading: announcementsLoading } = useQuery({
@@ -407,7 +419,10 @@ export default function Dashboard() {
                   </div>
 
                   <div className="period-card-body">
-                    <PeriodDonut summary={summary} />
+                    <PeriodDonut
+                      key={`${type}-${summary.present}-${summary.absent}-${summary.late}-${summary.sleepover}-${summary.total}`}
+                      summary={summary}
+                    />
                     <ul className="period-legend">
                       {[
                         {

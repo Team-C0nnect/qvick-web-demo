@@ -1,5 +1,6 @@
 .rolling-digits {
   display: inline-flex;
+  font-variant-numeric: tabular-nums;
 }
 
 .rolling-digit {
@@ -12,7 +13,12 @@
 .rolling-digit-strip {
   display: flex;
   flex-direction: column;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  align-items: center;
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rolling-digits-initial .rolling-digit-strip {
+  transition-duration: 1.8s;
 }
 
 .rolling-digit-strip > span {

@@ -92,15 +92,15 @@
   flex-direction: column;
   gap: 14px;
   padding: 18px 20px;
-  border: 1px solid #e6e6e7;
+  border: 1px solid #e5e5e5;
   border-radius: 12px;
   background: #ffffff;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.15s ease;
 }
 
-.period-card.active {
-  border-color: rgba(109, 35, 237, 0.35);
-  box-shadow: 0 4px 14px rgba(109, 35, 237, 0.08);
+.period-card.active .period-card-icon {
+  background: #ede9fe;
+  color: #6d23ed;
 }
 
 .period-card-heading {
@@ -142,11 +142,6 @@
 .period-card.night .period-card-icon {
   background: #eef2ff;
   color: #4f46e5;
-}
-
-.period-card.active .period-card-icon {
-  background: #ede9fe;
-  color: #6d23ed;
 }
 
 .period-card-badge {
@@ -217,18 +212,17 @@
   align-items: center;
   gap: 14px;
   padding: 16px;
-  border: 1px solid #e6e6e7;
+  border: 1px solid #e5e5e5;
   border-radius: 12px;
   background: #ffffff;
   text-align: left;
   font-family: inherit;
   cursor: pointer;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.15s ease;
 }
 
 .quick-link-card:hover {
-  border-color: rgba(109, 35, 237, 0.35);
-  box-shadow: 0 4px 14px rgba(15, 15, 16, 0.05);
+  border-color: #c9c9cc;
 }
 
 .quick-link-icon {
@@ -240,17 +234,11 @@
   border-radius: 10px;
   background: #f4f4f5;
   color: #52525b;
-  transition: background-color 0.18s ease, color 0.18s ease;
 }
 
 .quick-link-icon svg {
   width: 20px;
   height: 20px;
-}
-
-.quick-link-card:hover .quick-link-icon {
-  background: #ede9fe;
-  color: #6d23ed;
 }
 
 .quick-link-text {
@@ -282,12 +270,6 @@
   color: #a1a1aa;
   font-size: 18px;
   line-height: 1;
-  transition: color 0.18s ease, transform 0.18s ease;
-}
-
-.quick-link-card:hover .quick-link-chevron {
-  color: #6d23ed;
-  transform: translateX(2px);
 }
 
 /* 공지사항 */
@@ -305,18 +287,17 @@
   align-items: center;
   gap: 12px;
   padding: 11px 12px;
-  border: 1px solid #ececef;
+  border: 1px solid #e5e5e5;
   border-radius: 10px;
   background: #ffffff;
   color: #0f0f10;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease;
+  transition: border-color 0.15s ease;
 }
 
 .notice-item:hover {
-  border-color: rgba(109, 35, 237, 0.35);
-  background: #fdfcff;
+  border-color: #c9c9cc;
 }
 
 .notice-index {

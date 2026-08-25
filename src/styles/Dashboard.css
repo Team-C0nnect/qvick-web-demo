@@ -139,7 +139,7 @@
   flex: 1;
   align-items: center;
   gap: 18px;
-  min-height: 132px;
+  min-height: 140px;
 }
 
 .period-card-closed {
@@ -149,7 +149,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 132px;
+  min-height: 140px;
   padding: 16px;
   border: 1px dashed #ddd6ee;
   border-radius: 10px;

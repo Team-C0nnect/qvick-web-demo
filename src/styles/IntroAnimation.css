@@ -9,7 +9,11 @@
 
 .intro-animation.leaving {
   pointer-events: none;
-  animation: intro-overlay-fade-out 0.6s ease forwards;
+  animation: intro-overlay-fade-out 0.55s ease forwards;
+}
+
+.intro-animation.leaving .intro-animation-stage {
+  animation: intro-stage-exit 0.55s ease forwards;
 }
 
 .intro-animation-stage {
@@ -41,6 +45,7 @@
 }
 
 .intro-animation-tagline {
+  position: relative;
   margin: 0;
   min-height: 1.4em;
   color: #6d23ed;
@@ -49,8 +54,23 @@
   letter-spacing: 0.14em;
 }
 
-.intro-animation-tagline.is-bursting {
-  animation: intro-tagline-pop 0.5s ease forwards;
+/* 엔터 확정 느낌: 텍스트가 눌리며 확인 밑줄이 쓸고 지나감 */
+.intro-animation-tagline.done {
+  animation: intro-tagline-confirm 0.35s ease;
+}
+
+.intro-animation-tagline.done::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 2px;
+  border-radius: 999px;
+  background: #6d23ed;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: intro-underline-sweep 0.4s ease-out 0.1s forwards;
 }
 
 .intro-animation-cursor {
@@ -63,26 +83,9 @@
   animation: intro-cursor-blink 0.6s step-end infinite;
 }
 
-.intro-animation-tagline.is-bursting .intro-animation-cursor {
-  display: none;
-}
-
-/* 타이핑 완료 후 팡 터지는 링 */
-.intro-animation-burst {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 56px;
-  height: 56px;
-  margin: -28px 0 0 -28px;
-  border: 2px solid rgba(109, 35, 237, 0.65);
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.intro-animation-burst.is-bursting {
-  animation: intro-burst-ring 0.55s ease-out forwards;
+/* 엔터 확정 시 커서가 한 번 눌렸다 사라짐 */
+.intro-animation-tagline.done .intro-animation-cursor {
+  animation: intro-cursor-press 0.3s ease forwards;
 }
 
 /* 로고가 위에서 떨어져 통통 튀며 착지하는 카툰 모션 */
@@ -150,29 +153,36 @@
   }
 }
 
-@keyframes intro-tagline-pop {
+@keyframes intro-tagline-confirm {
   0% {
     transform: scale(1);
-    opacity: 1;
   }
-  35% {
-    transform: scale(1.22);
-    opacity: 1;
+  40% {
+    transform: scale(0.95);
   }
   100% {
-    transform: scale(1.5);
-    opacity: 0;
+    transform: scale(1);
   }
 }
 
-@keyframes intro-burst-ring {
+@keyframes intro-underline-sweep {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes intro-cursor-press {
   0% {
-    transform: scale(0.35);
-    opacity: 0.9;
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(0.65);
   }
   100% {
-    transform: scale(2.8);
     opacity: 0;
+    transform: scaleY(0.4);
   }
 }
 

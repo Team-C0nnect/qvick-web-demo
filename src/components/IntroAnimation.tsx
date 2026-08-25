@@ -27,7 +27,6 @@ export default function IntroAnimation() {
   const [isVisible, setIsVisible] = useState(() => !hasIntroPlayed());
   const [isLeaving, setIsLeaving] = useState(false);
   const [typedCount, setTypedCount] = useState(0);
-  const [isBursting, setIsBursting] = useState(false);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -52,23 +51,20 @@ export default function IntroAnimation() {
   useEffect(() => {
     if (typedCount !== TAGLINE.length) return;
 
-    const burstId = window.setTimeout(() => setIsBursting(true), 200);
-    return () => window.clearTimeout(burstId);
+    const leaveId = window.setTimeout(() => setIsLeaving(true), 900);
+    return () => window.clearTimeout(leaveId);
   }, [typedCount]);
 
   useEffect(() => {
-    if (!isBursting) return;
+    if (!isLeaving) return;
 
-    const leaveId = window.setTimeout(() => setIsLeaving(true), 350);
-    const doneId = window.setTimeout(() => setIsVisible(false), 950);
-
-    return () => {
-      window.clearTimeout(leaveId);
-      window.clearTimeout(doneId);
-    };
-  }, [isBursting]);
+    const doneId = window.setTimeout(() => setIsVisible(false), 550);
+    return () => window.clearTimeout(doneId);
+  }, [isLeaving]);
 
   if (!isVisible) return null;
+
+  const isTypingDone = typedCount === TAGLINE.length;
 
   return (
     <div
@@ -80,21 +76,12 @@ export default function IntroAnimation() {
           <QvickLogoIcon />
         </div>
         <div className="intro-animation-shadow" />
-        <div className="intro-animation-tagline-wrap">
-          <p
-            className={`intro-animation-tagline ${
-              isBursting ? 'is-bursting' : ''
-            }`}
-          >
-            {TAGLINE.slice(0, typedCount)}
-            <span className="intro-animation-cursor" />
-          </p>
-          <span
-            className={`intro-animation-burst ${
-              isBursting ? 'is-bursting' : ''
-            }`}
-          />
-        </div>
+        <p
+          className={`intro-animation-tagline ${isTypingDone ? 'done' : ''}`}
+        >
+          {TAGLINE.slice(0, typedCount)}
+          <span className="intro-animation-cursor" />
+        </p>
       </div>
     </div>
   );

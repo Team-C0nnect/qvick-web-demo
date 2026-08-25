@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import type { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { attendanceService } from '../services/attendance.service';
@@ -14,6 +15,12 @@ import { DashboardSkeleton } from '../components/Skeleton';
 import { MoonIcon, SunIcon } from '../components/Icons';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useAttendanceView } from '../context/AttendanceViewContext';
+import CheckIcon from '../components/sidebar/svg/check.svg?react';
+import NightStudyIcon from '../components/sidebar/svg/night-study.svg?react';
+import PhoneSubmissionIcon from '../components/sidebar/svg/phone-submission.svg?react';
+import SleepoverIcon from '../components/sidebar/svg/sleepover.svg?react';
+import ScheduleIcon from '../components/sidebar/svg/schedule.svg?react';
+import NoticeIcon from '../components/sidebar/svg/notice.svg?react';
 import '../styles/Dashboard.css';
 
 interface AttendanceSummary {
@@ -30,6 +37,8 @@ interface AttendanceSummary {
   maleAbsent: number;
   femaleAbsent: number;
 }
+
+type SidebarIcon = ComponentType<{ className?: string }>;
 
 const PERIOD_REFRESH_INTERVAL = 30 * 1000;
 
@@ -60,7 +69,6 @@ const PERIOD_CONFIG: Record<
   AttendanceType,
   {
     title: string;
-    eyebrow: string;
     rateLabel: string;
     completeLabel: string;
     absentLabel: string;
@@ -69,7 +77,6 @@ const PERIOD_CONFIG: Record<
 > = {
   MORNING: {
     title: '아침 퇴실',
-    eyebrow: 'Morning check-out',
     rateLabel: '퇴실 확인률',
     completeLabel: '퇴실 완료',
     absentLabel: '미퇴실',
@@ -77,7 +84,6 @@ const PERIOD_CONFIG: Record<
   },
   NIGHT: {
     title: '저녁 입실',
-    eyebrow: 'Evening check-in',
     rateLabel: '입실 확인률',
     completeLabel: '입실 완료',
     absentLabel: '미입실',
@@ -144,6 +150,52 @@ const buildAttendanceSummary = (
   };
 };
 
+const QUICK_LINKS: {
+  to: string;
+  Icon: SidebarIcon;
+  title: string;
+  description: string;
+}[] = [
+  {
+    to: '/check',
+    Icon: CheckIcon,
+    title: '인원 확인',
+    description: '아침 퇴실과 저녁 입실 현황을 확인하세요.',
+  },
+  {
+    to: '/night-study',
+    Icon: NightStudyIcon,
+    title: '심야자습 확인',
+    description: '심야자습 출석 현황을 확인하세요.',
+  },
+  {
+    to: '/phone-submissions',
+    Icon: PhoneSubmissionIcon,
+    title: '휴대폰 제출 확인',
+    description: '휴대폰 제출 상태를 확인하세요.',
+  },
+  {
+    to: '/sleepovers',
+    Icon: SleepoverIcon,
+    title: '외박 확인',
+    description: '외박 신청 현황을 확인하세요.',
+  },
+  {
+    to: '/schedule',
+    Icon: ScheduleIcon,
+    title: '일정 관리',
+    description: '기숙사 일정을 등록하고 관리하세요.',
+  },
+  {
+    to: '/notice',
+    Icon: NoticeIcon,
+    title: '공지사항',
+    description: '공지사항을 등록하고 관리하세요.',
+  },
+];
+
+const ATTENDANCE_TYPES: AttendanceType[] = ['MORNING', 'NIGHT'];
+
 export default function Dashboard() {
   const { selectedDate: today } = useSelectedDate();
   const navigate = useNavigate();
@@ -203,11 +255,10 @@ export default function Dashboard() {
 
   const isLoading = attendancesLoading || announcementsLoading;
   const attendances = attendancesData ?? [];
-  const currentSummary = buildAttendanceSummary(
-    attendances,
-    currentAttendanceType,
-  );
-  const currentPeriodConfig = PERIOD_CONFIG[currentAttendanceType];
+  const summaries = {
+    MORNING: buildAttendanceSummary(attendances, 'MORNING'),
+    NIGHT: buildAttendanceSummary(attendances, 'NIGHT'),
+  } satisfies Record<AttendanceType, AttendanceSummary>;
   const announcements: AnnouncementResponse[] =
     announcementsData?.content ?? [];
 
@@ -226,11 +277,14 @@ export default function Dashboard() {
     };
   };
 
-  const todayLabel = new Date(`${today}T00:00:00`).toLocaleDateString('ko-KR', {
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long',
-  });
+  const selectedDateLabel = new Date(`${today}T00:00:00`).toLocaleDateString(
+    'ko-KR',
+    {
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long',
+    },
+  );
 
   if (isLoading) {
     return (
@@ -243,178 +297,152 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-content">
-        <section
-          className={`dashboard-hero dashboard-period-hero ${currentAttendanceType.toLowerCase()}`}
-        >
-          <div className="hero-copy">
-            <span className="hero-kicker">{todayLabel}</span>
-            <h1>오늘의 기숙사 출결</h1>
-            <p>{currentPeriodConfig.title} 현황을 확인하세요.</p>
+        <header className="dashboard-header">
+          <h1>대시보드</h1>
+          <p>기숙사 출결 현황과 공지사항을 한눈에 확인하세요.</p>
+        </header>
+
+        <section className="dashboard-section">
+          <div className="dashboard-section-heading">
+            <h2>{selectedDateLabel} 출결</h2>
+            <button
+              type="button"
+              className="dashboard-link"
+              onClick={() => navigate('/check')}
+            >
+              인원 확인
+              <span className="dashboard-link-chevron">›</span>
+            </button>
           </div>
 
-          <div className="hero-period-visual" aria-hidden="true">
-            <span
-              className={`hero-period-orb ${currentAttendanceType.toLowerCase()}`}
-            >
-              {currentAttendanceType === 'MORNING' ? (
-                <SunIcon />
-              ) : (
-                <MoonIcon />
-              )}
-            </span>
-          </div>
-        </section>
+          <div className="period-cards-grid">
+            {ATTENDANCE_TYPES.map((type) => {
+              const summary = summaries[type];
+              const config = PERIOD_CONFIG[type];
+              const isActive = currentAttendanceType === type;
 
-        <section
-          className="period-overview-grid"
-          aria-label={`오늘의 ${currentPeriodConfig.title} 출결`}
-        >
-          <article
-            className={`period-overview-card ${currentAttendanceType.toLowerCase()} current`}
-          >
-            <div className="period-card-heading">
-              <span className="period-card-icon">
-                {currentAttendanceType === 'MORNING' ? (
-                  <SunIcon />
-                ) : (
-                  <MoonIcon />
-                )}
-              </span>
-              <div>
-                <span>{currentPeriodConfig.eyebrow}</span>
-                <h2>{currentPeriodConfig.title}</h2>
-              </div>
-              <em>현재 시간대</em>
-            </div>
-
-            <div className="period-card-rate">
-              <div>
-                <span>{currentPeriodConfig.rateLabel}</span>
-                <strong>{currentSummary.rate}%</strong>
-              </div>
-              <span>
-                {currentSummary.attended}/{currentSummary.target}명
-              </span>
-            </div>
-
-            <div
-              className="period-progress"
-              aria-label={`${currentPeriodConfig.rateLabel} ${currentSummary.rate}%`}
-            >
-              <span
-                className="period-progress-complete"
-                style={{ width: `${currentSummary.presentRate}%` }}
-              />
-              <span
-                className="period-progress-late"
-                style={{ width: `${currentSummary.lateRate}%` }}
-              />
-            </div>
-
-            <div className="period-card-metrics">
-              <div>
-                <span>{currentPeriodConfig.completeLabel}</span>
-                <strong>{currentSummary.present}명</strong>
-              </div>
-              <div className="attention">
-                <span>{currentPeriodConfig.absentLabel}</span>
-                <strong>{currentSummary.absent}명</strong>
-              </div>
-              <div className="late">
-                <span>{currentPeriodConfig.lateLabel}</span>
-                <strong>{currentSummary.late}명</strong>
-              </div>
-              <div>
-                <span>외박</span>
-                <strong>{currentSummary.sleepover}명</strong>
-              </div>
-            </div>
-
-            <div className="period-card-footer">
-              <span>
-                남 {currentPeriodConfig.absentLabel}{' '}
-                {currentSummary.maleAbsent}명 · 여{' '}
-                {currentPeriodConfig.absentLabel}{' '}
-                {currentSummary.femaleAbsent}명
-              </span>
-              <button type="button" onClick={() => navigate('/check')}>
-                인원 확인
-              </button>
-            </div>
-          </article>
-        </section>
-
-        <section className="dashboard-grid">
-          <div className="insight-panel attendance-attention-panel">
-            <div className="section-heading">
-              <span>Needs attention</span>
-              <h2>확인 필요 인원</h2>
-            </div>
-
-            <div className="detail-list">
-              <div className="detail-row period-detail-row">
-                <span
-                  className={`detail-period-icon ${currentAttendanceType.toLowerCase()}`}
+              return (
+                <article
+                  key={type}
+                  className={`period-card ${type.toLowerCase()} ${
+                    isActive ? 'active' : ''
+                  }`}
                 >
-                  {currentAttendanceType === 'MORNING' ? (
-                    <SunIcon />
-                  ) : (
-                    <MoonIcon />
-                  )}
-                </span>
-                <span className="detail-label">
-                  <strong>{currentPeriodConfig.title}</strong>
-                  {currentPeriodConfig.absentLabel} +{' '}
-                  {currentPeriodConfig.lateLabel}
-                </span>
-                <span className="detail-value">
-                  {currentSummary.absent + currentSummary.late}명
-                </span>
-              </div>
-            </div>
+                  <div className="period-card-heading">
+                    <span className="period-card-label">
+                      <span className="period-card-icon">
+                        {type === 'MORNING' ? <SunIcon /> : <MoonIcon />}
+                      </span>
+                      {config.title}
+                    </span>
+                    {isActive && (
+                      <span className="period-card-badge">보기 중</span>
+                    )}
+                  </div>
+
+                  <div className="period-card-rate">
+                    <strong>{summary.rate}%</strong>
+                    <span>
+                      {summary.attended}/{summary.target}명
+                    </span>
+                  </div>
+
+                  <div
+                    className="period-progress"
+                    aria-label={`${config.rateLabel} ${summary.rate}%`}
+                  >
+                    <span
+                      className="period-progress-complete"
+                      style={{ width: `${summary.presentRate}%` }}
+                    />
+                    <span
+                      className="period-progress-late"
+                      style={{ width: `${summary.lateRate}%` }}
+                    />
+                  </div>
+
+                  <div className="period-card-footer">
+                    <span>
+                      {config.completeLabel} {summary.present}명
+                    </span>
+                    <span>
+                      {config.absentLabel} {summary.absent}명
+                    </span>
+                    <span>
+                      {config.lateLabel} {summary.late}명
+                    </span>
+                    <span>외박 {summary.sleepover}명</span>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="dashboard-section">
+          <div className="dashboard-section-heading">
+            <h2>바로가기</h2>
           </div>
 
-          <div className="notice-section">
-            <div className="section-heading notice-heading">
-              <div>
-                <span>Announcements</span>
-                <h2>최근 공지사항</h2>
-              </div>
+          <div className="quick-links-grid">
+            {QUICK_LINKS.map(({ to, Icon, title, description }) => (
               <button
-                className="notice-register-btn"
-                onClick={() => navigate('/notice')}
+                key={to}
+                type="button"
+                className="quick-link-card"
+                onClick={() => navigate(to)}
               >
-                공지 등록
+                <span className="quick-link-icon">
+                  <Icon />
+                </span>
+                <span className="quick-link-text">
+                  <strong>{title}</strong>
+                  <span>{description}</span>
+                </span>
+                <span className="quick-link-chevron">›</span>
               </button>
-            </div>
+            ))}
+          </div>
+        </section>
 
-            <div className="notice-list">
-              {announcements.length === 0 ? (
-                <div className="notice-empty">
-                  <p>등록된 공지사항이 없습니다.</p>
-                </div>
-              ) : (
-                announcements.map((notice, index) => {
-                  const { date, time } = formatDate(notice.createdAt);
-                  return (
-                    <button
-                      key={notice.id}
-                      className="notice-item"
-                      onClick={() => navigate(`/notice/${notice.id}`)}
-                    >
-                      <span className="notice-index">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <span className="notice-title">{notice.title}</span>
-                      <span className="notice-meta">
-                        <span>{date}</span>
-                        <span>{time}</span>
-                      </span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
+        <section className="dashboard-section">
+          <div className="dashboard-section-heading">
+            <h2>최근 공지사항</h2>
+            <button
+              type="button"
+              className="dashboard-link"
+              onClick={() => navigate('/notice')}
+            >
+              공지 등록
+            </button>
+          </div>
+
+          <div className="notice-list">
+            {announcements.length === 0 ? (
+              <div className="notice-empty">
+                <p>등록된 공지사항이 없습니다.</p>
+              </div>
+            ) : (
+              announcements.map((notice, index) => {
+                const { date, time } = formatDate(notice.createdAt);
+                return (
+                  <button
+                    key={notice.id}
+                    className="notice-item"
+                    onClick={() => navigate(`/notice/${notice.id}`)}
+                  >
+                    <span className="notice-index">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="notice-title">{notice.title}</span>
+                    <span className="notice-meta">
+                      <span>{date}</span>
+                      <span>{time}</span>
+                    </span>
+                  </button>
+                );
+              })
+            )}
           </div>
         </section>
       </div>

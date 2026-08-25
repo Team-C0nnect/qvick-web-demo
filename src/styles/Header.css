@@ -54,13 +54,7 @@
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
-  transition: background-color 0.15s ease;
   outline: none;
-}
-
-.header-user-trigger:hover,
-.header-user-trigger.open {
-  background-color: #f4f4f5;
 }
 
 .user-chevron {

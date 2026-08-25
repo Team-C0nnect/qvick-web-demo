@@ -24,6 +24,8 @@ import PhoneSubmissionIcon from '../components/sidebar/svg/phone-submission.svg?
 import SleepoverIcon from '../components/sidebar/svg/sleepover.svg?react';
 import ScheduleIcon from '../components/sidebar/svg/schedule.svg?react';
 import NoticeIcon from '../components/sidebar/svg/notice.svg?react';
+import SunIcon from '../components/sidebar/svg/sun.svg?react';
+import MoonIcon from '../components/sidebar/svg/moon.svg?react';
 import '../styles/Dashboard.css';
 
 interface AttendanceSummary {
@@ -76,6 +78,7 @@ const PERIOD_CONFIG: Record<
     completeLabel: string;
     absentLabel: string;
     lateLabel: string;
+    closedLabel: string;
   }
 > = {
   MORNING: {
@@ -84,6 +87,7 @@ const PERIOD_CONFIG: Record<
     completeLabel: '퇴실 완료',
     absentLabel: '미퇴실',
     lateLabel: '지연 퇴실',
+    closedLabel: '이 날은 아침 퇴실 점호가 없어요',
   },
   NIGHT: {
     title: '저녁 입실',
@@ -91,8 +95,20 @@ const PERIOD_CONFIG: Record<
     completeLabel: '입실 완료',
     absentLabel: '미입실',
     lateLabel: '지연 입실',
+    closedLabel: '이 날은 저녁 입실 점호가 없어요',
   },
 };
+
+const CLOSED_PERIODS_BY_DAY: Record<number, AttendanceType[]> = {
+  0: ['MORNING'],
+  5: ['NIGHT'],
+  6: ['MORNING', 'NIGHT'],
+};
+
+const isClosedPeriod = (dateStr: string, type: AttendanceType) =>
+  (
+    CLOSED_PERIODS_BY_DAY[new Date(`${dateStr}T00:00:00`).getDay()] ?? []
+  ).includes(type);
 
 const getAttendanceStatus = (
   attendance: AttendanceResponse,
@@ -393,7 +409,9 @@ export default function Dashboard() {
 
         <section className="dashboard-section">
           <div className="dashboard-section-heading">
-            <h2>{selectedDateLabel} 출결</h2>
+            <h2 key={selectedDateLabel} className="dashboard-date-heading">
+              {selectedDateLabel} 출결
+            </h2>
             <button
               type="button"
               className="dashboard-link"
@@ -408,6 +426,7 @@ export default function Dashboard() {
             {ATTENDANCE_TYPES.map((type) => {
               const summary = summaries[type];
               const config = PERIOD_CONFIG[type];
+              const closed = isClosedPeriod(today, type);
 
               return (
                 <article
@@ -418,47 +437,54 @@ export default function Dashboard() {
                     <span className="period-card-label">{config.title}</span>
                   </div>
 
-                  <div className="period-card-body">
-                    <PeriodDonut
-                      key={`${type}-${summary.present}-${summary.absent}-${summary.late}-${summary.sleepover}-${summary.total}`}
-                      summary={summary}
-                    />
-                    <ul className="period-legend">
-                      {[
-                        {
-                          label: config.completeLabel,
-                          value: summary.present,
-                          tone: 'present',
-                        },
-                        {
-                          label: config.absentLabel,
-                          value: summary.absent,
-                          tone: 'absent',
-                        },
-                        {
-                          label: config.lateLabel,
-                          value: summary.late,
-                          tone: 'late',
-                        },
-                        {
-                          label: '외박',
-                          value: summary.sleepover,
-                          tone: 'sleepover',
-                        },
-                      ].map((item) => (
-                        <li key={item.label}>
-                          <span className="legend-label">
-                            <i className={`legend-dot ${item.tone}`} />
-                            {item.label}
-                          </span>
-                          <span className="legend-value">
-                            <RollingNumber value={item.value} />명{' '}
-                            <em>({toPercent(item.value, summary.total)})</em>
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {closed ? (
+                    <div className="period-card-closed">
+                      {type === 'MORNING' ? <SunIcon /> : <MoonIcon />}
+                      <p>{config.closedLabel}</p>
+                    </div>
+                  ) : (
+                    <div className="period-card-body">
+                      <PeriodDonut
+                        key={`${type}-${summary.present}-${summary.absent}-${summary.late}-${summary.sleepover}-${summary.total}`}
+                        summary={summary}
+                      />
+                      <ul className="period-legend">
+                        {[
+                          {
+                            label: config.completeLabel,
+                            value: summary.present,
+                            tone: 'present',
+                          },
+                          {
+                            label: config.absentLabel,
+                            value: summary.absent,
+                            tone: 'absent',
+                          },
+                          {
+                            label: config.lateLabel,
+                            value: summary.late,
+                            tone: 'late',
+                          },
+                          {
+                            label: '외박',
+                            value: summary.sleepover,
+                            tone: 'sleepover',
+                          },
+                        ].map((item) => (
+                          <li key={item.label}>
+                            <span className="legend-label">
+                              <i className={`legend-dot ${item.tone}`} />
+                              {item.label}
+                            </span>
+                            <span className="legend-value">
+                              <RollingNumber value={item.value} />명{' '}
+                              <em>({toPercent(item.value, summary.total)})</em>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </article>
               );
             })}

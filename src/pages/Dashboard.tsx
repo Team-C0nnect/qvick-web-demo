@@ -199,11 +199,7 @@ const ATTENDANCE_TYPES: AttendanceType[] = ['MORNING', 'NIGHT'];
 export default function Dashboard() {
   const { selectedDate: today } = useSelectedDate();
   const navigate = useNavigate();
-  const {
-    attendanceView: currentAttendanceType,
-    isManual,
-    syncAttendanceView,
-  } = useAttendanceView();
+  const { isManual, syncAttendanceView } = useAttendanceView();
 
   const { data: attendancesData, isLoading: attendancesLoading } = useQuery({
     queryKey: ['attendances', today],
@@ -319,14 +315,11 @@ export default function Dashboard() {
             {ATTENDANCE_TYPES.map((type) => {
               const summary = summaries[type];
               const config = PERIOD_CONFIG[type];
-              const isActive = currentAttendanceType === type;
 
               return (
                 <article
                   key={type}
-                  className={`period-card ${type.toLowerCase()} ${
-                    isActive ? 'active' : ''
-                  }`}
+                  className={`period-card ${type.toLowerCase()}`}
                 >
                   <div className="period-card-heading">
                     <span className="period-card-label">
@@ -335,9 +328,6 @@ export default function Dashboard() {
                       </span>
                       {config.title}
                     </span>
-                    {isActive && (
-                      <span className="period-card-badge">보기 중</span>
-                    )}
                   </div>
 
                   <div className="period-card-rate">

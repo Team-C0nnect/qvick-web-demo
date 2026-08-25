@@ -144,15 +144,6 @@
   color: #4f46e5;
 }
 
-.period-card-badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #ede9fe;
-  color: #6d23ed;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .period-card-rate {
   display: flex;
   align-items: baseline;

@@ -206,6 +206,9 @@
 }
 
 .view-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 0;
   border: none;
   background: transparent;
@@ -215,6 +218,11 @@
   color: #8e8e99;
   cursor: pointer;
   transition: color 0.15s ease;
+}
+
+.view-label svg {
+  width: 14px;
+  height: 14px;
 }
 
 .view-label.active {

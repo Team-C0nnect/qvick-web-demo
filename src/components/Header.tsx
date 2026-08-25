@@ -5,8 +5,9 @@ import type { ReactElement, ReactNode } from 'react';
 import apiClient from '../lib/api-client';
 import { authService } from '../services/auth.service';
 import '../styles/Header.css';
-import type { AttendanceType, MyUserResponse } from '../types/api';
+import type { MyUserResponse } from '../types/api';
 import { ChevronDownIcon } from './Icons';
+import { useAttendanceView } from '../context/AttendanceViewContext';
 
 interface HeaderProps {
   actions?: ReactNode;
@@ -78,30 +79,15 @@ const THEME_OPTIONS: {
   { value: 'system', label: '시스템 테마', Icon: MonitorIcon },
 ];
 
-// 12시 기준으로 아침/저녁 보기 모드 판별 (Check 페이지 시간 기준 로직과 동일)
-const getTimeBasedAttendanceView = (now = new Date()): AttendanceType =>
-  now.getHours() < 12 ? 'MORNING' : 'NIGHT';
-
 export default function Header({ actions }: HeaderProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [theme, setTheme] = useState<ThemeOption>('system');
-  const [attendanceView, setAttendanceView] = useState<AttendanceType>(
-    getTimeBasedAttendanceView,
-  );
+  const { attendanceView, setAttendanceView } = useAttendanceView();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const isOpen = isHovered || isPinned;
-
-  // 시간이 지나면 아침/저녁 보기 모드 자동 전환
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      setAttendanceView(getTimeBasedAttendanceView());
-    }, 30 * 1000);
-
-    return () => window.clearInterval(intervalId);
-  }, []);
 
   useEffect(() => {
     if (!isPinned) return;
@@ -191,6 +177,7 @@ export default function Header({ actions }: HeaderProps) {
                     }`}
                     onClick={() => setAttendanceView('MORNING')}
                   >
+                    <SunIcon />
                     아침
                   </button>
                   <button
@@ -216,6 +203,7 @@ export default function Header({ actions }: HeaderProps) {
                     }`}
                     onClick={() => setAttendanceView('NIGHT')}
                   >
+                    <MoonIcon />
                     저녁
                   </button>
                 </div>

@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './sidebar/Sidebar';
 import { SelectedDateProvider } from '../context/SelectedDateContext';
+import { AttendanceViewProvider } from '../context/AttendanceViewContext';
 import '../styles/Layout.css';
 
 export interface LayoutOutletContext {
@@ -14,15 +15,17 @@ export default function Layout() {
 
   return (
     <SelectedDateProvider>
-      <div className="app-layout">
-        <Header actions={headerActions} />
-        <div className="content-wrapper">
-          <Sidebar />
-          <main className="main-content">
-            <Outlet context={{ setHeaderActions } satisfies LayoutOutletContext} />
-          </main>
+      <AttendanceViewProvider>
+        <div className="app-layout">
+          <Header actions={headerActions} />
+          <div className="content-wrapper">
+            <Sidebar />
+            <main className="main-content">
+              <Outlet context={{ setHeaderActions } satisfies LayoutOutletContext} />
+            </main>
+          </div>
         </div>
-      </div>
+      </AttendanceViewProvider>
     </SelectedDateProvider>
   );
 }

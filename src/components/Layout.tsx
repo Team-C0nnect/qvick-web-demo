@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './sidebar/Sidebar';
 import TopProgressbar from './TopProgressbar';
+import IntroAnimation from './IntroAnimation';
 import { SelectedDateProvider } from '../context/SelectedDateContext';
 import { AttendanceViewProvider } from '../context/AttendanceViewContext';
 import '../styles/Layout.css';
@@ -17,6 +18,7 @@ export default function Layout() {
   return (
     <SelectedDateProvider>
       <AttendanceViewProvider>
+        <IntroAnimation />
         <TopProgressbar />
         <div className="app-layout">
           <Header actions={headerActions} />

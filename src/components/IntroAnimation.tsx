@@ -28,13 +28,16 @@ function markIntroPlayed(): void {
   }
 }
 
-// React 마운트 전에 플래그를 확정해 새로고침 시 재생을 확실히 막는다
-if (!hasIntroPlayed()) {
+// React 마운트 전에 재생 여부를 확정해 새로고침 시 재생을 확실히 막는다.
+// 플래그를 저장하기 전에 값을 먼저 읽어야 최초 진입 시 재생된다
+const shouldPlayIntro = !hasIntroPlayed();
+
+if (shouldPlayIntro) {
   markIntroPlayed();
 }
 
 export default function IntroAnimation() {
-  const [isVisible, setIsVisible] = useState(() => !hasIntroPlayed());
+  const [isVisible, setIsVisible] = useState(shouldPlayIntro);
   const [isLeaving, setIsLeaving] = useState(false);
   const [typedCount, setTypedCount] = useState(0);
 

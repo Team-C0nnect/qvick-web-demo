@@ -1,0 +1,35 @@
+.top-progressbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 300;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.top-progressbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    rgba(109, 35, 237, 0),
+    #6d23ed,
+    rgba(109, 35, 237, 0)
+  );
+  animation: top-progressbar-sweep 0.5s ease-out forwards;
+}
+
+@keyframes top-progressbar-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(350%);
+  }
+}

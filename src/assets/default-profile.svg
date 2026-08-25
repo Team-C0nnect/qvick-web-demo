@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="기본 프로필 이미지">
+  <defs>
+    <clipPath id="default-profile-clip">
+      <circle cx="48" cy="48" r="48" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#default-profile-clip)">
+    <rect width="96" height="96" fill="#ede9fe" />
+    <circle cx="48" cy="36" r="15" fill="#6d23ed" />
+    <ellipse cx="48" cy="88" rx="28" ry="23" fill="#6d23ed" />
+  </g>
+</svg>

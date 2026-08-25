@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import IntroAnimation from './components/IntroAnimation';
 import './App.css';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -30,7 +31,8 @@ const TemporaryScan = lazy(() => import('./pages/TemporaryScan'));
 function App() {
   return (
     <Router>
-      <Suspense fallback={<div role="status">페이지를 불러오는 중...</div>}>
+      <IntroAnimation />
+      <Suspense fallback={null}>
         <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/terms" element={<Terms />} />

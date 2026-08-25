@@ -1,8 +1,8 @@
 /* Header Component Styles */
 .header {
   height: 60px;
-  background: #ffffff;
-  box-shadow: 0px -2px 4px 0px rgba(0, 0, 0, 0.1);
+  background: var(--app-surface, #ffffff);
+  border-bottom: 1px solid var(--app-border, #ececef);
   padding: 0 25px;
   display: flex;
   align-items: center;
@@ -40,9 +40,228 @@
 }
 
 .header-user {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 16px;
+}
+
+.header-user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+}
+
+.user-chevron {
+  width: 9px;
+  height: 5px;
+  color: #8e8e99;
+  transition: transform 0.2s ease;
+}
+
+.header-user-trigger.open .user-chevron {
+  transform: rotate(180deg);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 216px;
+  padding: 6px;
+  background: var(--app-surface, #ffffff);
+  border: 1px solid var(--app-border, #ececef);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  z-index: 200;
+}
+
+.user-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 0;
+  right: 0;
+  height: 12px;
+}
+
+.user-dropdown-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.user-avatar {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ede9fe;
+  color: #6d23ed;
+  font-size: 12px;
+  font-weight: 700;
+  overflow: hidden;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-avatar-small {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+
+.user-dropdown-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f0f10;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  margin: 6px 2px;
+  background: #ececef;
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.user-dropdown-item:hover {
+  background-color: #f4f4f5;
+}
+
+.user-dropdown-item-logout {
+  color: #dc2626;
+}
+
+.theme-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: #f4f4f5;
+  border-radius: 10px;
+}
+
+.theme-option {
+  flex: 1;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #8e8e99;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.theme-option:hover {
+  color: #52525b;
+}
+
+.theme-option.active {
+  background: var(--app-surface, #ffffff);
+  border-color: var(--app-border, #e4e4e7);
+  color: #6d23ed;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.attendance-view-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 2px;
+}
+
+.view-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8e8e99;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.view-label svg {
+  width: 14px;
+  height: 14px;
+}
+
+.view-label.active {
+  color: #6d23ed;
+  font-weight: 700;
+}
+
+.view-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: #d4d4d8;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.view-switch.on {
+  background: #6d23ed;
+}
+
+.view-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.view-switch.on .view-switch-knob {
+  transform: translateX(16px);
 }
 
 .header-actions {
@@ -110,27 +329,9 @@
 }
 
 .user-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #0f0f10;
-}
-
-.logout-button {
-  background: transparent;
-  border: 1px solid #e6e6e7;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #5d5f60;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.logout-button:hover {
-  background: #fafafa;
-  border-color: #6d23ed;
-  color: #6d23ed;
 }
 
 /* Admin 패치노트 관리 버튼 */
@@ -169,11 +370,6 @@
     display: none;
   }
 
-  .logout-button {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-  
   .admin-patchnote-btn span {
     display: none;
   }

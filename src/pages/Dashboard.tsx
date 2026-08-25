@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
+import type { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useQuery,
+} from '@tanstack/react-query';
 import { attendanceService } from '../services/attendance.service';
 import { announcementService } from '../services/announcement.service';
 import { scheduleService } from '../services/schedule.service';
@@ -11,8 +15,17 @@ import type {
   AttendanceType,
 } from '../types/api';
 import { DashboardSkeleton } from '../components/Skeleton';
-import { MoonIcon, SunIcon } from '../components/Icons';
-import { formatLocalDate } from '../utils/date';
+import { RollingNumber } from '../components/RollingNumber';
+import { useSelectedDate } from '../context/SelectedDateContext';
+import { useAttendanceView } from '../context/AttendanceViewContext';
+import CheckIcon from '../components/sidebar/svg/check.svg?react';
+import NightStudyIcon from '../components/sidebar/svg/night-study.svg?react';
+import PhoneSubmissionIcon from '../components/sidebar/svg/phone-submission.svg?react';
+import SleepoverIcon from '../components/sidebar/svg/sleepover.svg?react';
+import ScheduleIcon from '../components/sidebar/svg/schedule.svg?react';
+import NoticeIcon from '../components/sidebar/svg/notice.svg?react';
+import SunIcon from '../components/sidebar/svg/sun.svg?react';
+import MoonIcon from '../components/sidebar/svg/moon.svg?react';
 import '../styles/Dashboard.css';
 
 interface AttendanceSummary {
@@ -29,6 +42,8 @@ interface AttendanceSummary {
   maleAbsent: number;
   femaleAbsent: number;
 }
+
+type SidebarIcon = ComponentType<{ className?: string }>;
 
 const PERIOD_REFRESH_INTERVAL = 30 * 1000;
 
@@ -59,30 +74,41 @@ const PERIOD_CONFIG: Record<
   AttendanceType,
   {
     title: string;
-    eyebrow: string;
     rateLabel: string;
     completeLabel: string;
     absentLabel: string;
     lateLabel: string;
+    closedLabel: string;
   }
 > = {
   MORNING: {
     title: '아침 퇴실',
-    eyebrow: 'Morning check-out',
     rateLabel: '퇴실 확인률',
     completeLabel: '퇴실 완료',
     absentLabel: '미퇴실',
     lateLabel: '지연 퇴실',
+    closedLabel: '이 날은 아침 퇴실 점호가 없어요',
   },
   NIGHT: {
     title: '저녁 입실',
-    eyebrow: 'Evening check-in',
     rateLabel: '입실 확인률',
     completeLabel: '입실 완료',
     absentLabel: '미입실',
     lateLabel: '지연 입실',
+    closedLabel: '이 날은 저녁 입실 점호가 없어요',
   },
 };
+
+const CLOSED_PERIODS_BY_DAY: Record<number, AttendanceType[]> = {
+  0: ['MORNING'],
+  5: ['NIGHT'],
+  6: ['MORNING', 'NIGHT'],
+};
+
+const isClosedPeriod = (dateStr: string, type: AttendanceType) =>
+  (
+    CLOSED_PERIODS_BY_DAY[new Date(`${dateStr}T00:00:00`).getDay()] ?? []
+  ).includes(type);
 
 const getAttendanceStatus = (
   attendance: AttendanceResponse,
@@ -91,6 +117,95 @@ const getAttendanceStatus = (
   attendanceType === 'MORNING'
     ? attendance.morningCheckStatus
     : attendance.nightCheckStatus;
+
+const toPercent = (value: number, total: number): string =>
+  total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0.0%';
+
+const DONUT_SEGMENTS = [
+  { key: 'present', color: '#22c55e' },
+  { key: 'absent', color: '#ef4444' },
+  { key: 'late', color: '#f59e0b' },
+  { key: 'sleepover', color: '#8b5cf6' },
+] as const;
+
+const DONUT_DRAW_DURATION = 900;
+const DONUT_MIN_SEGMENT_RATIO = 0.03;
+
+function PeriodDonut({ summary }: { summary: AttendanceSummary }) {
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const total = summary.total;
+  const [isDrawn, setIsDrawn] = useState(false);
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => setIsDrawn(true), 50);
+    return () => window.clearTimeout(timerId);
+  }, []);
+
+  const adjustedRatios = DONUT_SEGMENTS.map(({ key }) => {
+    const ratio = total > 0 ? summary[key] / total : 0;
+    return ratio > 0 ? Math.max(ratio, DONUT_MIN_SEGMENT_RATIO) : 0;
+  });
+  const ratioSum =
+    adjustedRatios.reduce((sum, ratio) => sum + ratio, 0) || 1;
+
+  let accumulated = 0;
+  const segments = DONUT_SEGMENTS.map(({ key, color }, index) => {
+    const ratio = adjustedRatios[index] / ratioSum;
+    const length = ratio * circumference;
+    const segment = {
+      key,
+      color,
+      length,
+      offset: accumulated,
+      delay: (accumulated / circumference) * DONUT_DRAW_DURATION,
+      duration: Math.max(ratio * DONUT_DRAW_DURATION, 1),
+    };
+    accumulated += length;
+    return segment;
+  });
+
+  return (
+    <div className="period-donut">
+      <svg viewBox="0 0 100 100" role="img" aria-label="출결 현황 비율">
+        <circle
+          className="period-donut-track"
+          cx="50"
+          cy="50"
+          r={radius}
+          fill="none"
+          strokeWidth="11"
+        />
+        {segments.map((segment) => (
+          <circle
+            key={segment.key}
+            className="period-donut-segment"
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            stroke={segment.color}
+            strokeWidth="11"
+            strokeDasharray={`${
+              isDrawn ? segment.length : 0
+            } ${circumference - (isDrawn ? segment.length : 0)}`}
+            strokeDashoffset={-segment.offset}
+            style={{
+              transitionDuration: `${segment.duration}ms`,
+              transitionDelay: `${segment.delay}ms`,
+            }}
+          />
+        ))}
+      </svg>
+      <div className="period-donut-center">
+        <span>전체</span>
+        <strong>
+          <RollingNumber value={total} />명
+        </strong>
+      </div>
+    </div>
+  );
+}
 
 const buildAttendanceSummary = (
   attendances: AttendanceResponse[],
@@ -143,15 +258,65 @@ const buildAttendanceSummary = (
   };
 };
 
-export default function Dashboard() {
-  const today = formatLocalDate();
-  const navigate = useNavigate();
-  const [currentAttendanceType, setCurrentAttendanceType] =
-    useState<AttendanceType>(() => getTimeBasedAttendanceType([]));
+const QUICK_LINKS: {
+  to: string;
+  Icon: SidebarIcon;
+  title: string;
+  description: string;
+}[] = [
+  {
+    to: '/check',
+    Icon: CheckIcon,
+    title: '인원 확인',
+    description: '아침 퇴실과 저녁 입실 현황을 확인하세요.',
+  },
+  {
+    to: '/night-study',
+    Icon: NightStudyIcon,
+    title: '심야자습 확인',
+    description: '심야자습 출석 현황을 확인하세요.',
+  },
+  {
+    to: '/phone-submissions',
+    Icon: PhoneSubmissionIcon,
+    title: '휴대폰 제출 확인',
+    description: '휴대폰 제출 상태를 확인하세요.',
+  },
+  {
+    to: '/sleepovers',
+    Icon: SleepoverIcon,
+    title: '외박 확인',
+    description: '외박 신청 현황을 확인하세요.',
+  },
+  {
+    to: '/schedule',
+    Icon: ScheduleIcon,
+    title: '일정 관리',
+    description: '기숙사 일정을 등록하고 관리하세요.',
+  },
+  {
+    to: '/notice',
+    Icon: NoticeIcon,
+    title: '공지사항',
+    description: '공지사항을 등록하고 관리하세요.',
+  },
+];
 
-  const { data: attendancesData, isLoading: attendancesLoading } = useQuery({
+const ATTENDANCE_TYPES: AttendanceType[] = ['MORNING', 'NIGHT'];
+
+export default function Dashboard() {
+  const { selectedDate: today } = useSelectedDate();
+  const navigate = useNavigate();
+  const { isManual, syncAttendanceView } = useAttendanceView();
+
+  const {
+    data: attendancesData,
+    isLoading: attendancesLoading,
+    isPlaceholderData,
+  } = useQuery({
     queryKey: ['attendances', today],
     queryFn: () => attendanceService.getAttendances(today),
+    placeholderData: keepPreviousData,
   });
 
   const { data: announcementsData, isLoading: announcementsLoading } = useQuery({
@@ -172,8 +337,10 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
+    if (isManual) return;
+
     const updateAttendanceType = () => {
-      setCurrentAttendanceType(
+      syncAttendanceView(
         getTimeBasedAttendanceType([
           maleSchedule?.nightStartTime,
           femaleSchedule?.nightStartTime,
@@ -188,15 +355,19 @@ export default function Dashboard() {
     );
 
     return () => window.clearInterval(interval);
-  }, [femaleSchedule?.nightStartTime, maleSchedule?.nightStartTime]);
+  }, [
+    femaleSchedule?.nightStartTime,
+    isManual,
+    maleSchedule?.nightStartTime,
+    syncAttendanceView,
+  ]);
 
   const isLoading = attendancesLoading || announcementsLoading;
   const attendances = attendancesData ?? [];
-  const currentSummary = buildAttendanceSummary(
-    attendances,
-    currentAttendanceType,
-  );
-  const currentPeriodConfig = PERIOD_CONFIG[currentAttendanceType];
+  const summaries = {
+    MORNING: buildAttendanceSummary(attendances, 'MORNING'),
+    NIGHT: buildAttendanceSummary(attendances, 'NIGHT'),
+  } satisfies Record<AttendanceType, AttendanceSummary>;
   const announcements: AnnouncementResponse[] =
     announcementsData?.content ?? [];
 
@@ -215,11 +386,24 @@ export default function Dashboard() {
     };
   };
 
-  const todayLabel = new Date().toLocaleDateString('ko-KR', {
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long',
+  const selectedDateLabel = new Date(`${today}T00:00:00`).toLocaleDateString(
+    'ko-KR',
+    {
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long',
+    },
+  );
+
+  const [dateHeading, setDateHeading] = useState({
+    date: today,
+    label: selectedDateLabel,
   });
+
+  useEffect(() => {
+    if (dateHeading.date === today || isPlaceholderData) return;
+    setDateHeading({ date: today, label: selectedDateLabel });
+  }, [dateHeading.date, isPlaceholderData, selectedDateLabel, today]);
 
   if (isLoading) {
     return (
@@ -232,178 +416,159 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-content">
-        <section
-          className={`dashboard-hero dashboard-period-hero ${currentAttendanceType.toLowerCase()}`}
-        >
-          <div className="hero-copy">
-            <span className="hero-kicker">{todayLabel}</span>
-            <h1>오늘의 기숙사 출결</h1>
-            <p>{currentPeriodConfig.title} 현황을 확인하세요.</p>
+        <header className="dashboard-header">
+          <h1>대시보드</h1>
+          <p>기숙사 출결 현황과 공지사항을 한눈에 확인하세요.</p>
+        </header>
+
+        <section className="dashboard-section">
+          <div className="dashboard-section-heading">
+            <h2 key={dateHeading.label} className="dashboard-date-heading">
+              {dateHeading.label} 출결
+            </h2>
+            <button
+              type="button"
+              className="dashboard-link"
+              onClick={() => navigate('/check')}
+            >
+              인원 확인
+              <span className="dashboard-link-chevron">›</span>
+            </button>
           </div>
 
-          <div className="hero-period-visual" aria-hidden="true">
-            <span
-              className={`hero-period-orb ${currentAttendanceType.toLowerCase()}`}
-            >
-              {currentAttendanceType === 'MORNING' ? (
-                <SunIcon />
-              ) : (
-                <MoonIcon />
-              )}
-            </span>
-          </div>
-        </section>
+          <div className="period-cards-grid">
+            {ATTENDANCE_TYPES.map((type) => {
+              const summary = summaries[type];
+              const config = PERIOD_CONFIG[type];
+              const closed = isClosedPeriod(today, type);
 
-        <section
-          className="period-overview-grid"
-          aria-label={`오늘의 ${currentPeriodConfig.title} 출결`}
-        >
-          <article
-            className={`period-overview-card ${currentAttendanceType.toLowerCase()} current`}
-          >
-            <div className="period-card-heading">
-              <span className="period-card-icon">
-                {currentAttendanceType === 'MORNING' ? (
-                  <SunIcon />
-                ) : (
-                  <MoonIcon />
-                )}
-              </span>
-              <div>
-                <span>{currentPeriodConfig.eyebrow}</span>
-                <h2>{currentPeriodConfig.title}</h2>
-              </div>
-              <em>현재 시간대</em>
-            </div>
-
-            <div className="period-card-rate">
-              <div>
-                <span>{currentPeriodConfig.rateLabel}</span>
-                <strong>{currentSummary.rate}%</strong>
-              </div>
-              <span>
-                {currentSummary.attended}/{currentSummary.target}명
-              </span>
-            </div>
-
-            <div
-              className="period-progress"
-              aria-label={`${currentPeriodConfig.rateLabel} ${currentSummary.rate}%`}
-            >
-              <span
-                className="period-progress-complete"
-                style={{ width: `${currentSummary.presentRate}%` }}
-              />
-              <span
-                className="period-progress-late"
-                style={{ width: `${currentSummary.lateRate}%` }}
-              />
-            </div>
-
-            <div className="period-card-metrics">
-              <div>
-                <span>{currentPeriodConfig.completeLabel}</span>
-                <strong>{currentSummary.present}명</strong>
-              </div>
-              <div className="attention">
-                <span>{currentPeriodConfig.absentLabel}</span>
-                <strong>{currentSummary.absent}명</strong>
-              </div>
-              <div className="late">
-                <span>{currentPeriodConfig.lateLabel}</span>
-                <strong>{currentSummary.late}명</strong>
-              </div>
-              <div>
-                <span>외박</span>
-                <strong>{currentSummary.sleepover}명</strong>
-              </div>
-            </div>
-
-            <div className="period-card-footer">
-              <span>
-                남 {currentPeriodConfig.absentLabel}{' '}
-                {currentSummary.maleAbsent}명 · 여{' '}
-                {currentPeriodConfig.absentLabel}{' '}
-                {currentSummary.femaleAbsent}명
-              </span>
-              <button type="button" onClick={() => navigate('/check')}>
-                인원 확인
-              </button>
-            </div>
-          </article>
-        </section>
-
-        <section className="dashboard-grid">
-          <div className="insight-panel attendance-attention-panel">
-            <div className="section-heading">
-              <span>Needs attention</span>
-              <h2>확인 필요 인원</h2>
-            </div>
-
-            <div className="detail-list">
-              <div className="detail-row period-detail-row">
-                <span
-                  className={`detail-period-icon ${currentAttendanceType.toLowerCase()}`}
+              return (
+                <article
+                  key={type}
+                  className={`period-card ${type.toLowerCase()}`}
                 >
-                  {currentAttendanceType === 'MORNING' ? (
-                    <SunIcon />
+                  <div className="period-card-heading">
+                    <span className="period-card-label">{config.title}</span>
+                  </div>
+
+                  {closed ? (
+                    <div className="period-card-closed">
+                      {type === 'MORNING' ? <SunIcon /> : <MoonIcon />}
+                      <p>{config.closedLabel}</p>
+                    </div>
                   ) : (
-                    <MoonIcon />
+                    <div className="period-card-body">
+                      <PeriodDonut
+                        key={`${type}-${summary.present}-${summary.absent}-${summary.late}-${summary.sleepover}-${summary.total}`}
+                        summary={summary}
+                      />
+                      <ul className="period-legend">
+                        {[
+                          {
+                            label: config.completeLabel,
+                            value: summary.present,
+                            tone: 'present',
+                          },
+                          {
+                            label: config.absentLabel,
+                            value: summary.absent,
+                            tone: 'absent',
+                          },
+                          {
+                            label: config.lateLabel,
+                            value: summary.late,
+                            tone: 'late',
+                          },
+                          {
+                            label: '외박',
+                            value: summary.sleepover,
+                            tone: 'sleepover',
+                          },
+                        ].map((item) => (
+                          <li key={item.label}>
+                            <span className="legend-label">
+                              <i className={`legend-dot ${item.tone}`} />
+                              {item.label}
+                            </span>
+                            <span className="legend-value">
+                              <RollingNumber value={item.value} />명{' '}
+                              <em>({toPercent(item.value, summary.total)})</em>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
-                </span>
-                <span className="detail-label">
-                  <strong>{currentPeriodConfig.title}</strong>
-                  {currentPeriodConfig.absentLabel} +{' '}
-                  {currentPeriodConfig.lateLabel}
-                </span>
-                <span className="detail-value">
-                  {currentSummary.absent + currentSummary.late}명
-                </span>
-              </div>
-            </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="dashboard-section">
+          <div className="dashboard-section-heading">
+            <h2>바로가기</h2>
           </div>
 
-          <div className="notice-section">
-            <div className="section-heading notice-heading">
-              <div>
-                <span>Announcements</span>
-                <h2>최근 공지사항</h2>
-              </div>
+          <div className="quick-links-grid">
+            {QUICK_LINKS.map(({ to, Icon, title, description }) => (
               <button
-                className="notice-register-btn"
-                onClick={() => navigate('/notice')}
+                key={to}
+                type="button"
+                className="quick-link-card"
+                onClick={() => navigate(to)}
               >
-                공지 등록
+                <span className="quick-link-icon">
+                  <Icon />
+                </span>
+                <span className="quick-link-text">
+                  <strong>{title}</strong>
+                  <span>{description}</span>
+                </span>
+                <span className="quick-link-chevron">›</span>
               </button>
-            </div>
+            ))}
+          </div>
+        </section>
 
-            <div className="notice-list">
-              {announcements.length === 0 ? (
-                <div className="notice-empty">
-                  <p>등록된 공지사항이 없습니다.</p>
-                </div>
-              ) : (
-                announcements.map((notice, index) => {
-                  const { date, time } = formatDate(notice.createdAt);
-                  return (
-                    <button
-                      key={notice.id}
-                      className="notice-item"
-                      onClick={() => navigate(`/notice/${notice.id}`)}
-                    >
-                      <span className="notice-index">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <span className="notice-title">{notice.title}</span>
-                      <span className="notice-meta">
-                        <span>{date}</span>
-                        <span>{time}</span>
-                      </span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
+        <section className="dashboard-section">
+          <div className="dashboard-section-heading">
+            <h2>최근 공지사항</h2>
+            <button
+              type="button"
+              className="dashboard-link"
+              onClick={() => navigate('/notice')}
+            >
+              공지 등록
+            </button>
+          </div>
+
+          <div className="notice-list">
+            {announcements.length === 0 ? (
+              <div className="notice-empty">
+                <p>등록된 공지사항이 없습니다.</p>
+              </div>
+            ) : (
+              announcements.map((notice, index) => {
+                const { date, time } = formatDate(notice.createdAt);
+                return (
+                  <button
+                    key={notice.id}
+                    className="notice-item"
+                    onClick={() => navigate(`/notice/${notice.id}`)}
+                  >
+                    <span className="notice-index">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="notice-title">{notice.title}</span>
+                    <span className="notice-meta">
+                      <span>{date}</span>
+                      <span>{time}</span>
+                    </span>
+                  </button>
+                );
+              })
+            )}
           </div>
         </section>
       </div>

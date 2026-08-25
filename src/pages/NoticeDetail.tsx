@@ -5,6 +5,7 @@ import { announcementService } from '../services/announcement.service';
 import NoticeEditModal from '../components/NoticeEditModal';
 import { PinIcon, PencilIcon, TrashIcon } from '../components/Icons';
 import { useToast } from '../hooks/useToast';
+import defaultProfileImage from '../assets/default-profile.svg';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../styles/NoticeDetail.css';
@@ -199,9 +200,11 @@ export default function NoticeDetail() {
                     className="author-avatar"
                   />
                 ) : (
-                  <span className="author-avatar author-avatar-fallback">
-                    {(announcement.author?.name ?? '작성자').slice(0, 1)}
-                  </span>
+                  <img
+                    src={defaultProfileImage}
+                    alt=""
+                    className="author-avatar"
+                  />
                 )}
                 <span className="author-name">
                   {announcement.author?.name ?? '작성자'}

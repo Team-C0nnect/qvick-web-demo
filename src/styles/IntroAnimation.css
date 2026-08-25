@@ -1,0 +1,196 @@
+.intro-animation {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+}
+
+.intro-animation.leaving {
+  pointer-events: none;
+  animation: intro-overlay-fade-out 0.55s ease forwards;
+}
+
+.intro-animation.leaving .intro-animation-stage {
+  animation: intro-stage-exit 0.55s ease forwards;
+}
+
+.intro-animation-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.intro-animation-logo {
+  width: 96px;
+  height: 96px;
+  animation: intro-logo-bounce 1.4s both;
+}
+
+.intro-animation-shadow {
+  width: 72px;
+  height: 12px;
+  margin-top: 20px;
+  border-radius: 50%;
+  background: rgba(15, 15, 16, 0.14);
+  animation: intro-shadow-pulse 1.4s both;
+}
+
+/* 타이핑되는 태그라인 */
+.intro-animation-tagline-wrap {
+  position: relative;
+  min-height: 24px;
+  margin-top: 18px;
+}
+
+.intro-animation-tagline {
+  position: relative;
+  margin: 0;
+  min-height: 1.4em;
+  color: #6d23ed;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+/* 엔터 확정 느낌: 텍스트가 눌리며 확인 밑줄이 쓸고 지나감 */
+.intro-animation-tagline.done {
+  animation: intro-tagline-confirm 0.35s ease;
+}
+
+.intro-animation-tagline.done::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 2px;
+  border-radius: 999px;
+  background: #6d23ed;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: intro-underline-sweep 0.4s ease-out 0.1s forwards;
+}
+
+.intro-animation-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 3px;
+  vertical-align: -0.12em;
+  background: #6d23ed;
+  animation: intro-cursor-blink 0.6s step-end infinite;
+}
+
+/* 엔터 확정 시 커서가 한 번 눌렸다 사라짐 */
+.intro-animation-tagline.done .intro-animation-cursor {
+  animation: intro-cursor-press 0.3s ease forwards;
+}
+
+/* 로고가 위에서 떨어져 통통 튀며 착지하는 카툰 모션 */
+@keyframes intro-logo-bounce {
+  0% {
+    transform: translateY(-180px) scale(1);
+    animation-timing-function: ease-in;
+  }
+  42% {
+    transform: translateY(0) scale(1.18, 0.82);
+    animation-timing-function: ease-out;
+  }
+  60% {
+    transform: translateY(-52px) scale(0.9, 1.1);
+    animation-timing-function: ease-in;
+  }
+  78% {
+    transform: translateY(0) scale(1.08, 0.92);
+    animation-timing-function: ease-out;
+  }
+  90% {
+    transform: translateY(-14px) scale(0.97, 1.03);
+    animation-timing-function: ease-in;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 착지에 맞춰 그림자가 줄어들었다 커지는 모션 */
+@keyframes intro-shadow-pulse {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  42% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(0.6);
+    opacity: 0.55;
+  }
+  78% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+  90% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+}
+
+@keyframes intro-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes intro-tagline-confirm {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes intro-underline-sweep {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes intro-cursor-press {
+  0% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(0.65);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(0.4);
+  }
+}
+
+@keyframes intro-overlay-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

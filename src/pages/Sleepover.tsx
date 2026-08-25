@@ -9,6 +9,7 @@ import { matchesKoreanNameSearch } from '../utils/korean-search';
 import '../styles/Check.css';
 import '../styles/Sleepover.css';
 import type { SleepoverResponse } from '../types/api';
+import { useSelectedDate } from '../context/SelectedDateContext';
 
 type DeleteTarget = {
   studentId: number;
@@ -20,9 +21,8 @@ const getStudentNumber = (student: SleepoverResponse['student']) =>
 
 export default function Sleepover() {
   const queryClient = useQueryClient();
-  const [currentDate, setCurrentDate] = useState(
-    () => new Date().toISOString().split('T')[0],
-  );
+  const { selectedDate: currentDate, setSelectedDate: setCurrentDate } =
+    useSelectedDate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);

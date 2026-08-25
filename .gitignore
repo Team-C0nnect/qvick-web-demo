@@ -19,6 +19,8 @@ api/dist
 api/local.settings.json
 api/.env
 
+docs/agents
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

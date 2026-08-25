@@ -21,7 +21,9 @@ import type {
   DeviceSubmissionStatus,
   UpdateAttendancesRequest,
 } from '../types/api';
-import { formatLocalDate } from '../utils/date';
+import { formatLocalDate, getAdjacentDate } from '../utils/date';
+import { useSelectedDate } from '../context/SelectedDateContext';
+import { useAttendanceView } from '../context/AttendanceViewContext';
 
 interface Student {
   id: number | null;
@@ -262,23 +264,19 @@ const hasAttendanceWindowEnded = (
   return isLateAttendance(getCurrentTimeString(), endTime);
 };
 
-const getAdjacentDate = (date: string, days: number): string => {
-  const result = new Date(`${date}T12:00:00`);
-  result.setDate(result.getDate() + days);
-  return formatLocalDate(result);
-};
-
 export default function Check() {
   const { setHeaderActions } = useOutletContext<LayoutOutletContext>();
-  const [attendanceType, setAttendanceType] = useState<AttendanceType>(() =>
-    getTimeBasedAttendanceType([]),
-  );
-  const [isPeriodManuallySelected, setIsPeriodManuallySelected] =
-    useState(false);
+  const { selectedDate: currentDate, setSelectedDate: setCurrentDate } =
+    useSelectedDate();
+  const {
+    attendanceView: attendanceType,
+    isManual: isPeriodManuallySelected,
+    setAttendanceView: setAttendanceType,
+    syncAttendanceView,
+    markManual,
+    resetToAuto,
+  } = useAttendanceView();
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentDate, setCurrentDate] = useState(
-    () => formatLocalDate(),
-  );
   const [sortKey, setSortKey] = useState<SortKey | null>('room');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [isExporting, setIsExporting] = useState(false);
@@ -341,7 +339,7 @@ export default function Check() {
     if (isPeriodManuallySelected) return;
 
     const updateAttendanceType = () => {
-      setAttendanceType(
+      syncAttendanceView(
         getTimeBasedAttendanceType([maleSchedule, femaleSchedule]),
       );
     };
@@ -353,31 +351,32 @@ export default function Check() {
     );
 
     return () => window.clearInterval(interval);
-  }, [femaleSchedule, isPeriodManuallySelected, maleSchedule]);
+  }, [
+    femaleSchedule,
+    isPeriodManuallySelected,
+    maleSchedule,
+    syncAttendanceView,
+  ]);
 
   const handlePreviousAttendancePeriod = useCallback(() => {
-    setIsPeriodManuallySelected(true);
-
     if (attendanceType === 'NIGHT') {
       setAttendanceType('MORNING');
       return;
     }
 
-    setCurrentDate((date) => getAdjacentDate(date, -1));
+    setCurrentDate(getAdjacentDate(currentDate, -1));
     setAttendanceType('NIGHT');
-  }, [attendanceType]);
+  }, [attendanceType, currentDate, setCurrentDate, setAttendanceType]);
 
   const handleNextAttendancePeriod = useCallback(() => {
-    setIsPeriodManuallySelected(true);
-
     if (attendanceType === 'MORNING') {
       setAttendanceType('NIGHT');
       return;
     }
 
-    setCurrentDate((date) => getAdjacentDate(date, 1));
+    setCurrentDate(getAdjacentDate(currentDate, 1));
     setAttendanceType('MORNING');
-  }, [attendanceType]);
+  }, [attendanceType, currentDate, setCurrentDate, setAttendanceType]);
 
   const isViewingCurrentAttendancePeriod =
     currentDate === formatLocalDate() &&
@@ -385,9 +384,9 @@ export default function Check() {
 
   useEffect(() => {
     if (isPeriodManuallySelected && isViewingCurrentAttendancePeriod) {
-      setIsPeriodManuallySelected(false);
+      resetToAuto();
     }
-  }, [isPeriodManuallySelected, isViewingCurrentAttendancePeriod]);
+  }, [isPeriodManuallySelected, isViewingCurrentAttendancePeriod, resetToAuto]);
 
   useEffect(() => {
     setHeaderActions(
@@ -977,7 +976,7 @@ export default function Check() {
               value={currentDate}
               onChange={(e) => {
                 setCurrentDate(e.target.value);
-                setIsPeriodManuallySelected(true);
+                markManual();
               }}
             />
           </div>

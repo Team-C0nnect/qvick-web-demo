@@ -82,14 +82,6 @@ const THEME_OPTIONS: {
 const getTimeBasedAttendanceView = (now = new Date()): AttendanceType =>
   now.getHours() < 12 ? 'MORNING' : 'NIGHT';
 
-const ATTENDANCE_VIEW_OPTIONS: {
-  value: AttendanceType;
-  label: string;
-}[] = [
-  { value: 'MORNING', label: '아침' },
-  { value: 'NIGHT', label: '저녁' },
-];
-
 export default function Header({ actions }: HeaderProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -191,20 +183,41 @@ export default function Header({ actions }: HeaderProps) {
 
             {isOpen && (
               <div className="user-dropdown" role="menu">
-                <div className="view-toggle">
-                  {ATTENDANCE_VIEW_OPTIONS.map(({ value, label }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      className={`theme-option ${
-                        attendanceView === value ? 'active' : ''
-                      }`}
-                      aria-pressed={attendanceView === value}
-                      onClick={() => setAttendanceView(value)}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                <div className="attendance-view-row">
+                  <button
+                    type="button"
+                    className={`view-label ${
+                      attendanceView === 'MORNING' ? 'active' : ''
+                    }`}
+                    onClick={() => setAttendanceView('MORNING')}
+                  >
+                    아침
+                  </button>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={attendanceView === 'NIGHT'}
+                    aria-label="아침/저녁 보기 전환"
+                    className={`view-switch ${
+                      attendanceView === 'NIGHT' ? 'on' : ''
+                    }`}
+                    onClick={() =>
+                      setAttendanceView(
+                        attendanceView === 'MORNING' ? 'NIGHT' : 'MORNING',
+                      )
+                    }
+                  >
+                    <span className="view-switch-knob" />
+                  </button>
+                  <button
+                    type="button"
+                    className={`view-label ${
+                      attendanceView === 'NIGHT' ? 'active' : ''
+                    }`}
+                    onClick={() => setAttendanceView('NIGHT')}
+                  >
+                    저녁
+                  </button>
                 </div>
 
                 <div className="user-dropdown-divider" />

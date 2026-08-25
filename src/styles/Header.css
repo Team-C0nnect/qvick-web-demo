@@ -197,18 +197,61 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.view-toggle {
+.attendance-view-row {
   display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: #f4f4f5;
-  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 2px;
 }
 
-.view-toggle .theme-option {
-  height: 30px;
+.view-label {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
+  color: #8e8e99;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.view-label.active {
+  color: #6d23ed;
+  font-weight: 700;
+}
+
+.view-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: #d4d4d8;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.view-switch.on {
+  background: #6d23ed;
+}
+
+.view-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.view-switch.on .view-switch-knob {
+  transform: translateX(16px);
 }
 
 .header-actions {

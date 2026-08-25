@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useSelectedDate } from '../context/SelectedDateContext';
 import '../styles/TopProgressbar.css';
 
 export default function TopProgressbar() {
   const { pathname } = useLocation();
+  const { selectedDate } = useSelectedDate();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -11,7 +13,7 @@ export default function TopProgressbar() {
     const timerId = window.setTimeout(() => setIsVisible(false), 600);
 
     return () => window.clearTimeout(timerId);
-  }, [pathname]);
+  }, [pathname, selectedDate]);
 
   if (!isVisible) return null;
 

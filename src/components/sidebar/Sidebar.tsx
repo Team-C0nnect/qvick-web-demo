@@ -21,6 +21,7 @@ import { apiClient } from '../../lib/api-client';
 import type { MyUserResponse } from '../../types/api';
 import { useSelectedDate } from '../../context/SelectedDateContext';
 import { getAdjacentDate } from '../../utils/date';
+import { RollingDigits } from '../RollingNumber';
 
 type SidebarIcon = ComponentType<{ className?: string }>;
 
@@ -40,39 +41,6 @@ const MENU_ICONS: Record<string, SidebarIcon> = {
   patchnote: PatchNoteIcon,
   inquiry: InquiryIcon,
 };
-
-const DATE_DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-function DateDigitColumn({ digit }: { digit: number }) {
-  return (
-    <span className="sidebar-date-digit">
-      <span
-        className="sidebar-date-digit-strip"
-        style={{ transform: `translateY(-${digit}em)` }}
-      >
-        {DATE_DIGITS.map((d) => (
-          <span key={d}>{d}</span>
-        ))}
-      </span>
-    </span>
-  );
-}
-
-function RollingDate({ date }: { date: string }) {
-  return (
-    <span className="sidebar-date-roll">
-      {date.split('').map((char, index) =>
-        char >= '0' && char <= '9' ? (
-          <DateDigitColumn key={index} digit={Number(char)} />
-        ) : (
-          <span key={index} className="sidebar-date-separator">
-            {char}
-          </span>
-        ),
-      )}
-    </span>
-  );
-}
 
 export default function Sidebar() {
   const { selectedDate, setSelectedDate } = useSelectedDate();
@@ -145,7 +113,7 @@ export default function Sidebar() {
           onClick={openDatePicker}
         >
           <span className="menu-text">
-            <RollingDate date={selectedDate} />
+            <RollingDigits text={selectedDate} />
           </span>
         </button>
         <input

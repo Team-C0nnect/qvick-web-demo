@@ -12,6 +12,7 @@ import type {
   AttendanceType,
 } from '../types/api';
 import { DashboardSkeleton } from '../components/Skeleton';
+import { RollingNumber } from '../components/RollingNumber';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useAttendanceView } from '../context/AttendanceViewContext';
 import CheckIcon from '../components/sidebar/svg/check.svg?react';
@@ -110,33 +111,6 @@ const DONUT_SEGMENTS = [
 
 const DONUT_DRAW_DURATION = 900;
 
-function useRouletteNumber(target: number, duration = 900): number {
-  const [display, setDisplay] = useState(target);
-
-  useEffect(() => {
-    let frameId: number;
-    const startTime = performance.now();
-
-    const tick = (now: number) => {
-      if (now - startTime >= duration) {
-        setDisplay(target);
-        return;
-      }
-      setDisplay(Math.floor(Math.random() * (target + 1)));
-      frameId = requestAnimationFrame(tick);
-    };
-
-    frameId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frameId);
-  }, [target, duration]);
-
-  return display;
-}
-
-function RouletteNumber({ value }: { value: number }) {
-  return <>{useRouletteNumber(value)}</>;
-}
-
 function PeriodDonut({ summary }: { summary: AttendanceSummary }) {
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
@@ -199,7 +173,7 @@ function PeriodDonut({ summary }: { summary: AttendanceSummary }) {
       <div className="period-donut-center">
         <span>전체</span>
         <strong>
-          <RouletteNumber value={total} />명
+          <RollingNumber value={total} />명
         </strong>
       </div>
     </div>
@@ -463,7 +437,7 @@ export default function Dashboard() {
                             {item.label}
                           </span>
                           <span className="legend-value">
-                            <RouletteNumber value={item.value} />명{' '}
+                            <RollingNumber value={item.value} />명{' '}
                             <em>({toPercent(item.value, summary.total)})</em>
                           </span>
                         </li>

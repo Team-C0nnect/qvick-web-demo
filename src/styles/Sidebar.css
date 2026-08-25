@@ -147,34 +147,6 @@
   white-space: nowrap;
 }
 
-/* 날짜 룰렛 애니메이션 */
-.sidebar-date-roll {
-  display: inline-flex;
-}
-
-.sidebar-date-digit {
-  display: inline-block;
-  height: 1em;
-  line-height: 1;
-  overflow: hidden;
-}
-
-.sidebar-date-digit-strip {
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.sidebar-date-digit-strip > span {
-  height: 1em;
-  line-height: 1;
-}
-
-.sidebar-date-separator {
-  height: 1em;
-  line-height: 1;
-}
-
 .sidebar-date-native-input {
   position: absolute;
   top: 50%;

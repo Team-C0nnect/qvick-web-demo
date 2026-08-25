@@ -1,0 +1,26 @@
+.rolling-digits {
+  display: inline-flex;
+}
+
+.rolling-digit {
+  display: inline-block;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.rolling-digit-strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rolling-digit-strip > span {
+  height: 1em;
+  line-height: 1;
+}
+
+.rolling-digit-separator {
+  height: 1em;
+  line-height: 1;
+}

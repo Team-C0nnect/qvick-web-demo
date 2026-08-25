@@ -5,7 +5,7 @@ import type { ReactElement, ReactNode } from 'react';
 import apiClient from '../lib/api-client';
 import { authService } from '../services/auth.service';
 import '../styles/Header.css';
-import type { MyUserResponse } from '../types/api';
+import type { AttendanceType, MyUserResponse } from '../types/api';
 import { ChevronDownIcon } from './Icons';
 
 interface HeaderProps {
@@ -78,14 +78,38 @@ const THEME_OPTIONS: {
   { value: 'system', label: '시스템 테마', Icon: MonitorIcon },
 ];
 
+// 12시 기준으로 아침/저녁 보기 모드 판별 (Check 페이지 시간 기준 로직과 동일)
+const getTimeBasedAttendanceView = (now = new Date()): AttendanceType =>
+  now.getHours() < 12 ? 'MORNING' : 'NIGHT';
+
+const ATTENDANCE_VIEW_OPTIONS: {
+  value: AttendanceType;
+  label: string;
+}[] = [
+  { value: 'MORNING', label: '아침' },
+  { value: 'NIGHT', label: '저녁' },
+];
+
 export default function Header({ actions }: HeaderProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [theme, setTheme] = useState<ThemeOption>('system');
+  const [attendanceView, setAttendanceView] = useState<AttendanceType>(
+    getTimeBasedAttendanceView,
+  );
   const userMenuRef = useRef<HTMLDivElement>(null);
   const isOpen = isHovered || isPinned;
+
+  // 시간이 지나면 아침/저녁 보기 모드 자동 전환
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setAttendanceView(getTimeBasedAttendanceView());
+    }, 30 * 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     if (!isPinned) return;
@@ -167,6 +191,24 @@ export default function Header({ actions }: HeaderProps) {
 
             {isOpen && (
               <div className="user-dropdown" role="menu">
+                <div className="view-toggle">
+                  {ATTENDANCE_VIEW_OPTIONS.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`theme-option ${
+                        attendanceView === value ? 'active' : ''
+                      }`}
+                      aria-pressed={attendanceView === value}
+                      onClick={() => setAttendanceView(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="user-dropdown-divider" />
+
                 <div className="user-dropdown-profile">
                   <span className="user-avatar">{profileInitial}</span>
                   <span className="user-dropdown-name">{displayName}</span>

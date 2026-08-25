@@ -41,6 +41,39 @@ const MENU_ICONS: Record<string, SidebarIcon> = {
   inquiry: InquiryIcon,
 };
 
+const DATE_DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+function DateDigitColumn({ digit }: { digit: number }) {
+  return (
+    <span className="sidebar-date-digit">
+      <span
+        className="sidebar-date-digit-strip"
+        style={{ transform: `translateY(-${digit}em)` }}
+      >
+        {DATE_DIGITS.map((d) => (
+          <span key={d}>{d}</span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+function RollingDate({ date }: { date: string }) {
+  return (
+    <span className="sidebar-date-roll">
+      {date.split('').map((char, index) =>
+        char >= '0' && char <= '9' ? (
+          <DateDigitColumn key={index} digit={Number(char)} />
+        ) : (
+          <span key={index} className="sidebar-date-separator">
+            {char}
+          </span>
+        ),
+      )}
+    </span>
+  );
+}
+
 export default function Sidebar() {
   const { selectedDate, setSelectedDate } = useSelectedDate();
   const dateInputRef = useRef<HTMLInputElement>(null);
@@ -111,7 +144,9 @@ export default function Sidebar() {
           className="sidebar-date-value"
           onClick={openDatePicker}
         >
-          <span className="menu-text">{selectedDate}</span>
+          <span className="menu-text">
+            <RollingDate date={selectedDate} />
+          </span>
         </button>
         <input
           ref={dateInputRef}

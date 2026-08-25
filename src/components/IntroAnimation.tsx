@@ -4,8 +4,13 @@ import '../styles/IntroAnimation.css';
 
 const INTRO_STORAGE_KEY = 'qvick-intro-played';
 const TAGLINE = '기숙사 관리 플랫폼';
-const TYPING_START_DELAY = 1300;
-const TYPING_INTERVAL = 90;
+const TYPING_START_DELAY = 1200;
+
+// 타닥타닥 타이핑 리듬: 글자마다 미세한 딜레이 편차, 띄어쓰기에서 살짝 긴 호흡
+const getTypingDelay = (index: number): number => {
+  const base = 170 + Math.random() * 80;
+  return index > 0 && TAGLINE[index] === ' ' ? base + 90 : base;
+};
 
 function hasIntroPlayed(): boolean {
   try {
@@ -33,18 +38,23 @@ export default function IntroAnimation() {
 
     markIntroPlayed();
 
-    let typingIntervalId: number | undefined;
-    const typingStartId = window.setTimeout(() => {
-      typingIntervalId = window.setInterval(() => {
-        setTypedCount((count) => Math.min(count + 1, TAGLINE.length));
-      }, TYPING_INTERVAL);
-    }, TYPING_START_DELAY);
+    let cancelled = false;
+    let timerId: number;
+
+    const typeNext = (count: number) => {
+      if (cancelled || count >= TAGLINE.length) return;
+      timerId = window.setTimeout(() => {
+        if (cancelled) return;
+        setTypedCount(count + 1);
+        typeNext(count + 1);
+      }, getTypingDelay(count));
+    };
+
+    timerId = window.setTimeout(() => typeNext(0), TYPING_START_DELAY);
 
     return () => {
-      window.clearTimeout(typingStartId);
-      if (typingIntervalId !== undefined) {
-        window.clearInterval(typingIntervalId);
-      }
+      cancelled = true;
+      window.clearTimeout(timerId);
     };
   }, [isVisible]);
 

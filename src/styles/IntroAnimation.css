@@ -33,6 +33,27 @@
   animation: intro-shadow-pulse 1.4s both;
 }
 
+.intro-animation-tagline {
+  margin: 18px 0 0;
+  color: #6d23ed;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  opacity: 0;
+  animation: intro-tagline-in 0.4s ease 1s forwards;
+}
+
+@keyframes intro-tagline-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* 로고가 위에서 떨어져 통통 튀며 착지하는 카툰 모션 */
 @keyframes intro-logo-bounce {
   0% {

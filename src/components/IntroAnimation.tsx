@@ -28,6 +28,7 @@ export default function IntroAnimation() {
           <QvickLogoIcon />
         </div>
         <div className="intro-animation-shadow" />
+        <p className="intro-animation-tagline">기숙사 관리 플랫폼</p>
       </div>
     </div>
   );

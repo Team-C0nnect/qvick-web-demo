@@ -32,7 +32,7 @@ function App() {
   return (
     <Router>
       <IntroAnimation />
-      <Suspense fallback={<div role="status">페이지를 불러오는 중...</div>}>
+      <Suspense fallback={null}>
         <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/terms" element={<Terms />} />

@@ -48,8 +48,8 @@
 .header-user-trigger {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
+  gap: 5px;
+  padding: 5px 8px;
   border: none;
   border-radius: 8px;
   background: transparent;
@@ -64,8 +64,8 @@
 }
 
 .user-chevron {
-  width: 10px;
-  height: 6px;
+  width: 9px;
+  height: 5px;
   color: #8e8e99;
   transition: transform 0.2s ease;
 }
@@ -120,9 +120,9 @@
 }
 
 .user-avatar-small {
-  width: 22px;
-  height: 22px;
-  font-size: 11px;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
 }
 
 .user-dropdown-name {
@@ -327,7 +327,7 @@
 }
 
 .user-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #0f0f10;
 }

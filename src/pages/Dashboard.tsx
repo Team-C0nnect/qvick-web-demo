@@ -99,6 +99,62 @@ const getAttendanceStatus = (
     ? attendance.morningCheckStatus
     : attendance.nightCheckStatus;
 
+const toPercent = (value: number, total: number): string =>
+  total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0.0%';
+
+const DONUT_SEGMENTS = [
+  { key: 'present', color: '#22c55e' },
+  { key: 'absent', color: '#ef4444' },
+  { key: 'late', color: '#f59e0b' },
+  { key: 'sleepover', color: '#8b5cf6' },
+] as const;
+
+function PeriodDonut({ summary }: { summary: AttendanceSummary }) {
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const total = summary.total;
+
+  let accumulated = 0;
+  const segments = DONUT_SEGMENTS.map(({ key, color }) => {
+    const length = total > 0 ? (summary[key] / total) * circumference : 0;
+    const segment = { key, color, length, offset: accumulated };
+    accumulated += length;
+    return segment;
+  }).filter((segment) => segment.length > 0);
+
+  return (
+    <div className="period-donut">
+      <svg viewBox="0 0 100 100" role="img" aria-label="출결 현황 비율">
+        <circle
+          className="period-donut-track"
+          cx="50"
+          cy="50"
+          r={radius}
+          fill="none"
+          strokeWidth="11"
+        />
+        {segments.map((segment) => (
+          <circle
+            key={segment.key}
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            stroke={segment.color}
+            strokeWidth="11"
+            strokeDasharray={`${segment.length} ${circumference - segment.length}`}
+            strokeDashoffset={-segment.offset}
+          />
+        ))}
+      </svg>
+      <div className="period-donut-center">
+        <span>전체</span>
+        <strong>{total}명</strong>
+      </div>
+    </div>
+  );
+}
+
 const buildAttendanceSummary = (
   attendances: AttendanceResponse[],
   attendanceType: AttendanceType,
@@ -330,38 +386,43 @@ export default function Dashboard() {
                     </span>
                   </div>
 
-                  <div className="period-card-rate">
-                    <strong>{summary.rate}%</strong>
-                    <span>
-                      {summary.attended}/{summary.target}명
-                    </span>
-                  </div>
-
-                  <div
-                    className="period-progress"
-                    aria-label={`${config.rateLabel} ${summary.rate}%`}
-                  >
-                    <span
-                      className="period-progress-complete"
-                      style={{ width: `${summary.presentRate}%` }}
-                    />
-                    <span
-                      className="period-progress-late"
-                      style={{ width: `${summary.lateRate}%` }}
-                    />
-                  </div>
-
-                  <div className="period-card-footer">
-                    <span>
-                      {config.completeLabel} {summary.present}명
-                    </span>
-                    <span>
-                      {config.absentLabel} {summary.absent}명
-                    </span>
-                    <span>
-                      {config.lateLabel} {summary.late}명
-                    </span>
-                    <span>외박 {summary.sleepover}명</span>
+                  <div className="period-card-body">
+                    <PeriodDonut summary={summary} />
+                    <ul className="period-legend">
+                      {[
+                        {
+                          label: config.completeLabel,
+                          value: summary.present,
+                          tone: 'present',
+                        },
+                        {
+                          label: config.absentLabel,
+                          value: summary.absent,
+                          tone: 'absent',
+                        },
+                        {
+                          label: config.lateLabel,
+                          value: summary.late,
+                          tone: 'late',
+                        },
+                        {
+                          label: '외박',
+                          value: summary.sleepover,
+                          tone: 'sleepover',
+                        },
+                      ].map((item) => (
+                        <li key={item.label}>
+                          <span className="legend-label">
+                            <i className={`legend-dot ${item.tone}`} />
+                            {item.label}
+                          </span>
+                          <span className="legend-value">
+                            {item.value}명{' '}
+                            <em>({toPercent(item.value, summary.total)})</em>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </article>
               );

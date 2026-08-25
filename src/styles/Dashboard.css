@@ -144,50 +144,116 @@
   color: #4f46e5;
 }
 
-.period-card-rate {
+.period-card-body {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 18px;
 }
 
-.period-card-rate strong {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+/* 도넛 차트 */
+.period-donut {
+  position: relative;
+  width: 118px;
+  height: 118px;
+  flex-shrink: 0;
 }
 
-.period-card-rate > span {
+.period-donut svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.period-donut-track {
+  stroke: #f1f1f3;
+}
+
+.period-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.period-donut-center span {
   color: #747678;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.period-donut-center strong {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+/* 범례 */
+.period-legend {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.period-legend li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f4f4f5;
+}
+
+.period-legend li:last-child {
+  border-bottom: none;
+}
+
+.legend-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #52525b;
   font-size: 13px;
   font-weight: 600;
 }
 
-.period-progress {
-  display: flex;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #f1f1f3;
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
 }
 
-.period-progress > span {
-  height: 100%;
+.legend-dot.present {
+  background: #22c55e;
 }
 
-.period-progress-complete {
-  background: #6d23ed;
+.legend-dot.absent {
+  background: #ef4444;
 }
 
-.period-progress-late {
-  background: #c4b5fd;
+.legend-dot.late {
+  background: #f59e0b;
 }
 
-.period-card-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
+.legend-dot.sleepover {
+  background: #8b5cf6;
+}
+
+.legend-value {
+  color: #0f0f10;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.legend-value em {
   color: #747678;
-  font-size: 12.5px;
+  font-style: normal;
   font-weight: 600;
 }
 
@@ -373,7 +439,14 @@
     font-size: 22px;
   }
 
-  .period-card-rate strong {
-    font-size: 28px;
+  .period-card-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .period-donut {
+    width: 104px;
+    height: 104px;
+    margin: 0 auto;
   }
 }

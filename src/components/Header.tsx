@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import apiClient from '../lib/api-client';
 import { authService } from '../services/auth.service';
+import { useTheme } from '../hooks/useTheme';
+import type { Theme } from '../hooks/useTheme';
 import defaultProfileImage from '../assets/default-profile.svg';
 import '../styles/Header.css';
 import type { MyUserResponse } from '../types/api';
@@ -13,8 +15,6 @@ import { useAttendanceView } from '../context/AttendanceViewContext';
 interface HeaderProps {
   actions?: ReactNode;
 }
-
-type ThemeOption = 'light' | 'dark' | 'system';
 
 function SunIcon() {
   return (
@@ -53,7 +53,7 @@ function LogoutIcon() {
 }
 
 const THEME_OPTIONS: {
-  value: ThemeOption;
+  value: Theme;
   label: string;
   Icon: () => ReactElement;
 }[] = [
@@ -67,7 +67,7 @@ export default function Header({ actions }: HeaderProps) {
   const queryClient = useQueryClient();
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
-  const [theme, setTheme] = useState<ThemeOption>('system');
+  const { theme, setTheme } = useTheme();
   const { attendanceView, setAttendanceView } = useAttendanceView();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const isOpen = isHovered || isPinned;

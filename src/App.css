@@ -5,6 +5,24 @@
   box-sizing: border-box;
 }
 
+:root {
+  color-scheme: light;
+  --app-background: #fafafa;
+  --app-surface: #ffffff;
+  --app-text: #0f0f10;
+  --app-text-secondary: #747678;
+  --app-border: #ececef;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --app-background: #161618;
+  --app-surface: #1f1f23;
+  --app-text: #f4f4f5;
+  --app-text-secondary: #a1a1aa;
+  --app-border: #2e2e33;
+}
+
 #root {
   width: 100%;
   min-height: 100vh;
@@ -12,7 +30,7 @@
 
 body {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  background-color: #fafafa;
-  color: #0f0f10;
+  background-color: var(--app-background);
+  color: var(--app-text);
 }
 

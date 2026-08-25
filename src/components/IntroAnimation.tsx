@@ -28,6 +28,11 @@ function markIntroPlayed(): void {
   }
 }
 
+// React 마운트 전에 플래그를 확정해 새로고침 시 재생을 확실히 막는다
+if (!hasIntroPlayed()) {
+  markIntroPlayed();
+}
+
 export default function IntroAnimation() {
   const [isVisible, setIsVisible] = useState(() => !hasIntroPlayed());
   const [isLeaving, setIsLeaving] = useState(false);
@@ -35,8 +40,6 @@ export default function IntroAnimation() {
 
   useEffect(() => {
     if (!isVisible) return;
-
-    markIntroPlayed();
 
     let cancelled = false;
     let timerId: number;

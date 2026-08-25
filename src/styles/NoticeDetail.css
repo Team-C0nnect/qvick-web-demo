@@ -242,14 +242,6 @@
   background: #eff0f1;
 }
 
-.author-avatar-fallback {
-  display: grid;
-  place-items: center;
-  color: #6d23ed;
-  font-size: 13px;
-  font-weight: 800;
-}
-
 .author-name {
   color: #0f0f10;
   font-size: 15px;

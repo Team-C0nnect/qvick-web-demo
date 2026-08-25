@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import apiClient from '../lib/api-client';
 import { authService } from '../services/auth.service';
+import defaultProfileImage from '../assets/default-profile.svg';
 import '../styles/Header.css';
 import type { MyUserResponse } from '../types/api';
 import { ChevronDownIcon, QvickLogoIcon } from './Icons';
@@ -115,7 +116,7 @@ export default function Header({ actions }: HeaderProps) {
     ? `${user.name} 선생님`
     : user?.name;
 
-  const profileInitial = user?.name?.charAt(0) ?? '';
+  const profileImage = user?.avatarUrl || defaultProfileImage;
 
   return (
     <header className="header">
@@ -143,7 +144,7 @@ export default function Header({ actions }: HeaderProps) {
               onClick={() => setIsPinned((pinned) => !pinned)}
             >
               <span className="user-avatar user-avatar-small">
-                {profileInitial}
+                <img src={profileImage} alt="" />
               </span>
               <span className="user-name">{displayName}</span>
               <ChevronDownIcon className="user-chevron" />
@@ -193,7 +194,9 @@ export default function Header({ actions }: HeaderProps) {
                 <div className="user-dropdown-divider" />
 
                 <div className="user-dropdown-profile">
-                  <span className="user-avatar">{profileInitial}</span>
+                  <span className="user-avatar">
+                    <img src={profileImage} alt="" />
+                  </span>
                   <span className="user-dropdown-name">{displayName}</span>
                 </div>
 

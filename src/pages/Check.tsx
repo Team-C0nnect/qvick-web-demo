@@ -407,14 +407,14 @@ export default function Check() {
         >
           <button
             type="button"
-            className="header-attendance-period-button"
+            className="header-attendance-period-button check-period-button"
             onClick={handlePreviousAttendancePeriod}
           >
             ← 이전 점호
           </button>
           <button
             type="button"
-            className="header-attendance-period-button"
+            className="header-attendance-period-button check-period-button"
             onClick={handleNextAttendancePeriod}
           >
             다음 점호 →

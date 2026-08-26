@@ -1595,7 +1595,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1284px) {
   .schedule-page {
     grid-template-columns: 1fr;
     padding: 28px 24px;
@@ -2479,7 +2479,7 @@
   line-height: 1.5;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1284px) {
   .schedule-page {
     grid-template-columns: 1fr;
     padding: 24px;

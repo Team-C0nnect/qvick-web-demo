@@ -969,28 +969,6 @@ export default function Check() {
   return (
     <div className="check-page">
       <div className="controls-section">
-        <div className="controls-left">
-          <div className="date-picker">
-            <input
-              type="date"
-              value={currentDate}
-              onChange={(e) => {
-                setCurrentDate(e.target.value);
-                markManual();
-              }}
-            />
-          </div>
-          <div className="search-box">
-            <SearchIcon className="search-icon" />
-            <input
-              type="text"
-              placeholder="호실 / 이름으로 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
         <div className="stats-section">
           <div className="stat-box">전체 : {stats.total}명</div>
           <div className="stat-box attendance">
@@ -1025,6 +1003,28 @@ export default function Check() {
               </div>
             </>
           )}
+        </div>
+
+        <div className="controls-left">
+          <div className="date-picker">
+            <input
+              type="date"
+              value={currentDate}
+              onChange={(e) => {
+                setCurrentDate(e.target.value);
+                markManual();
+              }}
+            />
+          </div>
+          <div className="search-box">
+            <SearchIcon className="search-icon" />
+            <input
+              type="text"
+              placeholder="호실 / 이름으로 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 

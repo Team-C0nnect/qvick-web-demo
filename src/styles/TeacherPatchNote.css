@@ -96,7 +96,7 @@
   border-radius: 12px;
   overflow: hidden;
   position: sticky;
-  top: 24px;
+  top: calc(60px + 24px);
 }
 
 .teacher-patchnote-sidebar .sidebar-header {

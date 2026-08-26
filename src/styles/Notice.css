@@ -9,7 +9,8 @@
 .notice-page > .notice-page-header,
 .notice-page > .notice-toolbar,
 .notice-page > .notice-list-header,
-.notice-page > .notice-grid {
+.notice-page > .notice-grid,
+.notice-page > .notice-skeleton {
   width: min(1180px, 100%);
   margin-left: auto;
   margin-right: auto;

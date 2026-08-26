@@ -1,5 +1,5 @@
 /* Room Modal - 방 추가 / 제출함 모달 공용 (모달 자체 스코핑, ConfirmationModal 패턴 기준) */
-.room-modal-backdrop .room-modal-backdrop {
+.room-modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 1100;
@@ -220,17 +220,17 @@
 }
 
 @media (max-width: 640px) {
-.room-modal-backdrop {
+  .room-modal-backdrop {
     align-items: flex-end;
     padding: 12px;
   }
 
-.room-modal-backdrop .room-modal {
+  .room-modal-backdrop .room-modal {
     width: 100%;
   }
 
-.room-modal-backdrop .room-modal-header,
-.room-modal-backdrop .room-modal-form {
+  .room-modal-backdrop .room-modal-header,
+  .room-modal-backdrop .room-modal-form {
     padding-left: 18px;
     padding-right: 18px;
   }

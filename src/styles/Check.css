@@ -614,7 +614,7 @@
   text-align: center;
 }
 
-.check-page .student-table tbody tr:not(:has(td[colspan])):hover td {
+.check-page .student-table tbody tr:not(.sleepover-empty-row):hover td {
   background: #fafafa;
 }
 
@@ -948,7 +948,7 @@
     background: #ffffff;
   }
 
-  .check-page .student-table tbody tr:not(:has(td[colspan])):hover td {
+  .check-page .student-table tbody tr:not(.sleepover-empty-row):hover td {
     background: transparent;
   }
 

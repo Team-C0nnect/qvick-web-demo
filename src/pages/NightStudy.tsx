@@ -307,7 +307,7 @@ export default function NightStudy() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
+              <tr className="sleepover-empty-row">
                 <td colSpan={6} className="sleepover-empty-cell">
                   심야자습 현황을 불러오는 중입니다.
                 </td>
@@ -328,7 +328,7 @@ export default function NightStudy() {
                 </tr>
               ))
             ) : (
-              <tr>
+              <tr className="sleepover-empty-row">
                 <td colSpan={6} className="sleepover-empty-cell">
                   조건에 맞는 학생이 없습니다.
                 </td>

@@ -1,220 +1,222 @@
-/* Phone Box Page - Room.css 레이아웃을 재사용하고 제출함 전용 요소만 정의 */
-.phonebox-grid {
+/* Phone Box Page - Room.css 레이아웃을 재사용하고 제출함 전용 요소만 정의 (.phonebox-page 루트 스코핑) */
+
+/* 제출함 카드 */
+.phonebox-page .phonebox-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
   gap: 12px;
 }
 
-.phonebox-card {
+.phonebox-page .phonebox-card {
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 18px;
-  border: 1px solid #e6e6e7;
-  border-radius: 8px;
-  background: #fafafa;
-  transition:
-    border-color 0.2s,
-    background-color 0.2s,
-    box-shadow 0.2s;
-}
-
-.phonebox-card:hover {
-  border-color: #6d23ed;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
   background: #ffffff;
-  box-shadow: 0 8px 22px rgba(109, 35, 237, 0.1);
+  transition: border-color 0.15s ease;
 }
 
-.phonebox-card-head {
+.phonebox-page .phonebox-card:hover {
+  border-color: #c9c9cc;
+}
+
+.phonebox-page .phonebox-card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
-.phonebox-card-name {
+.phonebox-page .phonebox-card-name {
   min-width: 0;
   margin: 0;
   overflow: hidden;
   color: #0f0f10;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
   line-height: 1.3;
+  letter-spacing: -0.2px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.phonebox-gender-badge {
+.phonebox-page .phonebox-gender-badge {
   flex-shrink: 0;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border: 1px solid transparent;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.phonebox-gender-badge.male {
+.phonebox-page .phonebox-gender-badge.male {
   border-color: rgba(37, 99, 235, 0.2);
   background: rgba(37, 99, 235, 0.08);
   color: #2563eb;
 }
 
-.phonebox-gender-badge.female {
+.phonebox-page .phonebox-gender-badge.female {
   border-color: rgba(219, 39, 119, 0.2);
   background: rgba(219, 39, 119, 0.08);
   color: #db2777;
 }
 
-.phonebox-gender-badge.all {
-  border-color: rgba(109, 35, 237, 0.2);
-  background: rgba(109, 35, 237, 0.08);
+.phonebox-page .phonebox-gender-badge.all {
+  border-color: rgba(109, 35, 237, 0.25);
+  background: #ede9fe;
   color: #6d23ed;
 }
 
-.phonebox-card-count {
+.phonebox-page .phonebox-card-count {
   margin: 0;
   color: #747678;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.phonebox-card-count strong {
+.phonebox-page .phonebox-card-count strong {
   color: #0f0f10;
-  font-weight: 800;
+  font-weight: 700;
 }
 
-.phonebox-card-preview {
+.phonebox-page .phonebox-card-preview {
   min-height: 30px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.phonebox-student-chip {
+.phonebox-page .phonebox-student-chip {
   padding: 4px 9px;
-  border: 1px solid #e6e6e7;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #5d5f60;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: #fafafa;
+  color: #52525b;
   font-size: 12px;
-  font-weight: 700;
-}
-
-.phonebox-student-chip.more {
-  border-style: dashed;
-  color: #9e9e9f;
-}
-
-.phonebox-empty-preview {
-  color: #b0b2b4;
-  font-size: 13px;
   font-weight: 600;
 }
 
-.phonebox-card-actions {
+.phonebox-page .phonebox-student-chip.more {
+  border-style: dashed;
+  border-color: #e4e4e7;
+  background: #ffffff;
+  color: #747678;
+}
+
+.phonebox-page .phonebox-empty-preview {
+  color: #a1a1aa;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.phonebox-page .phonebox-card-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid #e6e6e7;
+  border-top: 1px solid #f4f4f5;
 }
 
-.phonebox-manage-button {
+.phonebox-page .phonebox-manage-button {
   flex: 1;
-  min-height: 36px;
+  min-height: 34px;
   padding: 0 12px;
-  border: 1px solid #d7ccfb;
+  border: 1px solid #e4e4e7;
   border-radius: 8px;
   background: #ffffff;
-  color: #6d23ed;
+  color: #52525b;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    border-color 0.2s,
-    background-color 0.2s;
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.phonebox-manage-button:hover {
-  border-color: #6d23ed;
-  background: rgba(109, 35, 237, 0.08);
+.phonebox-page .phonebox-manage-button:hover {
+  border-color: #d4d4d8;
+  background: #f4f4f5;
+  color: #3f3f46;
 }
 
-.phonebox-icon-button {
-  width: 36px;
-  height: 36px;
+.phonebox-page .phonebox-icon-button {
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid #e6e6e7;
+  border: 1px solid #e4e4e7;
   border-radius: 8px;
   background: #ffffff;
-  color: #5d5f60;
+  color: #747678;
   cursor: pointer;
   transition:
-    border-color 0.2s,
-    background-color 0.2s,
-    color 0.2s;
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.phonebox-icon-button:hover {
-  border-color: #6d23ed;
-  background: rgba(109, 35, 237, 0.05);
-  color: #6d23ed;
+.phonebox-page .phonebox-icon-button:hover {
+  border-color: #d4d4d8;
+  background: #f4f4f5;
+  color: #3f3f46;
 }
 
-.phonebox-icon-button.danger:hover {
-  border-color: #ff4242;
-  background: #ff4242;
-  color: #ffffff;
+.phonebox-page .phonebox-icon-button.danger:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
 }
 
-.phonebox-action-icon {
+.phonebox-page .phonebox-action-icon {
   width: 16px;
   height: 16px;
 }
 
 /* 제출함 생성 모달 - 기숙사 선택 */
-.phonebox-gender-options {
+.phonebox-page .phonebox-gender-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
-.phonebox-gender-option {
-  min-height: 46px;
+.phonebox-page .phonebox-gender-option {
+  min-height: 42px;
   padding: 0 14px;
-  border: 1px solid #e6e6e7;
+  border: 1px solid #e4e4e7;
   border-radius: 8px;
   background: #ffffff;
-  color: #5d5f60;
-  font-size: 14px;
-  font-weight: 700;
+  color: #52525b;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    border-color 0.2s,
-    background-color 0.2s,
-    color 0.2s,
-    opacity 0.2s;
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
 }
 
-.phonebox-gender-option:hover:not(:disabled) {
-  border-color: #6d23ed;
+.phonebox-page .phonebox-gender-option:hover:not(:disabled):not(.active) {
+  border-color: #d4d4d8;
+  background: #f4f4f5;
+}
+
+.phonebox-page .phonebox-gender-option.active {
+  border-color: rgba(109, 35, 237, 0.3);
+  background: #ede9fe;
   color: #6d23ed;
 }
 
-.phonebox-gender-option.active {
-  border-color: #6d23ed;
-  background: rgba(109, 35, 237, 0.08);
-  color: #6d23ed;
-}
-
-.phonebox-gender-option:disabled {
+.phonebox-page .phonebox-gender-option:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -224,23 +226,23 @@
   width: min(640px, 100%);
 }
 
-.phonebox-modal-subtitle {
+.phonebox-page .phonebox-modal-subtitle {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 8px 0 0;
   color: #747678;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.phonebox-modal-form {
+.phonebox-page .phonebox-modal-form {
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
-.phonebox-modal-body {
+.phonebox-page .phonebox-modal-body {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -250,81 +252,85 @@
 
 .phonebox-page .phonebox-modal-actions {
   padding: 16px 24px;
-  border-top: 1px solid #e6e6e7;
+  border-top: 1px solid #f4f4f5;
   background: #ffffff;
 }
 
-.phonebox-page .phonebox-student-list {
+.room-modal-backdrop .phonebox-modal .phonebox-student-list {
   max-height: 232px;
 }
 
-.phonebox-page .sleepover-student-option.assigned:disabled {
-  border-style: dashed;
-  background: #f5f5f5;
-  color: #9e9e9f;
-  opacity: 1;
+/* 학생 관리 모달 요청 에러 배너 */
+.phonebox-page .phonebox-modal-body .sleepover-message.error {
+  margin-bottom: 0;
+  padding: 12px 16px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
-.phonebox-page .sleepover-student-option.assigned .sleepover-student-meta {
-  color: #6d23ed;
-}
-
-.phonebox-section-head {
+.phonebox-page .phonebox-section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.phonebox-assigned-row {
+.phonebox-page .phonebox-assigned-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 10px 14px;
-  border: 1px solid #e6e6e7;
-  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
   background: #ffffff;
   color: #0f0f10;
 }
 
-.phonebox-assigned-meta {
+.phonebox-page .phonebox-assigned-meta {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.phonebox-remove-button {
-  border: 1px solid #ff4242;
+.phonebox-page .phonebox-remove-button {
+  padding: 5px 10px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
   background: transparent;
-  color: #ff4242;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 700;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    background-color 0.2s,
-    color 0.2s,
-    opacity 0.2s;
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
 }
 
-.phonebox-remove-button:hover:not(:disabled) {
-  background: #ff4242;
+.phonebox-page .phonebox-remove-button:hover:not(:disabled) {
+  border-color: #ef4444;
+  background: #ef4444;
   color: #ffffff;
 }
 
-.phonebox-remove-button:disabled {
+.phonebox-page .phonebox-remove-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
 @media (max-width: 640px) {
-  .phonebox-grid {
+  .phonebox-page .phonebox-grid {
     grid-template-columns: 1fr;
   }
 
-  .phonebox-modal-body {
+  .phonebox-page .phonebox-modal-body {
     padding-left: 18px;
     padding-right: 18px;
   }
@@ -335,7 +341,7 @@
     padding-right: 18px;
   }
 
-  .phonebox-assigned-row {
+  .phonebox-page .phonebox-assigned-row {
     align-items: flex-start;
     flex-direction: column;
   }

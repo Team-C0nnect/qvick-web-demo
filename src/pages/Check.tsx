@@ -273,7 +273,6 @@ export default function Check() {
     isManual: isPeriodManuallySelected,
     setAttendanceView: setAttendanceType,
     syncAttendanceView,
-    markManual,
     resetToAuto,
   } = useAttendanceView();
   const [searchQuery, setSearchQuery] = useState('');
@@ -1006,16 +1005,6 @@ export default function Check() {
         </div>
 
         <div className="controls-left">
-          <div className="date-picker">
-            <input
-              type="date"
-              value={currentDate}
-              onChange={(e) => {
-                setCurrentDate(e.target.value);
-                markManual();
-              }}
-            />
-          </div>
           <div className="search-box">
             <SearchIcon className="search-icon" />
             <input

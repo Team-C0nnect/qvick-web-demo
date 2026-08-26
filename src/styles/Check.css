@@ -39,36 +39,12 @@
   gap: 12px;
 }
 
-.check-page .date-picker input {
-  min-height: 40px;
-  padding: 8px 12px;
-  border: 1px solid #e4e4e7;
-  border-radius: 10px;
-  background: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-  color: #0f0f10;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.check-page .date-picker input:hover {
-  border-color: #c9c9cc;
-}
-
-.check-page .date-picker input:focus {
-  outline: none;
-  border-color: #6d23ed;
-  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.12);
-}
-
 .check-page .search-box {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 280px;
+  flex: 1;
+  min-width: 0;
   min-height: 40px;
   padding: 0 14px;
   border: 1px solid #e4e4e7;
@@ -870,7 +846,6 @@
     align-items: stretch;
   }
 
-  .check-page .date-picker input,
   .check-page .search-box {
     width: 100%;
   }

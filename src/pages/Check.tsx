@@ -390,9 +390,9 @@ export default function Check() {
 
   useEffect(() => {
     setHeaderActions(
-      <div className="header-attendance-period-controls">
+      <div className="header-attendance-period-controls check-period-controls">
         <span
-          className={`header-attendance-period-summary ${
+          className={`header-attendance-period-summary check-period-summary ${
             isViewingCurrentAttendancePeriod ? 'is-current' : ''
           }`}
         >
@@ -402,19 +402,19 @@ export default function Check() {
           <span>{ATTENDANCE_PERIOD_LABELS[attendanceType].title}</span>
         </span>
         <div
-          className="header-attendance-period-navigation"
+          className="header-attendance-period-navigation check-period-navigation"
           aria-label="점호 회차 이동"
         >
           <button
             type="button"
-            className="header-attendance-period-button"
+            className="header-attendance-period-button check-period-button"
             onClick={handlePreviousAttendancePeriod}
           >
             ← 이전 점호
           </button>
           <button
             type="button"
-            className="header-attendance-period-button"
+            className="header-attendance-period-button check-period-button"
             onClick={handleNextAttendancePeriod}
           >
             다음 점호 →

@@ -1,4 +1,6 @@
-/* 패치노트 공개 페이지 스타일 - Qvick 디자인 시스템 */
+/* 패치노트 공개 페이지 스타일
+   - 대시보드/사이드바/탑바 톤의 디자인 토큰 적용 (배경 #fafafa, 카드 보더 중심, 그림자 없음)
+   - 모든 선택자는 .patchnote-page 하위로 스코핑하여 다른 페이지와의 충돌 방지 */
 
 .patchnote-page {
   min-height: 100vh;
@@ -7,145 +9,117 @@
   flex-direction: column;
 }
 
-.patchnote-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  gap: 16px;
-}
-
-/* 스켈레톤 로딩 */
-.skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+/* 로딩 스켈레톤 (페이지 스코프 내에서만 적용) */
+.patchnote-page .skeleton {
+  background: linear-gradient(90deg, #f1f1f3 25%, #e9e9ec 50%, #f1f1f3 75%);
   background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
+  animation: pn-skeleton-loading 1.5s infinite ease-in-out;
   border-radius: 4px;
 }
 
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+@keyframes pn-skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-.article-content-skeleton {
+.patchnote-page .article-content-skeleton {
   padding: 0;
 }
 
-.skeleton-line {
-  height: 16px;
+.patchnote-page .skeleton-line {
+  height: 14px;
   margin-bottom: 12px;
   border-radius: 4px;
 }
 
-.skeleton-line.title {
-  height: 24px;
+.patchnote-page .skeleton-line.title {
+  height: 22px;
   width: 60%;
   margin-bottom: 20px;
 }
 
-.skeleton-line.short {
+.patchnote-page .skeleton-line.short {
   width: 40%;
 }
 
-.skeleton-line.medium {
+.patchnote-page .skeleton-line.medium {
   width: 70%;
 }
 
-.skeleton-line.long {
+.patchnote-page .skeleton-line.long {
   width: 90%;
 }
 
-/* 사이드바 스켈레톤 아이템 */
-.version-item.skeleton-item {
+.patchnote-page .version-item.skeleton-item {
   cursor: default;
   pointer-events: none;
-  padding: 16px;
 }
 
-.version-item.skeleton-item:hover {
+.patchnote-page .version-item.skeleton-item:hover {
   background: transparent;
-  transform: none;
 }
 
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #e6e6e7;
-  border-top-color: #6d23ed;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.patchnote-loading p {
-  font-size: 14px;
-  color: #747678;
-}
-
-/* 헤더 */
-.patchnote-header {
+/* 헤더 (탑바 톤: 밝은 배경 + 크롬 보더, 은은한 장식) */
+.patchnote-page .patchnote-header {
   position: relative;
-  padding: 60px 24px 80px;
-  background: linear-gradient(135deg, #0f0f10 0%, #1a1a2e 100%);
   overflow: hidden;
+  padding: 48px 24px 44px;
+  background: #ffffff;
+  border-bottom: 1px solid #ececef;
 }
 
-.header-content {
+.patchnote-page .header-content {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: 1180px;
   margin: 0 auto;
   text-align: center;
 }
 
-.header-brand {
+.patchnote-page .header-brand {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  cursor: pointer;
-  transition: opacity 0.2s;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.header-brand:hover {
-  opacity: 0.8;
+.patchnote-page .qvick-logo {
+  width: 40px;
+  height: 40px;
 }
 
-.qvick-logo {
-  width: 48px;
-  height: 48px;
+.patchnote-page .qvick-logo path:not([fill^='url']) {
+  fill: #0f0f10;
 }
 
-.qvick-logo path:not([fill^="url"]) {
-  fill: #fff;
-}
-
-.brand-text {
-  font-size: 28px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.header-title {
-  font-size: 48px;
+.patchnote-page .brand-text {
+  font-size: 20px;
   font-weight: 800;
-  color: #fff;
-  margin: 0 0 12px;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.3px;
+  color: #0f0f10;
 }
 
-.header-subtitle {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.7);
+.patchnote-page .header-title {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #0f0f10;
+}
+
+.patchnote-page .header-subtitle {
   margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #747678;
 }
 
-.header-decoration {
+/* 헤더 장식 (밝은 배경 위 은은한 브랜드 컬러 워시) */
+.patchnote-page .header-decoration {
   position: absolute;
   top: 0;
   left: 0;
@@ -154,496 +128,569 @@
   pointer-events: none;
 }
 
-.decoration-circle {
+.patchnote-page .decoration-circle {
   position: absolute;
   border-radius: 50%;
-  opacity: 0.1;
 }
 
-.circle-1 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(135deg, #6d23ed, #1492fc);
-  top: -200px;
-  right: -100px;
+.patchnote-page .circle-1 {
+  width: 420px;
+  height: 420px;
+  top: -260px;
+  right: -120px;
+  background: radial-gradient(closest-side, rgba(109, 35, 237, 0.08), rgba(109, 35, 237, 0));
 }
 
-.circle-2 {
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(135deg, #897eed, #6d23ed);
-  bottom: -150px;
-  left: -50px;
+.patchnote-page .circle-2 {
+  width: 320px;
+  height: 320px;
+  bottom: -200px;
+  left: -80px;
+  background: radial-gradient(closest-side, rgba(137, 126, 237, 0.07), rgba(137, 126, 237, 0));
 }
 
-.circle-3 {
-  width: 200px;
-  height: 200px;
-  background: linear-gradient(135deg, #1492fc, #6d23ed);
+.patchnote-page .circle-3 {
+  width: 240px;
+  height: 240px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(20, 146, 252, 0.05), rgba(20, 146, 252, 0));
 }
 
 /* 컨테이너 */
-.patchnote-container {
+.patchnote-page .patchnote-container {
   flex: 1;
-  max-width: 1200px;
   width: 100%;
-  margin: -40px auto 0;
-  padding: 0 24px 60px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 40px 64px;
   position: relative;
   z-index: 1;
 }
 
 /* 빈 상태 */
-.empty-state {
+.patchnote-page .patchnote-container .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 24px;
-  background: #fff;
-  border-radius: 16px;
+  padding: 64px 32px;
+  background: #ffffff;
+  border: 1px dashed #d8d2e7;
+  border-radius: 10px;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: 24px;
+.patchnote-page .empty-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
 }
 
-.empty-state h3 {
-  font-size: 20px;
-  font-weight: 600;
+.patchnote-page .empty-state h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
   color: #0f0f10;
-  margin: 0 0 8px;
 }
 
-.empty-state p {
-  font-size: 14px;
-  color: #747678;
+.patchnote-page .empty-state p {
   margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #747678;
 }
 
 /* 레이아웃 */
-.patchnote-layout {
+.patchnote-page .patchnote-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 280px minmax(0, 1fr);
+  align-items: start;
   gap: 24px;
 }
 
-/* 사이드바 */
-.patchnote-sidebar {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+/* 버전 목록 사이드바 */
+.patchnote-page .patchnote-sidebar {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 16px;
   height: fit-content;
   position: sticky;
   top: 24px;
 }
 
-.sidebar-header {
+.patchnote-page .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e6e6e7;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 2px 4px 12px;
+  border-bottom: 1px solid #ececef;
 }
 
-.sidebar-header h2 {
-  font-size: 16px;
+.patchnote-page .sidebar-header h2 {
+  margin: 0;
+  font-size: 17px;
   font-weight: 700;
   color: #0f0f10;
-  margin: 0;
 }
 
-.version-count {
-  font-size: 13px;
+.patchnote-page .version-count {
+  padding: 3px 9px;
+  background: #f4f4f5;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
   color: #747678;
-  background: #f3f4f6;
-  padding: 4px 10px;
-  border-radius: 12px;
 }
 
-.version-list {
+.patchnote-page .version-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.version-item {
+.patchnote-page .version-item {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
-  padding: 14px 16px;
-  background: #fafafa;
-  border: 2px solid transparent;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
   width: 100%;
+  padding: 11px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: background-color 0.15s ease;
 }
 
-.version-item:hover {
-  background: #f3f4f6;
+.patchnote-page .version-item:hover {
+  background: #f4f4f5;
 }
 
-.version-item.active {
-  background: linear-gradient(135deg, rgba(109, 35, 237, 0.05), rgba(20, 146, 252, 0.05));
-  border-color: #6d23ed;
+.patchnote-page .version-item:focus-visible {
+  outline: 2px solid #6d23ed;
+  outline-offset: 2px;
 }
 
-.version-item-header {
+.patchnote-page .version-item.active {
+  background: #ede9fe;
+}
+
+.patchnote-page .version-item.active .version-number,
+.patchnote-page .version-item.active .version-item-title {
+  color: #6d23ed;
+}
+
+.patchnote-page .version-item.active .version-item-date {
+  color: rgba(109, 35, 237, 0.7);
+}
+
+.patchnote-page .version-item-header {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.version-number {
-  font-size: 14px;
-  font-weight: 700;
+.patchnote-page .version-number {
+  font-size: 12px;
+  font-weight: 800;
   color: #6d23ed;
+  white-space: nowrap;
 }
 
-.category-dot {
+.patchnote-page .category-dot {
   width: 8px;
   height: 8px;
+  flex-shrink: 0;
   border-radius: 50%;
 }
 
-.version-item-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: #0f0f10;
+.patchnote-page .version-item-title {
   margin: 0;
-  line-height: 1.4;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3f3f46;
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.version-item-date {
+.patchnote-page .version-item-date {
   font-size: 12px;
+  font-weight: 600;
   color: #747678;
 }
 
 /* 메인 컨텐츠 */
-.patchnote-main {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+.patchnote-page .patchnote-main {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
   overflow: hidden;
 }
 
-.no-selection {
+.patchnote-page .patchnote-main .no-selection {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: 360px;
+  padding: 32px;
+  background: #ffffff;
+  border: 1px dashed #d8d2e7;
+  border-radius: 10px;
+  margin: 16px;
+}
+
+.patchnote-page .no-selection p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
   color: #747678;
-  font-size: 16px;
 }
 
 /* 아티클 */
-.patchnote-article {
-  padding: 40px;
+.patchnote-page .patchnote-article {
+  padding: 24px;
 }
 
-.article-header {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #e6e6e7;
+.patchnote-page .article-header {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ececef;
 }
 
-.article-meta {
+.patchnote-page .article-meta {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
-.category-badge {
+/* 뱃지 공통 형태 (카테고리 색상은 인라인 토큰 유지) */
+.patchnote-page .category-badge,
+.patchnote-page .version-badge {
   display: inline-flex;
   align-items: center;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.version-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 14px;
-  background: #f3f4f6;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
   font-weight: 700;
-  color: #374151;
-}
-
-.article-title {
-  font-size: 36px;
-  font-weight: 800;
-  color: #0f0f10;
-  margin: 0 0 16px;
   line-height: 1.3;
-  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
-.article-info {
+.patchnote-page .version-badge {
+  color: #52525b;
+  background: #f4f4f5;
+}
+
+.patchnote-page .article-title {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.35;
+  color: #0f0f10;
+}
+
+.patchnote-page .article-info {
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 600;
   color: #747678;
 }
 
-.article-date::after {
+.patchnote-page .article-author::before {
   content: '·';
-  margin-left: 16px;
+  margin-right: 12px;
 }
 
-/* 아티클 컨텐츠 */
-.article-content {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #374151;
+/* 마크다운 아티클 타이포그래피 */
+.patchnote-page .patchnote-article .article-content {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: #3f3f46;
 }
 
-.article-content h1 {
-  font-size: 28px;
-  font-weight: 800;
-  color: #0f0f10;
-  margin: 16px 0 12px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #e6e6e7;
-}
-
-.article-content h1:first-child {
+.patchnote-page .article-content > :first-child {
   margin-top: 0;
 }
 
-.article-content h2 {
-  font-size: 22px;
+.patchnote-page .article-content > :last-child {
+  margin-bottom: 0;
+}
+
+.patchnote-page .article-content h1 {
+  margin: 28px 0 12px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.35;
+  color: #0f0f10;
+}
+
+.patchnote-page .article-content h2 {
+  margin: 28px 0 12px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.4;
+  color: #0f0f10;
+}
+
+.patchnote-page .article-content h3 {
+  margin: 20px 0 8px;
+  font-size: 17px;
   font-weight: 700;
   color: #0f0f10;
-  margin: 16px 0 10px;
 }
 
-.article-content h2:first-child {
-  margin-top: 0;
+.patchnote-page .article-content h4,
+.patchnote-page .article-content h5,
+.patchnote-page .article-content h6 {
+  margin: 16px 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #3f3f46;
 }
 
-.article-content h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #374151;
-  margin: 12px 0 8px;
+.patchnote-page .article-content p {
+  margin: 10px 0;
 }
 
-.article-content h3:first-child {
-  margin-top: 0;
+.patchnote-page .article-content ul,
+.patchnote-page .article-content ol {
+  margin: 10px 0;
+  padding-left: 22px;
 }
 
-.article-content p {
-  margin: 12px 0;
+.patchnote-page .article-content ul {
+  list-style-type: disc;
 }
 
-.article-content ul {
-  padding-left: 24px;
-  margin: 8px 0;
-}
-
-.article-content li {
+.patchnote-page .article-content li {
   margin: 4px 0;
-  position: relative;
+  line-height: 1.6;
 }
 
-.article-content li::marker {
+.patchnote-page .article-content li::marker {
   color: #6d23ed;
 }
 
-.article-content code {
-  padding: 3px 8px;
-  background: linear-gradient(135deg, rgba(109, 35, 237, 0.08), rgba(20, 146, 252, 0.08));
-  border-radius: 6px;
-  font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
-  font-size: 14px;
-  color: #6d23ed;
-}
-
-.article-content strong {
-  font-weight: 600;
+.patchnote-page .article-content strong {
+  font-weight: 700;
   color: #0f0f10;
 }
 
-.article-content a {
-  color: #1492fc;
+.patchnote-page .article-content a {
+  color: #6d23ed;
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
 }
 
-.article-content a:hover {
+.patchnote-page .article-content a:hover {
   text-decoration: underline;
 }
 
-/* 푸터 */
-.patchnote-footer {
-  background: #0f0f10;
-  padding: 40px 24px;
+.patchnote-page .article-content code {
+  padding: 2px 6px;
+  background: #f4f4f5;
+  border-radius: 6px;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Fira Code', monospace;
+  font-size: 13px;
+  color: #6d23ed;
 }
 
-.footer-content {
-  max-width: 1200px;
+.patchnote-page .article-content pre {
+  margin: 12px 0;
+  padding: 12px 16px;
+  background: #f4f4f5;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.patchnote-page .article-content pre code {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  color: #3f3f46;
+}
+
+.patchnote-page .article-content blockquote {
+  margin: 12px 0;
+  padding: 2px 0 2px 14px;
+  border-left: 3px solid #e5e5e5;
+  color: #747678;
+}
+
+.patchnote-page .article-content hr {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid #ececef;
+}
+
+.patchnote-page .article-content table {
+  width: 100%;
+  margin: 12px 0;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.patchnote-page .article-content th,
+.patchnote-page .article-content td {
+  padding: 8px 12px;
+  border: 1px solid #ececef;
+  text-align: left;
+}
+
+.patchnote-page .article-content th {
+  background: #fafafa;
+  color: #0f0f10;
+  font-weight: 700;
+}
+
+/* 패치노트 이미지 */
+.patchnote-page .patchnote-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 16px 0;
+  border: 1px solid #ececef;
+  border-radius: 8px;
+}
+
+/* 푸터 (탑바 톤: 밝은 배경 + 크롬 보더) */
+.patchnote-page .patchnote-footer {
+  background: #ffffff;
+  border-top: 1px solid #ececef;
+  padding: 28px 40px;
+}
+
+.patchnote-page .footer-content {
+  max-width: 1180px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
 }
 
-.footer-brand {
+.patchnote-page .footer-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.footer-brand .qvick-logo {
-  width: 32px;
-  height: 32px;
+.patchnote-page .footer-brand .qvick-logo {
+  width: 24px;
+  height: 24px;
 }
 
-.footer-brand span {
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
+.patchnote-page .footer-brand span {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #0f0f10;
 }
 
-.footer-copyright {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.5);
+.patchnote-page .footer-copyright {
   margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #747678;
 }
 
 /* 반응형 */
 @media (max-width: 992px) {
-  .patchnote-layout {
+  .patchnote-page .patchnote-layout {
     grid-template-columns: 1fr;
   }
-  
-  .patchnote-sidebar {
+
+  .patchnote-page .patchnote-sidebar {
     position: static;
   }
-  
-  .version-list {
+
+  .patchnote-page .version-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
+    gap: 8px;
   }
 }
 
 @media (max-width: 768px) {
-  .patchnote-header {
-    padding: 40px 16px 60px;
+  .patchnote-page .patchnote-header {
+    padding: 36px 16px 36px;
   }
-  
-  .header-title {
-    font-size: 32px;
+
+  .patchnote-page .patchnote-container {
+    padding: 24px 16px 48px;
   }
-  
-  .header-subtitle {
-    font-size: 16px;
+
+  .patchnote-page .patchnote-sidebar {
+    padding: 12px;
   }
-  
-  .patchnote-container {
-    padding: 0 16px 40px;
-    margin-top: -30px;
-  }
-  
-  .patchnote-sidebar {
-    padding: 16px;
-  }
-  
-  .version-list {
+
+  .patchnote-page .version-list {
     grid-template-columns: 1fr;
   }
-  
-  .patchnote-article {
-    padding: 24px;
+
+  .patchnote-page .patchnote-article {
+    padding: 20px;
   }
-  
-  .article-title {
-    font-size: 24px;
+
+  .patchnote-page .article-title {
+    font-size: 22px;
   }
-  
-  .article-info {
+
+  .patchnote-page .article-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-  
-  .article-date::after {
+
+  .patchnote-page .article-author::before {
     display: none;
   }
-  
-  .footer-content {
+
+  .patchnote-page .patchnote-footer {
+    padding: 24px 16px;
+  }
+
+  .patchnote-page .footer-content {
     flex-direction: column;
-    gap: 16px;
     text-align: center;
   }
 }
 
 @media (max-width: 480px) {
-  .qvick-logo {
-    width: 36px;
-    height: 36px;
+  .patchnote-page .qvick-logo {
+    width: 32px;
+    height: 32px;
   }
-  
-  .brand-text {
-    font-size: 22px;
+
+  .patchnote-page .brand-text {
+    font-size: 18px;
   }
-  
-  .header-title {
-    font-size: 28px;
+
+  .patchnote-page .header-title {
+    font-size: 24px;
   }
-  
-  .article-meta {
-    flex-wrap: wrap;
+
+  .patchnote-page .patchnote-article {
+    padding: 16px;
   }
-}
 
-/* Visibility 배지 */
-.visibility-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.visibility-badge.teacher {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-/* 패치노트 이미지 */
-.patchnote-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 12px;
-  margin: 20px 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.article-content .patchnote-image {
-  display: block;
+  .patchnote-page .article-title {
+    font-size: 20px;
+  }
 }

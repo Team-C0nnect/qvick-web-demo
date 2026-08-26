@@ -325,7 +325,7 @@ export default function PhoneSubmission() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
+              <tr className="sleepover-empty-row">
                 <td colSpan={7} className="sleepover-empty-cell">
                   휴대폰 제출 현황을 불러오는 중입니다.
                 </td>
@@ -366,7 +366,7 @@ export default function PhoneSubmission() {
                 </tr>
               ))
             ) : (
-              <tr>
+              <tr className="sleepover-empty-row">
                 <td colSpan={7} className="sleepover-empty-cell">
                   조건에 맞는 학생이 없습니다.
                 </td>

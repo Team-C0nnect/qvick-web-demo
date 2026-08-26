@@ -207,7 +207,7 @@ export default function Sleepover() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
+              <tr className="sleepover-empty-row">
                 <td colSpan={7} className="sleepover-empty-cell">
                   외박자 목록을 불러오는 중입니다.
                 </td>
@@ -249,7 +249,7 @@ export default function Sleepover() {
                 );
               })
             ) : (
-              <tr>
+              <tr className="sleepover-empty-row">
                 <td colSpan={7} className="sleepover-empty-cell">
                   외박자가 없습니다.
                 </td>

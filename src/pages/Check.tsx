@@ -827,7 +827,8 @@ export default function Check() {
         const query = searchQuery.toLowerCase();
         if (
           !matchesKoreanNameSearch(student.name, searchQuery) &&
-          !student.room.toLowerCase().includes(query)
+          !student.room.toLowerCase().includes(query) &&
+          !student.studentId.includes(query)
         ) {
           return false;
         }
@@ -968,7 +969,7 @@ export default function Check() {
   return (
     <div className="check-page">
       <div className="controls-section">
-        <div className="stats-section">
+        <div className="stats-section check-stats">
           <div className="stat-box">전체 : {stats.total}명</div>
           <div className="stat-box attendance">
             {periodLabels.complete} :{' '}
@@ -1003,21 +1004,22 @@ export default function Check() {
             </>
           )}
         </div>
+      </div>
 
-        <div className="controls-left">
+      <div className="table-panel">
+        <div className="table-toolbar">
           <div className="search-box">
             <SearchIcon className="search-icon" />
             <input
               type="text"
-              placeholder="호실 / 이름으로 검색..."
+              placeholder="호실 / 이름 / 학번으로 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
-      </div>
 
-      <div className="filter-section">
+        <div className="table-filters">
         <div className="filter-group">
           <label className="filter-label">{periodLabels.title} 상태:</label>
           <div className="filter-buttons">
@@ -1205,9 +1207,9 @@ export default function Check() {
             )}
           </div>
         </div>
-      </div>
+        </div>
 
-      <div className="table-container">
+        <div className="table-container">
         <table
           className={`student-table ${
             attendanceType === 'MORNING' ? 'student-table-attendance-only' : ''
@@ -1286,6 +1288,7 @@ export default function Check() {
             })}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

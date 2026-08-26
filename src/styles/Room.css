@@ -1,157 +1,164 @@
-/* Room Page */
+/* Room Page - 방 관리 / 휴대폰 제출함 공통 레이아웃 (.room-page 루트 스코핑) */
 .room-page {
   min-height: calc(100vh - 60px);
+  padding: 32px 40px;
   background: #fafafa;
 }
 
-.room-container {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 32px;
-}
-
-.room-toolbar {
+.room-page .room-container {
+  width: min(1180px, 100%);
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-bottom: 18px;
-  padding: 24px;
-  border: 1px solid #e6e6e7;
-  border-radius: 8px;
+  gap: 32px;
+  margin: 0 auto;
+}
+
+/* Toolbar */
+.room-page .room-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
   background: #ffffff;
 }
 
-.room-toolbar-main {
+.room-page .room-toolbar-main {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
 
-.room-eyebrow {
+.room-page .room-eyebrow {
   margin: 0 0 4px;
-  color: #6d23ed;
+  color: #747678;
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.room-title {
+.room-page .room-title {
   margin: 0;
   color: #0f0f10;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
   line-height: 1.25;
-  letter-spacing: 0;
+  letter-spacing: -0.3px;
 }
 
-.create-room-button {
-  min-height: 42px;
-  padding: 0 18px;
+.room-page .create-room-button {
+  min-height: 38px;
+  padding: 0 16px;
   border: none;
   border-radius: 8px;
   background: #6d23ed;
   color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    background-color 0.2s,
-    transform 0.2s;
+    background-color 0.15s ease,
+    transform 0.15s ease;
   white-space: nowrap;
 }
 
-.create-room-button:hover {
-  background: #5919c7;
+.room-page .create-room-button:hover {
+  background: #5b1dc9;
 }
 
-.create-room-button:active {
+.room-page .create-room-button:active {
+  background: #4f19af;
   transform: translateY(1px);
 }
 
-.room-control-row {
+.room-page .room-control-row {
   display: grid;
   grid-template-columns: minmax(240px, 360px) 1fr;
   gap: 14px;
-  align-items: start;
+  align-items: center;
 }
 
-.room-search-box {
-  min-height: 42px;
+.room-page .room-search-box {
+  min-height: 38px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 14px;
-  border: 1px solid #e6e6e7;
+  padding: 0 12px;
+  border: 1px solid #e4e4e7;
   border-radius: 8px;
   background: #ffffff;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+  transition: border-color 0.15s ease;
 }
 
-.room-search-box:focus-within {
+.room-page .room-search-box:hover {
+  border-color: #d4d4d8;
+}
+
+.room-page .room-search-box:focus-within {
   border-color: #6d23ed;
-  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
 }
 
-.room-search-icon {
-  width: 18px;
-  height: 18px;
-  color: #9e9e9f;
+.room-page .room-search-icon {
+  width: 16px;
+  height: 16px;
+  color: #a1a1aa;
   flex-shrink: 0;
 }
 
-.room-search-input {
+.room-page .room-search-input {
   width: 100%;
   min-width: 0;
   border: none;
   outline: none;
   background: transparent;
   color: #0f0f10;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.room-search-input::placeholder {
-  color: #b0b2b4;
+.room-page .room-search-input::placeholder {
+  color: #a1a1aa;
+  font-weight: 500;
 }
 
-.room-floor-filters {
+.room-page .room-floor-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.floor-filter-button {
-  min-height: 42px;
+.room-page .floor-filter-button {
+  min-height: 38px;
   padding: 0 14px;
-  border: 1px solid #e6e6e7;
+  border: 1px solid #e4e4e7;
   border-radius: 8px;
   background: #ffffff;
-  color: #5d5f60;
+  color: #52525b;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    border-color 0.2s,
-    background-color 0.2s,
-    color 0.2s;
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.floor-filter-button:hover {
-  border-color: #6d23ed;
+.room-page .floor-filter-button:hover:not(.active) {
+  border-color: #d4d4d8;
+  background: #f4f4f5;
+}
+
+.room-page .floor-filter-button.active {
+  border-color: rgba(109, 35, 237, 0.3);
+  background: #ede9fe;
   color: #6d23ed;
 }
 
-.floor-filter-button.active {
-  border-color: #6d23ed;
-  background: rgba(109, 35, 237, 0.08);
-  color: #6d23ed;
-}
-
-.selection-bar {
+/* Selection Bar */
+.room-page .selection-bar {
   position: sticky;
   top: 72px;
   z-index: 5;
@@ -159,385 +166,385 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
   padding: 12px 16px;
-  border: 1px solid rgba(109, 35, 237, 0.2);
-  border-radius: 8px;
-  background: #f6f2ff;
-  color: #4a19a8;
-  font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 8px 24px rgba(15, 15, 16, 0.08);
+  border: 1px solid rgba(109, 35, 237, 0.25);
+  border-radius: 10px;
+  background: #ede9fe;
+  color: #6d23ed;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.selection-actions {
+.room-page .selection-actions {
   display: flex;
   gap: 8px;
 }
 
-.clear-selection-button,
-.delete-selected-button,
-.select-all-button {
+.room-page .clear-selection-button,
+.room-page .delete-selected-button,
+.room-page .select-all-button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: none;
   border-radius: 8px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    color 0.2s,
-    opacity 0.2s;
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
 }
 
-.clear-selection-button {
-  padding: 8px 12px;
-  border: 1px solid rgba(109, 35, 237, 0.24);
+.room-page .clear-selection-button {
+  border: 1px solid #e4e4e7;
   background: #ffffff;
-  color: #6d23ed;
+  color: #52525b;
 }
 
-.delete-selected-button {
-  padding: 8px 12px;
-  border: 1px solid #ff4242;
-  background: #ff4242;
+.room-page .clear-selection-button:hover:not(:disabled) {
+  border-color: #d4d4d8;
+  background: #f4f4f5;
+}
+
+.room-page .delete-selected-button {
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: #ffffff;
+  color: #ef4444;
+}
+
+.room-page .delete-selected-button:hover:not(:disabled) {
+  border-color: #ef4444;
+  background: #ef4444;
   color: #ffffff;
 }
 
-.clear-selection-button:hover:not(:disabled) {
-  border-color: #6d23ed;
+.room-page .select-all-button {
+  min-height: 34px;
+  background: transparent;
+  color: #747678;
 }
 
-.delete-selected-button:hover:not(:disabled) {
-  background: #e63939;
-  border-color: #e63939;
+.room-page .select-all-button:hover:not(:disabled) {
+  background: #f4f4f5;
+  color: #3f3f46;
 }
 
-.clear-selection-button:disabled,
-.delete-selected-button:disabled,
-.select-all-button:disabled {
+.room-page .clear-selection-button:disabled,
+.room-page .delete-selected-button:disabled,
+.room-page .select-all-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-.room-loading,
-.room-empty-state,
-.room-error-banner {
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-.room-loading {
+/* Loading / Empty / Error */
+.room-page .room-loading {
   padding: 64px 20px;
-  text-align: center;
+  border: 1px solid #ececef;
+  border-radius: 10px;
+  background: #ffffff;
   color: #747678;
   font-size: 14px;
+  font-weight: 600;
+  text-align: center;
 }
 
-.room-empty-state {
+.room-page .room-empty-state {
   min-height: 220px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   padding: 48px 20px;
-  border: 1px dashed #d0d0d0;
+  border: 1px dashed #d8d2e7;
+  border-radius: 10px;
+  background: #ffffff;
   text-align: center;
 }
 
-.room-empty-state strong {
+.room-page .room-empty-state strong {
   color: #0f0f10;
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.room-empty-state span {
-  color: #747678;
-  font-size: 14px;
-}
-
-.room-error-banner {
-  margin-bottom: 18px;
-  padding: 12px 14px;
-  border: 1px solid rgba(255, 66, 66, 0.22);
-  color: #c92a2a;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 
-/* Floor Sections */
-.floor-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+.room-page .room-empty-state span {
+  color: #747678;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.floor-section {
+.room-page .room-error-banner {
+  padding: 12px 16px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Floor Sections */
+.room-page .floor-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.room-page .floor-section {
   padding: 20px;
-  border: 1px solid #e6e6e7;
-  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
   background: #ffffff;
 }
 
-.floor-header {
+.room-page .floor-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
   padding-bottom: 14px;
-  border-bottom: 1px solid #e6e6e7;
+  border-bottom: 1px solid #ececef;
 }
 
-.floor-title {
+.room-page .floor-title {
   margin: 0;
   color: #0f0f10;
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 700;
   line-height: 1.3;
+  letter-spacing: -0.3px;
 }
 
-.floor-count {
+.room-page .floor-count {
   margin: 2px 0 0;
   color: #747678;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.select-all-button {
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid #d7ccfb;
-  background: #ffffff;
-  color: #6d23ed;
-}
-
-.select-all-button:hover {
-  border-color: #6d23ed;
-  background: rgba(109, 35, 237, 0.08);
-}
-
 /* Room Grid */
-.room-grid {
+.room-page .room-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
   gap: 12px;
 }
 
-.room-card {
+.room-page .room-card {
   min-width: 0;
-  min-height: 76px;
+  min-height: 72px;
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 14px;
-  border: 1px solid #e6e6e7;
-  border-radius: 8px;
-  background: #fafafa;
+  padding: 14px 16px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #ffffff;
   color: #0f0f10;
   text-align: left;
   cursor: pointer;
   user-select: none;
-  transition:
-    border-color 0.2s,
-    background-color 0.2s,
-    box-shadow 0.2s;
+  transition: border-color 0.15s ease;
 }
 
-.room-card:hover {
-  border-color: #6d23ed;
-  background: #ffffff;
-  box-shadow: 0 8px 22px rgba(109, 35, 237, 0.1);
+.room-page .room-card:hover {
+  border-color: #c9c9cc;
 }
 
-.room-card:focus-visible {
-  outline: 3px solid rgba(109, 35, 237, 0.22);
+.room-page .room-card:focus-visible {
+  outline: 2px solid rgba(109, 35, 237, 0.45);
   outline-offset: 2px;
 }
 
-.room-card.selected {
+.room-page .room-card.selected {
   border-color: #6d23ed;
-  background: #f8f5ff;
-  box-shadow: inset 0 0 0 1px #6d23ed;
 }
 
-.room-checkbox {
-  width: 22px;
-  height: 22px;
+.room-page .room-checkbox {
+  width: 20px;
+  height: 20px;
   margin: 0;
   appearance: none;
-  border: 2px solid #cfd0d2;
+  border: 1.5px solid #d4d4d8;
   border-radius: 6px;
   background: #ffffff;
   cursor: pointer;
   flex-shrink: 0;
   position: relative;
   transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    box-shadow 0.2s;
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.room-checkbox:checked {
+.room-page .room-checkbox:checked {
   border-color: #6d23ed;
   background: #6d23ed;
-  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.12);
 }
 
-.room-checkbox:checked::after {
+.room-page .room-checkbox:checked::after {
   content: '';
   position: absolute;
-  left: 6px;
-  top: 2px;
-  width: 5px;
-  height: 10px;
+  left: 5px;
+  top: 1px;
+  width: 4.5px;
+  height: 9px;
   border: solid #ffffff;
-  border-width: 0 2.5px 2.5px 0;
+  border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
 
-.room-checkbox:focus-visible {
-  outline: 3px solid rgba(109, 35, 237, 0.22);
+.room-page .room-checkbox:focus-visible {
+  outline: 2px solid rgba(109, 35, 237, 0.45);
   outline-offset: 2px;
 }
 
-.room-name {
+.room-page .room-name {
   min-width: 0;
   overflow: hidden;
   color: #0f0f10;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.2px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.room-card-actions {
+.room-page .room-card-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
 }
 
-.delete-room-button {
+.room-page .delete-room-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 10px;
-  border: 1px solid rgba(255, 66, 66, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: 8px;
   background: #ffffff;
-  color: #ff4242;
+  color: #ef4444;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    color 0.2s;
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.delete-room-button:hover,
-.delete-room-button:focus-visible {
-  border-color: #ff4242;
-  background: #ff4242;
+.room-page .delete-room-button:hover,
+.room-page .delete-room-button:focus-visible {
+  border-color: #ef4444;
+  background: #ef4444;
   color: #ffffff;
   outline: none;
 }
 
+/* 반응형 */
 @media (max-width: 900px) {
-  .room-container {
-    padding: 24px 18px;
+  .room-page {
+    padding: 24px 20px;
   }
 
-  .room-control-row {
+  .room-page .room-container {
+    gap: 24px;
+  }
+
+  .room-page .room-control-row {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 640px) {
-  .room-container {
-    padding: 18px 12px;
+  .room-page {
+    padding: 20px 14px;
   }
 
-  .room-toolbar {
+  .room-page .room-container {
+    gap: 20px;
+  }
+
+  .room-page .room-toolbar {
     padding: 18px;
   }
 
-  .room-toolbar-main {
+  .room-page .room-title {
+    font-size: 22px;
+  }
+
+  .room-page .room-toolbar-main {
     flex-direction: column;
   }
 
-  .create-room-button {
+  .room-page .create-room-button {
     width: 100%;
   }
 
-  .room-floor-filters {
+  .room-page .room-floor-filters {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .floor-filter-button {
+  .room-page .floor-filter-button {
     padding: 0 8px;
   }
 
-  .selection-bar {
+  .room-page .selection-bar {
     position: static;
     align-items: stretch;
     flex-direction: column;
   }
 
-  .selection-actions {
+  .room-page .selection-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
 
-  .clear-selection-button,
-  .delete-selected-button {
+  .room-page .clear-selection-button,
+  .room-page .delete-selected-button {
     width: 100%;
   }
 
-  .floor-section {
+  .room-page .floor-section {
     padding: 16px;
   }
 
-  .floor-header {
+  .room-page .floor-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 112px;
     gap: 12px;
     align-items: center;
   }
 
-  .floor-title {
-    font-size: 17px;
-  }
-
-  .floor-count {
+  .room-page .floor-count {
     white-space: nowrap;
   }
 
-  .select-all-button {
+  .room-page .select-all-button {
     width: 112px;
-    min-height: 38px;
-    padding: 0 10px;
     justify-self: end;
   }
 
-  .room-grid {
+  .room-page .room-grid {
     grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
   }
 
-  .room-card {
-    grid-template-columns: 22px minmax(0, 1fr);
+  .room-page .room-card {
+    grid-template-columns: 20px minmax(0, 1fr);
   }
 
-  .room-card-actions {
+  .room-page .room-card-actions {
     grid-column: 1 / -1;
   }
 
-  .delete-room-button {
+  .room-page .delete-room-button {
     width: 100%;
   }
-
 }

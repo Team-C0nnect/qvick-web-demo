@@ -344,20 +344,24 @@ export default function Check() {
   });
 
   // 출석 스케줄 (남/여 기숙사)
-  const { data: maleSchedule } = useQuery({
+  const { data: maleSchedule, isLoading: isMaleScheduleLoading } = useQuery({
     queryKey: ['schedule', currentDate, 'MALE'],
     queryFn: () => scheduleService.getScheduleByDate(currentDate, 'MALE'),
     retry: false,
   });
 
-  const { data: femaleSchedule } = useQuery({
+  const { data: femaleSchedule, isLoading: isFemaleScheduleLoading } = useQuery({
     queryKey: ['schedule', currentDate, 'FEMALE'],
     queryFn: () => scheduleService.getScheduleByDate(currentDate, 'FEMALE'),
     retry: false,
   });
 
-  useEffect(() => {
-    if (isPeriodManuallySelected) return;
+  const isAutoAttendanceTypeResolving =
+    !isPeriodManuallySelected &&
+    (isMaleScheduleLoading || isFemaleScheduleLoading);
+
+  useLayoutEffect(() => {
+    if (isPeriodManuallySelected || isAutoAttendanceTypeResolving) return;
 
     const updateAttendanceType = () => {
       syncAttendanceView(
@@ -374,6 +378,7 @@ export default function Check() {
     return () => window.clearInterval(interval);
   }, [
     femaleSchedule,
+    isAutoAttendanceTypeResolving,
     isPeriodManuallySelected,
     maleSchedule,
     syncAttendanceView,
@@ -400,16 +405,29 @@ export default function Check() {
   }, [attendanceType, currentDate, setCurrentDate, setAttendanceType]);
 
   const isViewingCurrentAttendancePeriod =
+    !isAutoAttendanceTypeResolving &&
     currentDate === formatLocalDate() &&
     attendanceType === getTimeBasedAttendanceType([maleSchedule, femaleSchedule]);
 
   useEffect(() => {
+    if (isAutoAttendanceTypeResolving) return;
+
     if (isPeriodManuallySelected && isViewingCurrentAttendancePeriod) {
       resetToAuto();
     }
-  }, [isPeriodManuallySelected, isViewingCurrentAttendancePeriod, resetToAuto]);
+  }, [
+    isAutoAttendanceTypeResolving,
+    isPeriodManuallySelected,
+    isViewingCurrentAttendancePeriod,
+    resetToAuto,
+  ]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (isAutoAttendanceTypeResolving) {
+      setHeaderActions(null);
+      return;
+    }
+
     setHeaderActions(
       <div className="header-attendance-period-controls check-period-controls">
         <span
@@ -448,6 +466,7 @@ export default function Check() {
     currentDate,
     handleNextAttendancePeriod,
     handlePreviousAttendancePeriod,
+    isAutoAttendanceTypeResolving,
     isViewingCurrentAttendancePeriod,
     setHeaderActions,
   ]);
@@ -991,10 +1010,14 @@ export default function Check() {
       ? Math.round((stats.phoneSubmitted / phoneSubmissionTotal) * 100)
       : 0;
 
-  if (attendancesLoading) {
+  if (attendancesLoading || isAutoAttendanceTypeResolving) {
     return (
       <div className="check-page">
-        <CheckTableSkeleton nightCard={attendanceType === 'NIGHT'} />
+        <CheckTableSkeleton
+          nightCard={
+            !isAutoAttendanceTypeResolving && attendanceType === 'NIGHT'
+          }
+        />
       </div>
     );
   }

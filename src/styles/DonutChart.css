@@ -1,0 +1,30 @@
+.donut-chart {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.donut-chart svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.donut-chart-track {
+  stroke: #f1f1f3;
+}
+
+.donut-chart-segment {
+  transition-property: stroke-dasharray;
+  transition-timing-function: linear;
+}
+
+.donut-chart-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}

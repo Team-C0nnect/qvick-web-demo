@@ -1,7 +1,17 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useRef,
+} from 'react';
+import {
+  keepPreviousData,
+  useMutation,
+  useQueryClient,
+  useQuery,
+} from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
 import { scheduleService } from '../services/schedule.service';
@@ -11,7 +21,9 @@ import type {
   AttendanceExportMode,
   MergedAttendanceMember,
 } from '../services/excel.service';
-import { CheckTableSkeleton } from '../components/Skeleton';
+import { CheckTableSkeleton, TableRowSkeleton } from '../components/Skeleton';
+import DonutChart from '../components/DonutChart';
+import { RollingNumber } from '../components/RollingNumber';
 import '../styles/Check.css';
 import { SearchIcon, ExcelIcon } from '../components/Icons';
 import type {
@@ -91,6 +103,9 @@ const ATTENDANCE_PERIOD_LABELS: Record<
     time: '입실 시간',
   },
 };
+
+const toPercent = (value: number, total: number): string =>
+  total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0.0%';
 
 interface AttendanceStats {
   total: number;
@@ -310,9 +325,16 @@ export default function Check() {
 
   const queryClient = useQueryClient();
 
-  // 신버전 출석 데이터 (자동 새로고침)
-  const { data: attendancesData, isLoading: attendancesLoading } =
-    useAttendances(currentDate);
+  // 신버전 출석 데이터 (자동 새로고침, 날짜 변경 시 이전 데이터 유지)
+  const {
+    data: attendancesData,
+    isLoading: attendancesLoading,
+    isPlaceholderData: attendancesStale,
+  } = useQuery({
+    queryKey: ['attendances', currentDate],
+    queryFn: () => attendanceService.getAttendances(currentDate),
+    placeholderData: keepPreviousData,
+  });
 
   // 학생 목록 (ID 매핑용)
   const { data: studentsData } = useQuery({
@@ -649,8 +671,8 @@ export default function Check() {
     });
   }, [attendancesData, currentDate, scheduleCache]);
 
-  // 신버전 출석 데이터 매핑
-  useEffect(() => {
+  // 신버전 출석 데이터 매핑 (페인트 전에 반영해야 예전 데이터 깜빡임이 없음)
+  useLayoutEffect(() => {
     // 학번 → 학생 목록 정보 매핑
     const studentInfoMap = new Map<
       string,
@@ -958,51 +980,219 @@ export default function Check() {
   );
 
   const periodLabels = ATTENDANCE_PERIOD_LABELS[attendanceType];
+  const nightAttendanceTotal = stats.nightPresent + stats.nightAbsent;
+  const phoneSubmissionTotal = stats.phoneSubmitted + stats.phoneNotSubmitted;
+  const nightAttendanceRate =
+    nightAttendanceTotal > 0
+      ? Math.round((stats.nightPresent / nightAttendanceTotal) * 100)
+      : 0;
+  const phoneSubmissionRate =
+    phoneSubmissionTotal > 0
+      ? Math.round((stats.phoneSubmitted / phoneSubmissionTotal) * 100)
+      : 0;
 
   if (attendancesLoading) {
     return (
       <div className="check-page">
-        <CheckTableSkeleton />
+        <CheckTableSkeleton nightCard={attendanceType === 'NIGHT'} />
       </div>
     );
   }
   return (
     <div className="check-page">
       <div className="controls-section">
-        <div className="stats-section check-stats">
-          <div className="stat-box">전체 : {stats.total}명</div>
-          <div className="stat-box attendance">
-            {periodLabels.complete} :{' '}
-            <span className="positive">{stats.present}</span>명
+        <div className="donut-cards">
+          <div className="donut-card">
+            <h3 className="donut-card-title">{periodLabels.title} 상태 분포</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${stats.present}-${stats.absent}-${stats.late}-${stats.sleepover}-${stats.total}`}
+                className="donut-card-chart"
+                total={stats.total}
+                label={`${periodLabels.title} 상태 비율`}
+                segments={[
+                  { key: 'present', color: '#22c55e', value: stats.present },
+                  { key: 'absent', color: '#ef4444', value: stats.absent },
+                  { key: 'late', color: '#f59e0b', value: stats.late },
+                  {
+                    key: 'sleepover',
+                    color: '#8b5cf6',
+                    value: stats.sleepover,
+                  },
+                ]}
+              >
+                <span>전체</span>
+                <strong>
+                  <RollingNumber value={stats.total} />명
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                {[
+                  {
+                    label: periodLabels.complete,
+                    value: stats.present,
+                    tone: 'positive',
+                  },
+                  {
+                    label: periodLabels.absent,
+                    value: stats.absent,
+                    tone: 'negative',
+                  },
+                  {
+                    label: periodLabels.late,
+                    value: stats.late,
+                    tone: 'warning',
+                  },
+                  {
+                    label: '외박',
+                    value: stats.sleepover,
+                    tone: 'sleepover',
+                  },
+                ].map((item) => (
+                  <li key={item.tone}>
+                    <span className="legend-label">
+                      <i className={`legend-dot ${item.tone}`} />
+                      {item.label}
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={item.value} />명{' '}
+                      <em>({toPercent(item.value, stats.total)})</em>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="stat-box absence">
-            {periodLabels.absent} :{' '}
-            <span className="negative">{stats.absent}</span>명
-          </div>
-          <div className="stat-box late">
-            {periodLabels.late} :{' '}
-            <span className="warning">{stats.late}</span>명
-          </div>
-          <div className="stat-box sleepover">
-            외박 : <span className="sleepover-count">{stats.sleepover}</span>명
-          </div>
+
           {attendanceType === 'NIGHT' && (
-            <>
-              <div className="stat-box night-absence">
-                심자 출석 : <span className="positive">{stats.nightPresent}</span>명
+            <div className="donut-card">
+              <h3 className="donut-card-title">심야자습 출석 현황</h3>
+              <div className="donut-card-body">
+                <DonutChart
+                  key={`${stats.nightPresent}-${stats.nightAbsent}`}
+                  className="donut-card-chart"
+                  total={stats.nightPresent + stats.nightAbsent}
+                  label="심야자습 출석 비율"
+                  segments={[
+                    {
+                      key: 'present',
+                      color: '#22c55e',
+                      value: stats.nightPresent,
+                    },
+                    {
+                      key: 'absent',
+                      color: '#ef4444',
+                      value: stats.nightAbsent,
+                    },
+                  ]}
+                >
+                  <strong>
+                    <RollingNumber value={nightAttendanceRate} />%
+                  </strong>
+                </DonutChart>
+                <ul className="donut-legend">
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot positive" />
+                      출석
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={stats.nightPresent} />명{' '}
+                      <em>
+                        (
+                        {toPercent(
+                          stats.nightPresent,
+                          stats.nightPresent + stats.nightAbsent,
+                        )}
+                        )
+                      </em>
+                    </span>
+                  </li>
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot negative" />
+                      미출석
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={stats.nightAbsent} />명{' '}
+                      <em>
+                        (
+                        {toPercent(
+                          stats.nightAbsent,
+                          stats.nightPresent + stats.nightAbsent,
+                        )}
+                        )
+                      </em>
+                    </span>
+                  </li>
+                </ul>
               </div>
-              <div className="stat-box night-absence">
-                심자 미출석 : <span className="negative">{stats.nightAbsent}</span>명
-              </div>
-              <div className="stat-box phone-submission">
-                휴대폰 미제출 :{' '}
-                <span className="phone-submission-count">
-                  {stats.phoneNotSubmitted}
-                </span>
-                명
-              </div>
-            </>
+            </div>
           )}
+
+          <div className="donut-card">
+            <h3 className="donut-card-title">휴대폰 제출 현황</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${stats.phoneSubmitted}-${stats.phoneNotSubmitted}`}
+                className="donut-card-chart"
+                total={stats.phoneSubmitted + stats.phoneNotSubmitted}
+                label="휴대폰 제출 비율"
+                segments={[
+                  {
+                    key: 'submitted',
+                    color: '#22c55e',
+                    value: stats.phoneSubmitted,
+                  },
+                  {
+                    key: 'not-submitted',
+                    color: '#ef4444',
+                    value: stats.phoneNotSubmitted,
+                  },
+                ]}
+              >
+                <strong>
+                  <RollingNumber value={phoneSubmissionRate} />%
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                <li>
+                  <span className="legend-label">
+                    <i className="legend-dot positive" />
+                    제출 완료
+                  </span>
+                  <span className="legend-value">
+                    <RollingNumber value={stats.phoneSubmitted} />명{' '}
+                    <em>
+                      (
+                      {toPercent(
+                        stats.phoneSubmitted,
+                        stats.phoneSubmitted + stats.phoneNotSubmitted,
+                      )}
+                      )
+                    </em>
+                  </span>
+                </li>
+                <li>
+                  <span className="legend-label">
+                    <i className="legend-dot negative" />
+                    미제출
+                  </span>
+                  <span className="legend-value">
+                    <RollingNumber value={stats.phoneNotSubmitted} />명{' '}
+                    <em>
+                      (
+                      {toPercent(
+                        stats.phoneNotSubmitted,
+                        stats.phoneSubmitted + stats.phoneNotSubmitted,
+                      )}
+                      )
+                    </em>
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1231,7 +1421,16 @@ export default function Check() {
             </tr>
           </thead>
           <tbody>
-            {filteredStudents.map((student, index) => {
+            {attendancesStale
+              ? Array.from({
+                  length: Math.max(filteredStudents.length, 8),
+                }).map((_, row) => (
+                  <TableRowSkeleton
+                    key={row}
+                    columns={attendanceType === 'NIGHT' ? 9 : 7}
+                  />
+                ))
+              : filteredStudents.map((student, index) => {
               const nightAttendance = student.nightAttendance ?? '-';
               const phoneSubmission = student.phoneSubmission ?? '-';
 

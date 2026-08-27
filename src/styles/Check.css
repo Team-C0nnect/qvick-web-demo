@@ -378,6 +378,155 @@
   margin-left: auto;
 }
 
+/* ===== 인원 확인 테이블 패널 (검색 + 필터 + 표 통합 카드) ===== */
+.check-page .table-panel {
+  overflow: visible;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.check-page .table-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f4f4f5;
+}
+
+.check-page .table-toolbar .search-box {
+  flex: 1;
+  min-width: 0;
+}
+
+.check-page .table-filters {
+  display: flex;
+  align-items: center;
+  gap: 20px 24px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ececef;
+}
+
+.check-page .table-panel .table-container {
+  overflow: hidden;
+  border: none;
+  border-radius: 0 0 12px 12px;
+  background: transparent;
+}
+
+/* ===== 통계 도넛 카드 ===== */
+.check-page .donut-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.check-page .donut-card {
+  padding: 18px 20px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.check-page .donut-card-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #17181a;
+  letter-spacing: -0.2px;
+}
+
+.check-page .donut-card-body {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.check-page .donut-card-chart {
+  width: 118px;
+  height: 118px;
+  flex-shrink: 0;
+}
+
+.check-page .donut-card .donut-chart-center > span {
+  color: #747678;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.check-page .donut-card .donut-chart-center > strong {
+  color: #17181a;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.check-page .donut-legend {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check-page .donut-legend li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f4f4f5;
+}
+
+.check-page .donut-legend li:last-child {
+  border-bottom: none;
+}
+
+.check-page .legend-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #52525b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.check-page .legend-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.check-page .legend-dot.positive {
+  background: #22c55e;
+}
+
+.check-page .legend-dot.negative {
+  background: #ef4444;
+}
+
+.check-page .legend-dot.warning {
+  background: #f59e0b;
+}
+
+.check-page .legend-dot.sleepover {
+  background: #8b5cf6;
+}
+
+.check-page .legend-value {
+  color: #0f0f10;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.check-page .legend-value em {
+  color: #747678;
+  font-style: normal;
+  font-weight: 600;
+}
+
 /* ===== 학생 테이블 ===== */
 .check-page .table-container {
   overflow: hidden;
@@ -802,6 +951,11 @@
     margin-bottom: 24px;
   }
 
+  .check-page .table-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .check-page .filter-section {
     flex-direction: column;
     align-items: stretch;
@@ -881,6 +1035,43 @@
     border: none;
     border-radius: 0;
     background: transparent;
+  }
+
+  .check-page .table-panel {
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .check-page .table-toolbar {
+    padding: 12px 14px;
+    border-bottom: none;
+  }
+
+  .check-page .table-filters {
+    padding: 12px 14px;
+    border-bottom: none;
+  }
+
+  .check-page .table-panel .table-container {
+    border-radius: 0;
+  }
+
+  .check-page .donut-card {
+    padding: 16px;
+  }
+
+  .check-page .donut-card-body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .check-page .donut-card-chart {
+    width: 132px;
+    height: 132px;
+    margin: 0 auto;
   }
 
   .check-page .student-table,

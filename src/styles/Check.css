@@ -548,7 +548,7 @@
 
 .check-page .student-table th:nth-child(1),
 .check-page .student-table td:nth-child(1) {
-  width: 3%;
+  width: 36px;
 }
 
 .check-page .student-table th:nth-child(2),
@@ -563,7 +563,7 @@
 
 .check-page .student-table th:nth-child(4),
 .check-page .student-table td:nth-child(4) {
-  width: 16%;
+  width: 14%;
 }
 
 .check-page .student-table th:nth-child(5),
@@ -598,7 +598,7 @@
 
 .check-page .student-table-attendance-only th:nth-child(1),
 .check-page .student-table-attendance-only td:nth-child(1) {
-  width: 3%;
+  width: 36px;
 }
 
 .check-page .student-table-attendance-only th:nth-child(2),
@@ -613,7 +613,7 @@
 
 .check-page .student-table-attendance-only th:nth-child(4),
 .check-page .student-table-attendance-only td:nth-child(4) {
-  width: 22%;
+  width: 16%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(5),
@@ -842,9 +842,9 @@
 /* ===== 인원 선택 및 일괄 상태 변경 ===== */
 .check-page .student-table .selection-column,
 .check-page .student-table .selection-cell {
-  width: 36px;
-  padding-right: 6px;
-  padding-left: 6px;
+  width: 36px !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
   text-align: center;
 }
 

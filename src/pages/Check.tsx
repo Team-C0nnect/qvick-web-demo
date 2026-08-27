@@ -3,6 +3,7 @@ import {
   useEffect,
   useLayoutEffect,
   useCallback,
+  useMemo,
   useRef,
 } from 'react';
 import {
@@ -25,6 +26,8 @@ import { CheckTableSkeleton, TableRowSkeleton } from '../components/Skeleton';
 import AttendanceStatusPicker, {
   type AttendanceDisplayStatus,
 } from '../components/AttendanceStatusPicker';
+import ConfirmationModal from '../components/ConfirmationModal';
+import SleepoverReasonModal from '../components/SleepoverReasonModal';
 import DonutChart from '../components/DonutChart';
 import { RollingNumber } from '../components/RollingNumber';
 import '../styles/Check.css';
@@ -60,6 +63,10 @@ interface Student {
 }
 
 type DisplayAttendanceStatus = AttendanceDisplayStatus;
+type PendingBulkStatusChange = {
+  status: AttendanceDisplayStatus;
+  sleepoverReason?: string;
+};
 type NightAttendanceDisplayStatus = '출석' | '미출석' | '-';
 type PhoneSubmissionDisplayStatus = '제출' | '미제출' | '외박' | '-';
 type AttendanceScheduleTime = {
@@ -325,6 +332,14 @@ export default function Check() {
   >('전체');
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
+  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const [pendingBulkStatusChange, setPendingBulkStatusChange] =
+    useState<PendingBulkStatusChange | null>(null);
+  const [isBulkSleepoverReasonOpen, setIsBulkSleepoverReasonOpen] =
+    useState(false);
+  const selectAllCheckboxRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
 
@@ -492,6 +507,15 @@ export default function Check() {
     >
   >(new Map());
 
+  const selectedStudents = useMemo(
+    () =>
+      students.filter(
+        (student): student is Student & { id: number } =>
+          student.id !== null && selectedStudentIds.has(student.id),
+      ),
+    [selectedStudentIds, students],
+  );
+
   // 외박 상태 업데이트 mutation
   const updateAttendancesMutation = useMutation({
     mutationFn: (data: UpdateAttendancesRequest) =>
@@ -500,6 +524,37 @@ export default function Check() {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
     },
   });
+
+  const getEffectiveDisplayStatus = useCallback(
+    (
+      student: Student,
+      newDisplayStatus: AttendanceDisplayStatus,
+    ): DisplayAttendanceStatus => {
+      const dateSchedules = scheduleCache.get(currentDate);
+      const endTime =
+        student.gender === '남'
+          ? (getScheduleEndTime(
+              dateSchedules?.maleSchedule,
+              attendanceType,
+            ) ?? getScheduleEndTime(maleSchedule, attendanceType))
+          : (getScheduleEndTime(
+              dateSchedules?.femaleSchedule,
+              attendanceType,
+            ) ?? getScheduleEndTime(femaleSchedule, attendanceType));
+
+      return newDisplayStatus === '출석' &&
+        hasAttendanceWindowEnded(currentDate, endTime)
+        ? '지연출석'
+        : newDisplayStatus;
+    },
+    [
+      attendanceType,
+      currentDate,
+      femaleSchedule,
+      maleSchedule,
+      scheduleCache,
+    ],
+  );
 
   // 자동 새로고침 설정
   useEffect(() => {
@@ -537,20 +592,10 @@ export default function Check() {
         return;
       }
 
-      const dateSchedules = scheduleCache.get(currentDate);
-      const endTime =
-        student.gender === '남'
-          ? (getScheduleEndTime(dateSchedules?.maleSchedule, attendanceType) ??
-            getScheduleEndTime(maleSchedule, attendanceType))
-          : (getScheduleEndTime(
-              dateSchedules?.femaleSchedule,
-              attendanceType,
-            ) ?? getScheduleEndTime(femaleSchedule, attendanceType));
-      const effectiveDisplayStatus: DisplayAttendanceStatus =
-        newDisplayStatus === '출석' &&
-        hasAttendanceWindowEnded(currentDate, endTime)
-          ? '지연출석'
-          : newDisplayStatus;
+      const effectiveDisplayStatus = getEffectiveDisplayStatus(
+        student,
+        newDisplayStatus,
+      );
 
       updateAttendancesMutation.mutate({
         date: currentDate,
@@ -581,12 +626,68 @@ export default function Check() {
     [
       currentDate,
       attendanceType,
-      femaleSchedule,
-      maleSchedule,
-      scheduleCache,
+      getEffectiveDisplayStatus,
       updateAttendancesMutation,
     ],
   );
+
+  const handleBulkStatusChange = useCallback(
+    (status: AttendanceDisplayStatus, sleepoverReason?: string) => {
+      if (selectedStudents.length === 0) return;
+
+      const localStatusByStudentId = new Map<number, DisplayAttendanceStatus>();
+      const attendances = selectedStudents.map((student) => {
+        const effectiveDisplayStatus = getEffectiveDisplayStatus(student, status);
+        localStatusByStudentId.set(student.id, effectiveDisplayStatus);
+
+        return {
+          studentId: student.id,
+          status: STATUS_MAP[effectiveDisplayStatus],
+          attendanceType,
+          sleepoverReason:
+            effectiveDisplayStatus === '외박' ? sleepoverReason : null,
+        };
+      });
+
+      updateAttendancesMutation.mutate(
+        { date: currentDate, attendances },
+        {
+          onSuccess: () => {
+            setStudents((previousStudents) =>
+              previousStudents.map((student) => {
+                if (!student.id) return student;
+                const effectiveDisplayStatus = localStatusByStudentId.get(
+                  student.id,
+                );
+                if (!effectiveDisplayStatus) return student;
+
+                return {
+                  ...student,
+                  overnight: effectiveDisplayStatus === '외박',
+                  status: effectiveDisplayStatus,
+                };
+              }),
+            );
+            setSelectedStudentIds(new Set());
+            setPendingBulkStatusChange(null);
+          },
+        },
+      );
+    },
+    [
+      attendanceType,
+      currentDate,
+      getEffectiveDisplayStatus,
+      selectedStudents,
+      updateAttendancesMutation,
+    ],
+  );
+
+  useEffect(() => {
+    setSelectedStudentIds(new Set());
+    setPendingBulkStatusChange(null);
+    setIsBulkSleepoverReasonOpen(false);
+  }, [attendanceType, currentDate]);
 
   // 엑셀 내보내기 (성별, 출력 유형 선택)
   const handleExportExcel = useCallback(
@@ -901,6 +1002,61 @@ export default function Check() {
   };
 
   const filteredStudents = getFilteredStudents();
+  const selectableFilteredStudents = filteredStudents.filter(
+    (student): student is Student & { id: number } => student.id !== null,
+  );
+  const selectedVisibleStudentCount = selectableFilteredStudents.filter(
+    (student) => selectedStudentIds.has(student.id),
+  ).length;
+  const isAllVisibleStudentsSelected =
+    selectableFilteredStudents.length > 0 &&
+    selectedVisibleStudentCount === selectableFilteredStudents.length;
+  const isPartiallyVisibleStudentsSelected =
+    selectedVisibleStudentCount > 0 && !isAllVisibleStudentsSelected;
+
+  useEffect(() => {
+    if (selectAllCheckboxRef.current) {
+      selectAllCheckboxRef.current.indeterminate =
+        isPartiallyVisibleStudentsSelected;
+    }
+  }, [isPartiallyVisibleStudentsSelected]);
+
+  const toggleStudentSelection = (studentId: number, isSelected: boolean) => {
+    setSelectedStudentIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      if (isSelected) {
+        nextIds.add(studentId);
+      } else {
+        nextIds.delete(studentId);
+      }
+      return nextIds;
+    });
+  };
+
+  const toggleAllVisibleStudentSelection = (isSelected: boolean) => {
+    setSelectedStudentIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      selectableFilteredStudents.forEach((student) => {
+        if (isSelected) {
+          nextIds.add(student.id);
+        } else {
+          nextIds.delete(student.id);
+        }
+      });
+      return nextIds;
+    });
+  };
+
+  const requestBulkStatusChange = (status: AttendanceDisplayStatus) => {
+    if (selectedStudents.length === 0) return;
+
+    if (status === '외박') {
+      setIsBulkSleepoverReasonOpen(true);
+      return;
+    }
+
+    setPendingBulkStatusChange({ status });
+  };
 
   // 기존 handleExportExcel은 위에서 useCallback으로 정의됨
 
@@ -1005,6 +1161,18 @@ export default function Check() {
   );
 
   const periodLabels = ATTENDANCE_PERIOD_LABELS[attendanceType];
+  const getBulkStatusLabel = (status: AttendanceDisplayStatus) => {
+    switch (status) {
+      case '출석':
+        return periodLabels.complete;
+      case '지연출석':
+        return periodLabels.late;
+      case '미출석':
+        return periodLabels.absent;
+      default:
+        return '외박';
+    }
+  };
   const nightAttendanceTotal = stats.nightPresent + stats.nightAbsent;
   const phoneSubmissionTotal = stats.phoneSubmitted + stats.phoneNotSubmitted;
   const nightAttendanceRate =
@@ -1436,6 +1604,22 @@ export default function Check() {
         >
           <thead>
             <tr>
+              <th className="selection-column">
+                <input
+                  ref={selectAllCheckboxRef}
+                  type="checkbox"
+                  className="selection-checkbox"
+                  checked={isAllVisibleStudentsSelected}
+                  onChange={(event) =>
+                    toggleAllVisibleStudentSelection(event.target.checked)
+                  }
+                  disabled={
+                    updateAttendancesMutation.isPending ||
+                    selectableFilteredStudents.length === 0
+                  }
+                  aria-label="표시된 학생 전체 선택"
+                />
+              </th>
               {renderSortableHeader('room', '호실')}
               {renderSortableHeader('name', '이름')}
               {renderSortableHeader('status', `${periodLabels.title} 상태`)}
@@ -1456,7 +1640,7 @@ export default function Check() {
                 }).map((_, row) => (
                   <TableRowSkeleton
                     key={row}
-                    columns={attendanceType === 'NIGHT' ? 9 : 7}
+                    columns={attendanceType === 'NIGHT' ? 10 : 8}
                   />
                 ))
               : filteredStudents.map((student, index) => {
@@ -1465,6 +1649,28 @@ export default function Check() {
 
               return (
                 <tr key={index}>
+                  <td className="selection-cell" data-label="선택">
+                    <input
+                      type="checkbox"
+                      className="selection-checkbox"
+                      checked={
+                        student.id !== null && selectedStudentIds.has(student.id)
+                      }
+                      onChange={(event) => {
+                        if (student.id !== null) {
+                          toggleStudentSelection(
+                            student.id,
+                            event.target.checked,
+                          );
+                        }
+                      }}
+                      disabled={
+                        updateAttendancesMutation.isPending ||
+                        student.id === null
+                      }
+                      aria-label={`${student.name} 학생 선택`}
+                    />
+                  </td>
                   <td className="room-cell" data-label="호실">{student.room}</td>
                   <td data-label="이름">{student.name}</td>
                   <td data-label={`${periodLabels.title} 상태`}>
@@ -1505,6 +1711,99 @@ export default function Check() {
         </table>
       </div>
       </div>
+
+      {selectedStudents.length > 0 && (
+        <section className="bulk-status-bar" aria-label="선택 학생 일괄 상태 변경">
+          <div className="bulk-status-summary">
+            <strong>{selectedStudents.length}명</strong> 선택됨
+            <button
+              type="button"
+              onClick={() => setSelectedStudentIds(new Set())}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              선택 해제
+            </button>
+          </div>
+          <div className="bulk-status-actions" role="group" aria-label="일괄 상태 변경">
+            <span>일괄 변경</span>
+            <button
+              type="button"
+              className="bulk-status-button present"
+              onClick={() => requestBulkStatusChange('출석')}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              {periodLabels.complete}
+            </button>
+            <button
+              type="button"
+              className="bulk-status-button late"
+              onClick={() => requestBulkStatusChange('지연출석')}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              {periodLabels.late}
+            </button>
+            <button
+              type="button"
+              className="bulk-status-button absent"
+              onClick={() => requestBulkStatusChange('미출석')}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              {periodLabels.absent}
+            </button>
+            <button
+              type="button"
+              className="bulk-status-button sleepover"
+              onClick={() => requestBulkStatusChange('외박')}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              외박
+            </button>
+          </div>
+        </section>
+      )}
+
+      {isBulkSleepoverReasonOpen && (
+        <SleepoverReasonModal
+          isOpen
+          studentCount={selectedStudents.length}
+          isSubmitting={updateAttendancesMutation.isPending}
+          onClose={() => setIsBulkSleepoverReasonOpen(false)}
+          onSubmit={(sleepoverReason) => {
+            setIsBulkSleepoverReasonOpen(false);
+            setPendingBulkStatusChange({
+              status: '외박',
+              sleepoverReason,
+            });
+          }}
+        />
+      )}
+
+      <ConfirmationModal
+        isOpen={Boolean(pendingBulkStatusChange)}
+        eyebrow="Bulk attendance update"
+        title="선택한 학생의 상태를 변경할까요?"
+        message={`${selectedStudents.length}명의 상태를 ${
+          pendingBulkStatusChange
+            ? getBulkStatusLabel(pendingBulkStatusChange.status)
+            : ''
+        }(으)로 일괄 변경합니다.${
+          pendingBulkStatusChange?.sleepoverReason
+            ? ` 외박 사유는 '${pendingBulkStatusChange.sleepoverReason}'로 동일하게 적용됩니다.`
+            : ''
+        }`}
+        confirmText="일괄 적용"
+        cancelText="취소"
+        isConfirming={updateAttendancesMutation.isPending}
+        onConfirm={() => {
+          if (pendingBulkStatusChange) {
+            handleBulkStatusChange(
+              pendingBulkStatusChange.status,
+              pendingBulkStatusChange.sleepoverReason,
+            );
+          }
+        }}
+        onCancel={() => setPendingBulkStatusChange(null)}
+      />
     </div>
   );
 }

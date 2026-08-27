@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import SleepoverReasonModal from './SleepoverReasonModal';
 import '../styles/AttendanceStatusPicker.css';
 
 export type AttendanceDisplayStatus =
@@ -13,13 +14,6 @@ export type AttendanceDisplayStatus =
   | '미출석'
   | '외박'
   | '지연출석';
-
-type SleepoverReason =
-  | '일반 외박'
-  | '연수'
-  | '현장실습'
-  | '실리콘밸리'
-  | '병가';
 
 interface AttendanceStatusPickerProps {
   value: AttendanceDisplayStatus;
@@ -33,14 +27,6 @@ interface AttendanceStatusPickerProps {
     sleepoverReason?: string,
   ) => void;
 }
-
-const SLEEPOVER_REASONS: SleepoverReason[] = [
-  '일반 외박',
-  '연수',
-  '현장실습',
-  '실리콘밸리',
-  '병가',
-];
 
 const getStatusTone = (status: AttendanceDisplayStatus) => {
   switch (status) {
@@ -73,10 +59,6 @@ export default function AttendanceStatusPicker({
     left: number;
     openUpward: boolean;
   } | null>(null);
-  const [selectedReason, setSelectedReason] = useState<
-    SleepoverReason | '기타' | null
-  >(null);
-  const [customReason, setCustomReason] = useState('');
 
   const statusOptions: Array<{
     value: AttendanceDisplayStatus;
@@ -145,40 +127,26 @@ export default function AttendanceStatusPicker({
   }, [isMenuOpen, updateMenuPosition]);
 
   useEffect(() => {
-    if (!isMenuOpen && !isSleepoverReasonOpen) return;
+    if (!isMenuOpen) return;
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       setIsMenuOpen(false);
-      setIsSleepoverReasonOpen(false);
     };
 
     document.addEventListener('keydown', closeOnEscape);
     return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [isMenuOpen, isSleepoverReasonOpen]);
+  }, [isMenuOpen]);
 
   const handleStatusSelect = (status: AttendanceDisplayStatus) => {
     setIsMenuOpen(false);
 
     if (status === '외박') {
-      setSelectedReason(null);
-      setCustomReason('');
       setIsSleepoverReasonOpen(true);
       return;
     }
 
     onChange(status);
-  };
-
-  const submitSleepoverReason = () => {
-    if (!selectedReason) return;
-
-    const sleepoverReason =
-      selectedReason === '기타' ? customReason.trim() : selectedReason;
-    if (!sleepoverReason) return;
-
-    onChange('외박', sleepoverReason);
-    setIsSleepoverReasonOpen(false);
   };
 
   const statusMenu =
@@ -218,100 +186,6 @@ export default function AttendanceStatusPicker({
       </div>
     ) : null;
 
-  const sleepoverReasonModal = isSleepoverReasonOpen ? (
-    <div
-      className="sleepover-reason-backdrop"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          setIsSleepoverReasonOpen(false);
-        }
-      }}
-    >
-      <section
-        className="sleepover-reason-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="sleepover-reason-title"
-      >
-        <div className="sleepover-reason-header">
-          <div>
-            <p>Sleepover reason</p>
-            <h2 id="sleepover-reason-title">외박 사유 선택</h2>
-          </div>
-          <button
-            type="button"
-            className="sleepover-reason-close"
-            onClick={() => setIsSleepoverReasonOpen(false)}
-            aria-label="외박 사유 선택 닫기"
-          >
-            ✕
-          </button>
-        </div>
-        <p className="sleepover-reason-description">
-          {studentName} 학생의 외박 사유를 선택해주세요.
-        </p>
-        <div className="sleepover-reason-options">
-          {SLEEPOVER_REASONS.map((reason) => (
-            <button
-              key={reason}
-              type="button"
-              className={`sleepover-reason-option ${
-                selectedReason === reason ? 'selected' : ''
-              }`}
-              onClick={() => setSelectedReason(reason)}
-            >
-              {reason}
-            </button>
-          ))}
-          <button
-            type="button"
-            className={`sleepover-reason-option ${
-              selectedReason === '기타' ? 'selected' : ''
-            }`}
-            onClick={() => setSelectedReason('기타')}
-          >
-            기타 (입력)
-          </button>
-        </div>
-        {selectedReason === '기타' && (
-          <label className="sleepover-custom-reason">
-            <span>기타 사유</span>
-            <input
-              type="text"
-              value={customReason}
-              onChange={(event) => setCustomReason(event.target.value)}
-              placeholder="외박 사유를 입력해주세요"
-              maxLength={100}
-              autoFocus
-            />
-            <em>{customReason.length}/100</em>
-          </label>
-        )}
-        <div className="sleepover-reason-actions">
-          <button
-            type="button"
-            className="sleepover-reason-cancel"
-            onClick={() => setIsSleepoverReasonOpen(false)}
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            className="sleepover-reason-submit"
-            onClick={submitSleepoverReason}
-            disabled={
-              !selectedReason ||
-              (selectedReason === '기타' && !customReason.trim())
-            }
-          >
-            외박 처리
-          </button>
-        </div>
-      </section>
-    </div>
-  ) : null;
-
   return (
     <>
       <button
@@ -329,7 +203,17 @@ export default function AttendanceStatusPicker({
         </span>
       </button>
       {createPortal(statusMenu, document.body)}
-      {createPortal(sleepoverReasonModal, document.body)}
+      {isSleepoverReasonOpen && (
+        <SleepoverReasonModal
+          isOpen
+          studentName={studentName}
+          onClose={() => setIsSleepoverReasonOpen(false)}
+          onSubmit={(sleepoverReason) => {
+            onChange('외박', sleepoverReason);
+            setIsSleepoverReasonOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }

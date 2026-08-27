@@ -548,37 +548,37 @@
 
 .check-page .student-table th:nth-child(1),
 .check-page .student-table td:nth-child(1) {
-  width: 9%;
+  width: 3%;
 }
 
 .check-page .student-table th:nth-child(2),
 .check-page .student-table td:nth-child(2) {
-  width: 11%;
+  width: 9%;
 }
 
 .check-page .student-table th:nth-child(3),
 .check-page .student-table td:nth-child(3) {
-  width: 11%;
+  width: 10%;
 }
 
 .check-page .student-table th:nth-child(4),
 .check-page .student-table td:nth-child(4) {
-  width: 8%;
+  width: 16%;
 }
 
 .check-page .student-table th:nth-child(5),
 .check-page .student-table td:nth-child(5) {
-  width: 12%;
+  width: 7%;
 }
 
 .check-page .student-table th:nth-child(6),
 .check-page .student-table td:nth-child(6) {
-  width: 11%;
+  width: 9%;
 }
 
 .check-page .student-table th:nth-child(7),
 .check-page .student-table td:nth-child(7) {
-  width: 11%;
+  width: 9%;
 }
 
 .check-page .student-table th:nth-child(8),
@@ -588,42 +588,52 @@
 
 .check-page .student-table th:nth-child(9),
 .check-page .student-table td:nth-child(9) {
+  width: 10%;
+}
+
+.check-page .student-table th:nth-child(10),
+.check-page .student-table td:nth-child(10) {
   width: 15%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(1),
 .check-page .student-table-attendance-only td:nth-child(1) {
-  width: 11%;
+  width: 3%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(2),
 .check-page .student-table-attendance-only td:nth-child(2) {
-  width: 15%;
+  width: 11%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(3),
 .check-page .student-table-attendance-only td:nth-child(3) {
-  width: 17%;
+  width: 14%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(4),
 .check-page .student-table-attendance-only td:nth-child(4) {
-  width: 9%;
+  width: 22%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(5),
 .check-page .student-table-attendance-only td:nth-child(5) {
-  width: 14%;
+  width: 8%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(6),
 .check-page .student-table-attendance-only td:nth-child(6) {
-  width: 15%;
+  width: 12%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(7),
 .check-page .student-table-attendance-only td:nth-child(7) {
-  width: 19%;
+  width: 13%;
+}
+
+.check-page .student-table-attendance-only th:nth-child(8),
+.check-page .student-table-attendance-only td:nth-child(8) {
+  width: 17%;
 }
 
 .check-page .student-table-focused th:nth-child(1),

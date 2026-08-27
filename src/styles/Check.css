@@ -832,9 +832,9 @@
 /* ===== 인원 선택 및 일괄 상태 변경 ===== */
 .check-page .student-table .selection-column,
 .check-page .student-table .selection-cell {
-  width: 48px;
-  padding-right: 4px;
-  padding-left: 12px;
+  width: 36px;
+  padding-right: 6px;
+  padding-left: 6px;
   text-align: center;
 }
 
@@ -1276,8 +1276,8 @@
   .check-page .student-table tbody td.selection-cell {
     justify-content: flex-end;
     flex-direction: row;
-    min-height: 28px;
-    padding: 6px 0;
+    min-height: 24px;
+    padding: 4px 0;
   }
 
   .check-page .student-table tbody td.selection-cell::before {

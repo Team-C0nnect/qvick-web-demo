@@ -1,10 +1,10 @@
 .attendance-status-trigger {
-  min-width: 116px;
+  min-width: 108px;
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 7px 10px 7px 12px;
+  padding: 6px 9px 6px 11px;
   border: 1px solid transparent;
   border-radius: 9px;
   font: inherit;
@@ -61,10 +61,10 @@
 .attendance-status-menu {
   position: fixed;
   z-index: 1000;
-  width: 232px;
-  padding: 8px;
+  width: 208px;
+  padding: 6px;
   border: 1px solid #dedee3;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #ffffff;
   box-shadow: 0 16px 32px rgba(15, 15, 16, 0.16);
 }
@@ -74,7 +74,7 @@
 }
 
 .attendance-status-menu-title {
-  margin: 2px 7px 7px;
+  margin: 2px 6px 5px;
   color: #747678;
   font-size: 11px;
   font-weight: 750;
@@ -85,14 +85,14 @@
   display: grid;
   grid-template-columns: 10px 1fr auto;
   align-items: center;
-  gap: 9px;
-  padding: 10px 9px;
+  gap: 8px;
+  padding: 8px;
   border: 0;
   border-radius: 9px;
   background: transparent;
   color: #27272a;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   text-align: left;
   cursor: pointer;
@@ -139,9 +139,9 @@
 }
 
 .sleepover-reason-modal {
-  width: min(460px, 100%);
+  width: min(380px, 100%);
   border: 1px solid #e6e6e7;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 20px 60px rgba(15, 15, 16, 0.22);
 }
@@ -151,7 +151,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px 18px;
+  padding: 18px 20px 14px;
   border-bottom: 1px solid #ececef;
 }
 
@@ -167,7 +167,7 @@
 .sleepover-reason-header h2 {
   margin: 0;
   color: #17181a;
-  font-size: 21px;
+  font-size: 18px;
   font-weight: 800;
 }
 
@@ -192,7 +192,7 @@
 }
 
 .sleepover-reason-description {
-  margin: 20px 24px 14px;
+  margin: 16px 20px 12px;
   color: #52525b;
   font-size: 14px;
 }
@@ -200,13 +200,13 @@
 .sleepover-reason-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  padding: 0 24px;
+  gap: 7px;
+  padding: 0 20px;
 }
 
 .sleepover-reason-option {
-  min-height: 44px;
-  padding: 9px 12px;
+  min-height: 40px;
+  padding: 8px 10px;
   border: 1px solid #e4e4e7;
   border-radius: 9px;
   background: #ffffff;
@@ -233,7 +233,7 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  margin: 14px 24px 0;
+  margin: 12px 20px 0;
   color: #3f3f46;
   font-size: 13px;
   font-weight: 700;
@@ -241,7 +241,7 @@
 
 .sleepover-custom-reason input {
   width: 100%;
-  height: 42px;
+  height: 40px;
   padding: 0 48px 0 12px;
   border: 1px solid #d4d4d8;
   border-radius: 8px;
@@ -270,13 +270,13 @@
   display: flex;
   justify-content: flex-end;
   gap: 9px;
-  padding: 24px;
+  padding: 18px 20px 20px;
 }
 
 .sleepover-reason-actions button {
-  min-width: 92px;
-  min-height: 42px;
-  padding: 0 16px;
+  min-width: 84px;
+  min-height: 38px;
+  padding: 0 14px;
   border-radius: 8px;
   font: inherit;
   font-size: 14px;

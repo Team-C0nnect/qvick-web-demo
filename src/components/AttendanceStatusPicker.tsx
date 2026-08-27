@@ -94,8 +94,8 @@ export default function AttendanceStatusPicker({
 
     const rect = trigger.getBoundingClientRect();
     const viewportPadding = 12;
-    const menuWidth = 232;
-    const menuHeight = 244;
+    const menuWidth = 208;
+    const menuHeight = 208;
     const openUpward =
       window.innerHeight - rect.bottom < menuHeight && rect.top > menuHeight;
     const left = Math.min(

@@ -1,7 +1,18 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  keepPreviousData,
+  useMutation,
+  useQueryClient,
+  useQuery,
+} from '@tanstack/react-query';
 import { useOutletContext } from 'react-router-dom';
-import { useAttendances } from '../hooks/useApi';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
 import { scheduleService } from '../services/schedule.service';
@@ -11,7 +22,14 @@ import type {
   AttendanceExportMode,
   MergedAttendanceMember,
 } from '../services/excel.service';
-import { CheckTableSkeleton } from '../components/Skeleton';
+import { CheckTableSkeleton, TableRowSkeleton } from '../components/Skeleton';
+import AttendanceStatusPicker, {
+  type AttendanceDisplayStatus,
+} from '../components/AttendanceStatusPicker';
+import ConfirmationModal from '../components/ConfirmationModal';
+import SleepoverReasonModal from '../components/SleepoverReasonModal';
+import DonutChart from '../components/DonutChart';
+import { RollingNumber } from '../components/RollingNumber';
 import '../styles/Check.css';
 import { SearchIcon, ExcelIcon } from '../components/Icons';
 import type {
@@ -31,7 +49,7 @@ interface Student {
   room: string;
   overnight: boolean;
   name: string;
-  status: '출석' | '미출석' | '외박' | '지연출석';
+  status: AttendanceDisplayStatus;
   gender: '남' | '여';
   studentId: string;
   grade: number;
@@ -44,7 +62,11 @@ interface Student {
   dormitory: string;
 }
 
-type DisplayAttendanceStatus = Student['status'];
+type DisplayAttendanceStatus = AttendanceDisplayStatus;
+type PendingBulkStatusChange = {
+  status: AttendanceDisplayStatus;
+  sleepoverReason?: string;
+};
 type NightAttendanceDisplayStatus = '출석' | '미출석' | '-';
 type PhoneSubmissionDisplayStatus = '제출' | '미제출' | '외박' | '-';
 type AttendanceScheduleTime = {
@@ -91,6 +113,9 @@ const ATTENDANCE_PERIOD_LABELS: Record<
     time: '입실 시간',
   },
 };
+
+const toPercent = (value: number, total: number): string =>
+  total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0.0%';
 
 interface AttendanceStats {
   total: number;
@@ -273,7 +298,6 @@ export default function Check() {
     isManual: isPeriodManuallySelected,
     setAttendanceView: setAttendanceType,
     syncAttendanceView,
-    markManual,
     resetToAuto,
   } = useAttendanceView();
   const [searchQuery, setSearchQuery] = useState('');
@@ -308,12 +332,27 @@ export default function Check() {
   >('전체');
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
+  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const [pendingBulkStatusChange, setPendingBulkStatusChange] =
+    useState<PendingBulkStatusChange | null>(null);
+  const [isBulkSleepoverReasonOpen, setIsBulkSleepoverReasonOpen] =
+    useState(false);
+  const selectAllCheckboxRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
 
-  // 신버전 출석 데이터 (자동 새로고침)
-  const { data: attendancesData, isLoading: attendancesLoading } =
-    useAttendances(currentDate);
+  // 신버전 출석 데이터 (자동 새로고침, 날짜 변경 시 이전 데이터 유지)
+  const {
+    data: attendancesData,
+    isLoading: attendancesLoading,
+    isPlaceholderData: attendancesStale,
+  } = useQuery({
+    queryKey: ['attendances', currentDate],
+    queryFn: () => attendanceService.getAttendances(currentDate),
+    placeholderData: keepPreviousData,
+  });
 
   // 학생 목록 (ID 매핑용)
   const { data: studentsData } = useQuery({
@@ -323,20 +362,24 @@ export default function Check() {
   });
 
   // 출석 스케줄 (남/여 기숙사)
-  const { data: maleSchedule } = useQuery({
+  const { data: maleSchedule, isLoading: isMaleScheduleLoading } = useQuery({
     queryKey: ['schedule', currentDate, 'MALE'],
     queryFn: () => scheduleService.getScheduleByDate(currentDate, 'MALE'),
     retry: false,
   });
 
-  const { data: femaleSchedule } = useQuery({
+  const { data: femaleSchedule, isLoading: isFemaleScheduleLoading } = useQuery({
     queryKey: ['schedule', currentDate, 'FEMALE'],
     queryFn: () => scheduleService.getScheduleByDate(currentDate, 'FEMALE'),
     retry: false,
   });
 
-  useEffect(() => {
-    if (isPeriodManuallySelected) return;
+  const isAutoAttendanceTypeResolving =
+    !isPeriodManuallySelected &&
+    (isMaleScheduleLoading || isFemaleScheduleLoading);
+
+  useLayoutEffect(() => {
+    if (isPeriodManuallySelected || isAutoAttendanceTypeResolving) return;
 
     const updateAttendanceType = () => {
       syncAttendanceView(
@@ -353,6 +396,7 @@ export default function Check() {
     return () => window.clearInterval(interval);
   }, [
     femaleSchedule,
+    isAutoAttendanceTypeResolving,
     isPeriodManuallySelected,
     maleSchedule,
     syncAttendanceView,
@@ -379,16 +423,29 @@ export default function Check() {
   }, [attendanceType, currentDate, setCurrentDate, setAttendanceType]);
 
   const isViewingCurrentAttendancePeriod =
+    !isAutoAttendanceTypeResolving &&
     currentDate === formatLocalDate() &&
     attendanceType === getTimeBasedAttendanceType([maleSchedule, femaleSchedule]);
 
   useEffect(() => {
+    if (isAutoAttendanceTypeResolving) return;
+
     if (isPeriodManuallySelected && isViewingCurrentAttendancePeriod) {
       resetToAuto();
     }
-  }, [isPeriodManuallySelected, isViewingCurrentAttendancePeriod, resetToAuto]);
+  }, [
+    isAutoAttendanceTypeResolving,
+    isPeriodManuallySelected,
+    isViewingCurrentAttendancePeriod,
+    resetToAuto,
+  ]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (isAutoAttendanceTypeResolving) {
+      setHeaderActions(null);
+      return;
+    }
+
     setHeaderActions(
       <div className="header-attendance-period-controls check-period-controls">
         <span
@@ -427,6 +484,7 @@ export default function Check() {
     currentDate,
     handleNextAttendancePeriod,
     handlePreviousAttendancePeriod,
+    isAutoAttendanceTypeResolving,
     isViewingCurrentAttendancePeriod,
     setHeaderActions,
   ]);
@@ -449,6 +507,15 @@ export default function Check() {
     >
   >(new Map());
 
+  const selectedStudents = useMemo(
+    () =>
+      students.filter(
+        (student): student is Student & { id: number } =>
+          student.id !== null && selectedStudentIds.has(student.id),
+      ),
+    [selectedStudentIds, students],
+  );
+
   // 외박 상태 업데이트 mutation
   const updateAttendancesMutation = useMutation({
     mutationFn: (data: UpdateAttendancesRequest) =>
@@ -457,6 +524,37 @@ export default function Check() {
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
     },
   });
+
+  const getEffectiveDisplayStatus = useCallback(
+    (
+      student: Student,
+      newDisplayStatus: AttendanceDisplayStatus,
+    ): DisplayAttendanceStatus => {
+      const dateSchedules = scheduleCache.get(currentDate);
+      const endTime =
+        student.gender === '남'
+          ? (getScheduleEndTime(
+              dateSchedules?.maleSchedule,
+              attendanceType,
+            ) ?? getScheduleEndTime(maleSchedule, attendanceType))
+          : (getScheduleEndTime(
+              dateSchedules?.femaleSchedule,
+              attendanceType,
+            ) ?? getScheduleEndTime(femaleSchedule, attendanceType));
+
+      return newDisplayStatus === '출석' &&
+        hasAttendanceWindowEnded(currentDate, endTime)
+        ? '지연출석'
+        : newDisplayStatus;
+    },
+    [
+      attendanceType,
+      currentDate,
+      femaleSchedule,
+      maleSchedule,
+      scheduleCache,
+    ],
+  );
 
   // 자동 새로고침 설정
   useEffect(() => {
@@ -486,27 +584,18 @@ export default function Check() {
   const handleStatusChange = useCallback(
     (
       student: Student,
-      newDisplayStatus: '출석' | '미출석' | '외박' | '지연출석',
+      newDisplayStatus: AttendanceDisplayStatus,
+      sleepoverReason?: string,
     ) => {
       if (!student.id) {
         console.error('학생 ID를 찾을 수 없습니다.');
         return;
       }
 
-      const dateSchedules = scheduleCache.get(currentDate);
-      const endTime =
-        student.gender === '남'
-          ? (getScheduleEndTime(dateSchedules?.maleSchedule, attendanceType) ??
-            getScheduleEndTime(maleSchedule, attendanceType))
-          : (getScheduleEndTime(
-              dateSchedules?.femaleSchedule,
-              attendanceType,
-            ) ?? getScheduleEndTime(femaleSchedule, attendanceType));
-      const effectiveDisplayStatus: DisplayAttendanceStatus =
-        newDisplayStatus === '출석' &&
-        hasAttendanceWindowEnded(currentDate, endTime)
-          ? '지연출석'
-          : newDisplayStatus;
+      const effectiveDisplayStatus = getEffectiveDisplayStatus(
+        student,
+        newDisplayStatus,
+      );
 
       updateAttendancesMutation.mutate({
         date: currentDate,
@@ -515,6 +604,8 @@ export default function Check() {
             studentId: student.id,
             status: STATUS_MAP[effectiveDisplayStatus],
             attendanceType,
+            sleepoverReason:
+              effectiveDisplayStatus === '외박' ? sleepoverReason : null,
           },
         ],
       });
@@ -535,12 +626,68 @@ export default function Check() {
     [
       currentDate,
       attendanceType,
-      femaleSchedule,
-      maleSchedule,
-      scheduleCache,
+      getEffectiveDisplayStatus,
       updateAttendancesMutation,
     ],
   );
+
+  const handleBulkStatusChange = useCallback(
+    (status: AttendanceDisplayStatus, sleepoverReason?: string) => {
+      if (selectedStudents.length === 0) return;
+
+      const localStatusByStudentId = new Map<number, DisplayAttendanceStatus>();
+      const attendances = selectedStudents.map((student) => {
+        const effectiveDisplayStatus = getEffectiveDisplayStatus(student, status);
+        localStatusByStudentId.set(student.id, effectiveDisplayStatus);
+
+        return {
+          studentId: student.id,
+          status: STATUS_MAP[effectiveDisplayStatus],
+          attendanceType,
+          sleepoverReason:
+            effectiveDisplayStatus === '외박' ? sleepoverReason : null,
+        };
+      });
+
+      updateAttendancesMutation.mutate(
+        { date: currentDate, attendances },
+        {
+          onSuccess: () => {
+            setStudents((previousStudents) =>
+              previousStudents.map((student) => {
+                if (!student.id) return student;
+                const effectiveDisplayStatus = localStatusByStudentId.get(
+                  student.id,
+                );
+                if (!effectiveDisplayStatus) return student;
+
+                return {
+                  ...student,
+                  overnight: effectiveDisplayStatus === '외박',
+                  status: effectiveDisplayStatus,
+                };
+              }),
+            );
+            setSelectedStudentIds(new Set());
+            setPendingBulkStatusChange(null);
+          },
+        },
+      );
+    },
+    [
+      attendanceType,
+      currentDate,
+      getEffectiveDisplayStatus,
+      selectedStudents,
+      updateAttendancesMutation,
+    ],
+  );
+
+  useEffect(() => {
+    setSelectedStudentIds(new Set());
+    setPendingBulkStatusChange(null);
+    setIsBulkSleepoverReasonOpen(false);
+  }, [attendanceType, currentDate]);
 
   // 엑셀 내보내기 (성별, 출력 유형 선택)
   const handleExportExcel = useCallback(
@@ -650,8 +797,8 @@ export default function Check() {
     });
   }, [attendancesData, currentDate, scheduleCache]);
 
-  // 신버전 출석 데이터 매핑
-  useEffect(() => {
+  // 신버전 출석 데이터 매핑 (페인트 전에 반영해야 예전 데이터 깜빡임이 없음)
+  useLayoutEffect(() => {
     // 학번 → 학생 목록 정보 매핑
     const studentInfoMap = new Map<
       string,
@@ -828,7 +975,8 @@ export default function Check() {
         const query = searchQuery.toLowerCase();
         if (
           !matchesKoreanNameSearch(student.name, searchQuery) &&
-          !student.room.toLowerCase().includes(query)
+          !student.room.toLowerCase().includes(query) &&
+          !student.studentId.includes(query)
         ) {
           return false;
         }
@@ -854,6 +1002,61 @@ export default function Check() {
   };
 
   const filteredStudents = getFilteredStudents();
+  const selectableFilteredStudents = filteredStudents.filter(
+    (student): student is Student & { id: number } => student.id !== null,
+  );
+  const selectedVisibleStudentCount = selectableFilteredStudents.filter(
+    (student) => selectedStudentIds.has(student.id),
+  ).length;
+  const isAllVisibleStudentsSelected =
+    selectableFilteredStudents.length > 0 &&
+    selectedVisibleStudentCount === selectableFilteredStudents.length;
+  const isPartiallyVisibleStudentsSelected =
+    selectedVisibleStudentCount > 0 && !isAllVisibleStudentsSelected;
+
+  useEffect(() => {
+    if (selectAllCheckboxRef.current) {
+      selectAllCheckboxRef.current.indeterminate =
+        isPartiallyVisibleStudentsSelected;
+    }
+  }, [isPartiallyVisibleStudentsSelected]);
+
+  const toggleStudentSelection = (studentId: number, isSelected: boolean) => {
+    setSelectedStudentIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      if (isSelected) {
+        nextIds.add(studentId);
+      } else {
+        nextIds.delete(studentId);
+      }
+      return nextIds;
+    });
+  };
+
+  const toggleAllVisibleStudentSelection = (isSelected: boolean) => {
+    setSelectedStudentIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      selectableFilteredStudents.forEach((student) => {
+        if (isSelected) {
+          nextIds.add(student.id);
+        } else {
+          nextIds.delete(student.id);
+        }
+      });
+      return nextIds;
+    });
+  };
+
+  const requestBulkStatusChange = (status: AttendanceDisplayStatus) => {
+    if (selectedStudents.length === 0) return;
+
+    if (status === '외박') {
+      setIsBulkSleepoverReasonOpen(true);
+      return;
+    }
+
+    setPendingBulkStatusChange({ status });
+  };
 
   // 기존 handleExportExcel은 위에서 useCallback으로 정의됨
 
@@ -958,77 +1161,252 @@ export default function Check() {
   );
 
   const periodLabels = ATTENDANCE_PERIOD_LABELS[attendanceType];
+  const getBulkStatusLabel = (status: AttendanceDisplayStatus) => {
+    switch (status) {
+      case '출석':
+        return periodLabels.complete;
+      case '지연출석':
+        return periodLabels.late;
+      case '미출석':
+        return periodLabels.absent;
+      default:
+        return '외박';
+    }
+  };
+  const nightAttendanceTotal = stats.nightPresent + stats.nightAbsent;
+  const phoneSubmissionTotal = stats.phoneSubmitted + stats.phoneNotSubmitted;
+  const nightAttendanceRate =
+    nightAttendanceTotal > 0
+      ? Math.round((stats.nightPresent / nightAttendanceTotal) * 100)
+      : 0;
+  const phoneSubmissionRate =
+    phoneSubmissionTotal > 0
+      ? Math.round((stats.phoneSubmitted / phoneSubmissionTotal) * 100)
+      : 0;
 
-  if (attendancesLoading) {
+  if (attendancesLoading || isAutoAttendanceTypeResolving) {
     return (
       <div className="check-page">
-        <CheckTableSkeleton />
+        <CheckTableSkeleton
+          nightCard={
+            !isAutoAttendanceTypeResolving && attendanceType === 'NIGHT'
+          }
+        />
       </div>
     );
   }
   return (
     <div className="check-page">
       <div className="controls-section">
-        <div className="controls-left">
-          <div className="date-picker">
-            <input
-              type="date"
-              value={currentDate}
-              onChange={(e) => {
-                setCurrentDate(e.target.value);
-                markManual();
-              }}
-            />
+        <div className="donut-cards">
+          <div className="donut-card">
+            <h3 className="donut-card-title">{periodLabels.title} 상태 분포</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${stats.present}-${stats.absent}-${stats.late}-${stats.sleepover}-${stats.total}`}
+                className="donut-card-chart"
+                total={stats.total}
+                label={`${periodLabels.title} 상태 비율`}
+                segments={[
+                  { key: 'present', color: '#22c55e', value: stats.present },
+                  { key: 'absent', color: '#ef4444', value: stats.absent },
+                  { key: 'late', color: '#f59e0b', value: stats.late },
+                  {
+                    key: 'sleepover',
+                    color: '#8b5cf6',
+                    value: stats.sleepover,
+                  },
+                ]}
+              >
+                <span>전체</span>
+                <strong>
+                  <RollingNumber value={stats.total} />명
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                {[
+                  {
+                    label: periodLabels.complete,
+                    value: stats.present,
+                    tone: 'positive',
+                  },
+                  {
+                    label: periodLabels.absent,
+                    value: stats.absent,
+                    tone: 'negative',
+                  },
+                  {
+                    label: periodLabels.late,
+                    value: stats.late,
+                    tone: 'warning',
+                  },
+                  {
+                    label: '외박',
+                    value: stats.sleepover,
+                    tone: 'sleepover',
+                  },
+                ].map((item) => (
+                  <li key={item.tone}>
+                    <span className="legend-label">
+                      <i className={`legend-dot ${item.tone}`} />
+                      {item.label}
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={item.value} />명{' '}
+                      <em>({toPercent(item.value, stats.total)})</em>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
+
+          {attendanceType === 'NIGHT' && (
+            <div className="donut-card">
+              <h3 className="donut-card-title">심야자습 출석 현황</h3>
+              <div className="donut-card-body">
+                <DonutChart
+                  key={`${stats.nightPresent}-${stats.nightAbsent}`}
+                  className="donut-card-chart"
+                  total={stats.nightPresent + stats.nightAbsent}
+                  label="심야자습 출석 비율"
+                  segments={[
+                    {
+                      key: 'present',
+                      color: '#22c55e',
+                      value: stats.nightPresent,
+                    },
+                    {
+                      key: 'absent',
+                      color: '#ef4444',
+                      value: stats.nightAbsent,
+                    },
+                  ]}
+                >
+                  <strong>
+                    <RollingNumber value={nightAttendanceRate} />%
+                  </strong>
+                </DonutChart>
+                <ul className="donut-legend">
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot positive" />
+                      출석
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={stats.nightPresent} />명{' '}
+                      <em>
+                        (
+                        {toPercent(
+                          stats.nightPresent,
+                          stats.nightPresent + stats.nightAbsent,
+                        )}
+                        )
+                      </em>
+                    </span>
+                  </li>
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot negative" />
+                      미출석
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={stats.nightAbsent} />명{' '}
+                      <em>
+                        (
+                        {toPercent(
+                          stats.nightAbsent,
+                          stats.nightPresent + stats.nightAbsent,
+                        )}
+                        )
+                      </em>
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          <div className="donut-card">
+            <h3 className="donut-card-title">휴대폰 제출 현황</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${stats.phoneSubmitted}-${stats.phoneNotSubmitted}`}
+                className="donut-card-chart"
+                total={stats.phoneSubmitted + stats.phoneNotSubmitted}
+                label="휴대폰 제출 비율"
+                segments={[
+                  {
+                    key: 'submitted',
+                    color: '#22c55e',
+                    value: stats.phoneSubmitted,
+                  },
+                  {
+                    key: 'not-submitted',
+                    color: '#ef4444',
+                    value: stats.phoneNotSubmitted,
+                  },
+                ]}
+              >
+                <strong>
+                  <RollingNumber value={phoneSubmissionRate} />%
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                <li>
+                  <span className="legend-label">
+                    <i className="legend-dot positive" />
+                    제출 완료
+                  </span>
+                  <span className="legend-value">
+                    <RollingNumber value={stats.phoneSubmitted} />명{' '}
+                    <em>
+                      (
+                      {toPercent(
+                        stats.phoneSubmitted,
+                        stats.phoneSubmitted + stats.phoneNotSubmitted,
+                      )}
+                      )
+                    </em>
+                  </span>
+                </li>
+                <li>
+                  <span className="legend-label">
+                    <i className="legend-dot negative" />
+                    미제출
+                  </span>
+                  <span className="legend-value">
+                    <RollingNumber value={stats.phoneNotSubmitted} />명{' '}
+                    <em>
+                      (
+                      {toPercent(
+                        stats.phoneNotSubmitted,
+                        stats.phoneSubmitted + stats.phoneNotSubmitted,
+                      )}
+                      )
+                    </em>
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="table-panel">
+        <div className="table-toolbar">
           <div className="search-box">
             <SearchIcon className="search-icon" />
             <input
               type="text"
-              placeholder="호실 / 이름으로 검색..."
+              placeholder="호실 / 이름 / 학번으로 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="stats-section">
-          <div className="stat-box">전체 : {stats.total}명</div>
-          <div className="stat-box attendance">
-            {periodLabels.complete} :{' '}
-            <span className="positive">{stats.present}</span>명
-          </div>
-          <div className="stat-box absence">
-            {periodLabels.absent} :{' '}
-            <span className="negative">{stats.absent}</span>명
-          </div>
-          <div className="stat-box late">
-            {periodLabels.late} :{' '}
-            <span className="warning">{stats.late}</span>명
-          </div>
-          <div className="stat-box sleepover">
-            외박 : <span className="sleepover-count">{stats.sleepover}</span>명
-          </div>
-          {attendanceType === 'NIGHT' && (
-            <>
-              <div className="stat-box night-absence">
-                심자 출석 : <span className="positive">{stats.nightPresent}</span>명
-              </div>
-              <div className="stat-box night-absence">
-                심자 미출석 : <span className="negative">{stats.nightAbsent}</span>명
-              </div>
-              <div className="stat-box phone-submission">
-                휴대폰 미제출 :{' '}
-                <span className="phone-submission-count">
-                  {stats.phoneNotSubmitted}
-                </span>
-                명
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      <div className="filter-section">
+        <div className="table-filters">
         <div className="filter-group">
           <label className="filter-label">{periodLabels.title} 상태:</label>
           <div className="filter-buttons">
@@ -1216,9 +1594,9 @@ export default function Check() {
             )}
           </div>
         </div>
-      </div>
+        </div>
 
-      <div className="table-container">
+        <div className="table-container">
         <table
           className={`student-table ${
             attendanceType === 'MORNING' ? 'student-table-attendance-only' : ''
@@ -1226,6 +1604,22 @@ export default function Check() {
         >
           <thead>
             <tr>
+              <th className="selection-column">
+                <input
+                  ref={selectAllCheckboxRef}
+                  type="checkbox"
+                  className="selection-checkbox"
+                  checked={isAllVisibleStudentsSelected}
+                  onChange={(event) =>
+                    toggleAllVisibleStudentSelection(event.target.checked)
+                  }
+                  disabled={
+                    updateAttendancesMutation.isPending ||
+                    selectableFilteredStudents.length === 0
+                  }
+                  aria-label="표시된 학생 전체 선택"
+                />
+              </th>
               {renderSortableHeader('room', '호실')}
               {renderSortableHeader('name', '이름')}
               {renderSortableHeader('status', `${periodLabels.title} 상태`)}
@@ -1240,43 +1634,61 @@ export default function Check() {
             </tr>
           </thead>
           <tbody>
-            {filteredStudents.map((student, index) => {
+            {attendancesStale
+              ? Array.from({
+                  length: Math.max(filteredStudents.length, 8),
+                }).map((_, row) => (
+                  <TableRowSkeleton
+                    key={row}
+                    columns={attendanceType === 'NIGHT' ? 10 : 8}
+                  />
+                ))
+              : filteredStudents.map((student, index) => {
               const nightAttendance = student.nightAttendance ?? '-';
               const phoneSubmission = student.phoneSubmission ?? '-';
 
               return (
                 <tr key={index}>
+                  <td className="selection-cell" data-label="선택">
+                    <input
+                      type="checkbox"
+                      className="selection-checkbox"
+                      checked={
+                        student.id !== null && selectedStudentIds.has(student.id)
+                      }
+                      onChange={(event) => {
+                        if (student.id !== null) {
+                          toggleStudentSelection(
+                            student.id,
+                            event.target.checked,
+                          );
+                        }
+                      }}
+                      disabled={
+                        updateAttendancesMutation.isPending ||
+                        student.id === null
+                      }
+                      aria-label={`${student.name} 학생 선택`}
+                    />
+                  </td>
                   <td className="room-cell" data-label="호실">{student.room}</td>
                   <td data-label="이름">{student.name}</td>
                   <td data-label={`${periodLabels.title} 상태`}>
-                    <select
+                    <AttendanceStatusPicker
                       value={student.status}
-                      onChange={(e) =>
+                      completeLabel={periodLabels.complete}
+                      lateLabel={periodLabels.late}
+                      absentLabel={periodLabels.absent}
+                      studentName={student.name}
+                      onChange={(status, sleepoverReason) =>
                         handleStatusChange(
                           student,
-                          e.target.value as
-                            | '출석'
-                            | '미출석'
-                            | '외박'
-                            | '지연출석',
+                          status,
+                          sleepoverReason,
                         )
                       }
                       disabled={updateAttendancesMutation.isPending}
-                      className={`status-select ${
-                        student.status === '출석'
-                          ? 'status-present'
-                          : student.status === '지연출석'
-                            ? 'status-late'
-                            : student.status === '외박'
-                              ? 'status-sleepover'
-                              : 'status-absent'
-                      }`}
-                    >
-                      <option value="출석">{periodLabels.complete}</option>
-                      <option value="지연출석">{periodLabels.late}</option>
-                      <option value="미출석">{periodLabels.absent}</option>
-                      <option value="외박">외박</option>
-                    </select>
+                    />
                   </td>
                   <td data-label="성별">{student.gender}</td>
                   <td data-label="학번">{student.studentId}</td>
@@ -1298,6 +1710,100 @@ export default function Check() {
           </tbody>
         </table>
       </div>
+      </div>
+
+      {selectedStudents.length > 0 && (
+        <section className="bulk-status-bar" aria-label="선택 학생 일괄 상태 변경">
+          <div className="bulk-status-summary">
+            <strong>{selectedStudents.length}명</strong> 선택됨
+            <button
+              type="button"
+              onClick={() => setSelectedStudentIds(new Set())}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              선택 해제
+            </button>
+          </div>
+          <div className="bulk-status-actions" role="group" aria-label="일괄 상태 변경">
+            <span>일괄 변경</span>
+            <button
+              type="button"
+              className="bulk-status-button present"
+              onClick={() => requestBulkStatusChange('출석')}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              {periodLabels.complete}
+            </button>
+            <button
+              type="button"
+              className="bulk-status-button late"
+              onClick={() => requestBulkStatusChange('지연출석')}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              {periodLabels.late}
+            </button>
+            <button
+              type="button"
+              className="bulk-status-button absent"
+              onClick={() => requestBulkStatusChange('미출석')}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              {periodLabels.absent}
+            </button>
+            <button
+              type="button"
+              className="bulk-status-button sleepover"
+              onClick={() => requestBulkStatusChange('외박')}
+              disabled={updateAttendancesMutation.isPending}
+            >
+              외박
+            </button>
+          </div>
+        </section>
+      )}
+
+      {isBulkSleepoverReasonOpen && (
+        <SleepoverReasonModal
+          isOpen
+          studentCount={selectedStudents.length}
+          isSubmitting={updateAttendancesMutation.isPending}
+          onClose={() => setIsBulkSleepoverReasonOpen(false)}
+          onSubmit={(sleepoverReason) => {
+            setIsBulkSleepoverReasonOpen(false);
+            setPendingBulkStatusChange({
+              status: '외박',
+              sleepoverReason,
+            });
+          }}
+        />
+      )}
+
+      <ConfirmationModal
+        isOpen={Boolean(pendingBulkStatusChange)}
+        eyebrow="Bulk attendance update"
+        title="선택한 학생의 상태를 변경할까요?"
+        message={`${selectedStudents.length}명의 상태를 ${
+          pendingBulkStatusChange
+            ? getBulkStatusLabel(pendingBulkStatusChange.status)
+            : ''
+        }(으)로 일괄 변경합니다.${
+          pendingBulkStatusChange?.sleepoverReason
+            ? ` 외박 사유는 '${pendingBulkStatusChange.sleepoverReason}'로 동일하게 적용됩니다.`
+            : ''
+        }`}
+        confirmText="일괄 적용"
+        cancelText="취소"
+        isConfirming={updateAttendancesMutation.isPending}
+        onConfirm={() => {
+          if (pendingBulkStatusChange) {
+            handleBulkStatusChange(
+              pendingBulkStatusChange.status,
+              pendingBulkStatusChange.sleepoverReason,
+            );
+          }
+        }}
+        onCancel={() => setPendingBulkStatusChange(null)}
+      />
     </div>
   );
 }

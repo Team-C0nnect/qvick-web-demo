@@ -171,44 +171,18 @@
 
 /* 도넛 차트 */
 .period-donut {
-  position: relative;
   width: 118px;
   height: 118px;
   flex-shrink: 0;
 }
 
-.period-donut svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.period-donut-track {
-  stroke: #f1f1f3;
-}
-
-.period-donut-segment {
-  transition-property: stroke-dasharray;
-  transition-timing-function: linear;
-}
-
-.period-donut-center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-
-.period-donut-center > span {
+.period-donut .donut-chart-center > span {
   color: #747678;
   font-size: 12px;
   font-weight: 600;
 }
 
-.period-donut-center strong {
+.period-donut .donut-chart-center strong {
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.3px;

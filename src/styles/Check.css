@@ -27,9 +27,9 @@
 /* ===== 상단 컨트롤 (날짜 · 검색 · 통계) ===== */
 .check-page .controls-section {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
   margin-bottom: 32px;
 }
 
@@ -39,36 +39,12 @@
   gap: 12px;
 }
 
-.check-page .date-picker input {
-  min-height: 40px;
-  padding: 8px 12px;
-  border: 1px solid #e4e4e7;
-  border-radius: 10px;
-  background: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-  color: #0f0f10;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.check-page .date-picker input:hover {
-  border-color: #c9c9cc;
-}
-
-.check-page .date-picker input:focus {
-  outline: none;
-  border-color: #6d23ed;
-  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.12);
-}
-
 .check-page .search-box {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 280px;
+  flex: 1;
+  min-width: 0;
   min-height: 40px;
   padding: 0 14px;
   border: 1px solid #e4e4e7;
@@ -121,7 +97,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -173,8 +149,8 @@
 }
 
 .check-page .excel-button {
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 34px;
+  padding: 0 12px;
   border: 1px solid #6d23ed;
   border-radius: 8px;
   background: #6d23ed;
@@ -402,6 +378,155 @@
   margin-left: auto;
 }
 
+/* ===== 인원 확인 테이블 패널 (검색 + 필터 + 표 통합 카드) ===== */
+.check-page .table-panel {
+  overflow: visible;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.check-page .table-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f4f4f5;
+}
+
+.check-page .table-toolbar .search-box {
+  flex: 1;
+  min-width: 0;
+}
+
+.check-page .table-filters {
+  display: flex;
+  align-items: center;
+  gap: 20px 24px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ececef;
+}
+
+.check-page .table-panel .table-container {
+  overflow: hidden;
+  border: none;
+  border-radius: 0 0 12px 12px;
+  background: transparent;
+}
+
+/* ===== 통계 도넛 카드 ===== */
+.check-page .donut-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.check-page .donut-card {
+  padding: 18px 20px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.check-page .donut-card-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #17181a;
+  letter-spacing: -0.2px;
+}
+
+.check-page .donut-card-body {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.check-page .donut-card-chart {
+  width: 118px;
+  height: 118px;
+  flex-shrink: 0;
+}
+
+.check-page .donut-card .donut-chart-center > span {
+  color: #747678;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.check-page .donut-card .donut-chart-center > strong {
+  color: #17181a;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.check-page .donut-legend {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check-page .donut-legend li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid #f4f4f5;
+}
+
+.check-page .donut-legend li:last-child {
+  border-bottom: none;
+}
+
+.check-page .legend-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #52525b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.check-page .legend-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.check-page .legend-dot.positive {
+  background: #22c55e;
+}
+
+.check-page .legend-dot.negative {
+  background: #ef4444;
+}
+
+.check-page .legend-dot.warning {
+  background: #f59e0b;
+}
+
+.check-page .legend-dot.sleepover {
+  background: #8b5cf6;
+}
+
+.check-page .legend-value {
+  color: #0f0f10;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.check-page .legend-value em {
+  color: #747678;
+  font-style: normal;
+  font-weight: 600;
+}
+
 /* ===== 학생 테이블 ===== */
 .check-page .table-container {
   overflow: hidden;
@@ -423,37 +548,37 @@
 
 .check-page .student-table th:nth-child(1),
 .check-page .student-table td:nth-child(1) {
-  width: 9%;
+  width: 36px;
 }
 
 .check-page .student-table th:nth-child(2),
 .check-page .student-table td:nth-child(2) {
-  width: 11%;
+  width: 9%;
 }
 
 .check-page .student-table th:nth-child(3),
 .check-page .student-table td:nth-child(3) {
-  width: 11%;
+  width: 10%;
 }
 
 .check-page .student-table th:nth-child(4),
 .check-page .student-table td:nth-child(4) {
-  width: 8%;
+  width: 14%;
 }
 
 .check-page .student-table th:nth-child(5),
 .check-page .student-table td:nth-child(5) {
-  width: 12%;
+  width: 7%;
 }
 
 .check-page .student-table th:nth-child(6),
 .check-page .student-table td:nth-child(6) {
-  width: 11%;
+  width: 9%;
 }
 
 .check-page .student-table th:nth-child(7),
 .check-page .student-table td:nth-child(7) {
-  width: 11%;
+  width: 9%;
 }
 
 .check-page .student-table th:nth-child(8),
@@ -463,42 +588,52 @@
 
 .check-page .student-table th:nth-child(9),
 .check-page .student-table td:nth-child(9) {
+  width: 10%;
+}
+
+.check-page .student-table th:nth-child(10),
+.check-page .student-table td:nth-child(10) {
   width: 15%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(1),
 .check-page .student-table-attendance-only td:nth-child(1) {
-  width: 11%;
+  width: 36px;
 }
 
 .check-page .student-table-attendance-only th:nth-child(2),
 .check-page .student-table-attendance-only td:nth-child(2) {
-  width: 15%;
+  width: 11%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(3),
 .check-page .student-table-attendance-only td:nth-child(3) {
-  width: 17%;
+  width: 14%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(4),
 .check-page .student-table-attendance-only td:nth-child(4) {
-  width: 9%;
+  width: 16%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(5),
 .check-page .student-table-attendance-only td:nth-child(5) {
-  width: 14%;
+  width: 8%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(6),
 .check-page .student-table-attendance-only td:nth-child(6) {
-  width: 15%;
+  width: 12%;
 }
 
 .check-page .student-table-attendance-only th:nth-child(7),
 .check-page .student-table-attendance-only td:nth-child(7) {
-  width: 19%;
+  width: 13%;
+}
+
+.check-page .student-table-attendance-only th:nth-child(8),
+.check-page .student-table-attendance-only td:nth-child(8) {
+  width: 17%;
 }
 
 .check-page .student-table-focused th:nth-child(1),
@@ -704,6 +839,138 @@
   background: rgba(245, 158, 11, 0.14);
 }
 
+/* ===== 인원 선택 및 일괄 상태 변경 ===== */
+.check-page .student-table .selection-column,
+.check-page .student-table .selection-cell {
+  width: 36px !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  text-align: center;
+}
+
+.check-page .selection-checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #6d23ed;
+  cursor: pointer;
+}
+
+.check-page .selection-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bulk-status-bar {
+  position: fixed;
+  z-index: 300;
+  bottom: 24px;
+  left: 50%;
+  width: min(760px, calc(100vw - 48px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px 12px 18px;
+  border: 1px solid #dedee3;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 34px rgba(15, 15, 16, 0.18);
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+}
+
+.bulk-status-summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #52525b;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.bulk-status-summary strong {
+  color: #6d23ed;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.bulk-status-summary button {
+  padding: 3px 5px;
+  border: none;
+  background: transparent;
+  color: #747678;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bulk-status-summary button:disabled,
+.bulk-status-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bulk-status-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bulk-status-actions > span {
+  margin-right: 3px;
+  color: #747678;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.bulk-status-button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.bulk-status-button:hover:not(:disabled) {
+  border-color: currentColor;
+}
+
+.bulk-status-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.bulk-status-button.present {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.bulk-status-button.late {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.bulk-status-button.absent {
+  background: rgba(239, 68, 68, 0.09);
+  color: #b91c1c;
+}
+
+.bulk-status-button.sleepover {
+  background: rgba(139, 92, 246, 0.12);
+  color: #6d28d9;
+}
+
 /* 휴대폰 제출 셀렉트 */
 .check-page .phone-submission-select {
   padding: 6px 10px;
@@ -823,31 +1090,12 @@
   }
 
   .check-page .controls-section {
-    flex-direction: column;
-    align-items: stretch;
     margin-bottom: 24px;
   }
 
-  .check-page .controls-left {
+  .check-page .table-filters {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .check-page .date-picker input {
-    width: 100%;
-  }
-
-  .check-page .search-box {
-    width: 100%;
-  }
-
-  .check-page .stats-section {
-    justify-content: flex-start;
-  }
-
-  .check-page .stat-box {
-    flex: 1 1 140px;
-    text-align: center;
   }
 
   .check-page .filter-section {
@@ -889,6 +1137,15 @@
     gap: 16px;
   }
 
+  .check-page .controls-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .check-page .search-box {
+    width: 100%;
+  }
+
   .check-page .stats-section {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -920,6 +1177,43 @@
     border: none;
     border-radius: 0;
     background: transparent;
+  }
+
+  .check-page .table-panel {
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .check-page .table-toolbar {
+    padding: 12px 14px;
+    border-bottom: none;
+  }
+
+  .check-page .table-filters {
+    padding: 12px 14px;
+    border-bottom: none;
+  }
+
+  .check-page .table-panel .table-container {
+    border-radius: 0;
+  }
+
+  .check-page .donut-card {
+    padding: 16px;
+  }
+
+  .check-page .donut-card-body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .check-page .donut-card-chart {
+    width: 132px;
+    height: 132px;
+    margin: 0 auto;
   }
 
   .check-page .student-table,
@@ -988,6 +1282,31 @@
     max-width: 160px;
     text-align: right;
   }
+
+  .check-page .student-table tbody td.selection-cell {
+    justify-content: flex-end;
+    flex-direction: row;
+    min-height: 24px;
+    padding: 4px 0;
+  }
+
+  .check-page .student-table tbody td.selection-cell::before {
+    display: none;
+  }
+
+  .bulk-status-bar {
+    bottom: 16px;
+    width: min(540px, calc(100vw - 24px));
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .bulk-status-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1018,5 +1337,13 @@
 
   .check-page .status-select {
     max-width: 100%;
+  }
+
+  .bulk-status-actions > span {
+    width: 100%;
+  }
+
+  .bulk-status-button {
+    flex: 1 1 calc(50% - 6px);
   }
 }

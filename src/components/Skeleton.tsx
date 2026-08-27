@@ -35,43 +35,76 @@ export function TableRowSkeleton({ columns = 10 }: { columns?: number }) {
 }
 
 // 인원 확인 테이블 스켈레톤
-export function CheckTableSkeleton() {
+const CHECK_DONUT_LEGEND_TONES = ['present', 'absent', 'late', 'sleepover'] as const;
+
+export function CheckTableSkeleton({
+  nightCard = false,
+}: {
+  nightCard?: boolean;
+}) {
+  const donutLegendCounts = nightCard ? [4, 2, 2] : [4, 2];
+
   return (
     <div className="check-skeleton">
-      <div className="skeleton-controls">
-        <Skeleton width="300px" height="40px" borderRadius="8px" />
-        <div className="skeleton-stats">
-          <Skeleton width="100px" height="36px" borderRadius="8px" />
-          <Skeleton width="100px" height="36px" borderRadius="8px" />
-          <Skeleton width="100px" height="36px" borderRadius="8px" />
-          <Skeleton width="80px" height="36px" borderRadius="8px" />
-        </div>
-      </div>
-      <div className="skeleton-filters">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="skeleton-filter-group">
-            <Skeleton width="60px" height="16px" />
-            <div className="skeleton-filter-buttons">
-              <Skeleton width="50px" height="32px" borderRadius="6px" />
-              <Skeleton width="50px" height="32px" borderRadius="6px" />
-              <Skeleton width="50px" height="32px" borderRadius="6px" />
+      <div className="skeleton-donut-cards">
+        {donutLegendCounts.map((count, cardIndex) => (
+          <div key={cardIndex} className="skeleton-donut-card">
+            <Skeleton width="110px" height="15px" />
+            <div className="skeleton-donut-card-body">
+              <div className="skeleton-donut-circle">
+                <Skeleton width="100%" height="100%" borderRadius="50%" />
+              </div>
+              <div className="skeleton-legend">
+                {Array.from({ length: count }).map((_, row) => (
+                  <div key={row} className="skeleton-legend-row">
+                    <span className="skeleton-legend-label">
+                      <i
+                        className={`skeleton-legend-dot ${
+                          CHECK_DONUT_LEGEND_TONES[
+                            row % CHECK_DONUT_LEGEND_TONES.length
+                          ]
+                        }`}
+                      />
+                      <Skeleton width="52px" height="13px" />
+                    </span>
+                    <Skeleton width="84px" height="13px" />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ))}
       </div>
-      <div className="skeleton-table">
-        <div className="skeleton-table-header">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton key={i} width={i === 0 ? '60px' : '80px'} height="16px" />
+      <div className="skeleton-table-panel">
+        <div className="skeleton-table-toolbar">
+          <Skeleton width="100%" height="40px" borderRadius="8px" />
+        </div>
+        <div className="skeleton-filters">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton-filter-group">
+              <Skeleton width="60px" height="16px" />
+              <div className="skeleton-filter-buttons">
+                <Skeleton width="50px" height="32px" borderRadius="6px" />
+                <Skeleton width="50px" height="32px" borderRadius="6px" />
+                <Skeleton width="50px" height="32px" borderRadius="6px" />
+              </div>
+            </div>
           ))}
         </div>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="skeleton-table-row">
-            {Array.from({ length: 10 }).map((_, j) => (
-              <Skeleton key={j} width={j === 0 ? '50px' : j === 1 ? '20px' : '70px'} height="14px" />
+        <div className="skeleton-table">
+          <div className="skeleton-table-header">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <Skeleton key={i} width={i === 0 ? '60px' : '80px'} height="16px" />
             ))}
           </div>
-        ))}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="skeleton-table-row">
+              {Array.from({ length: 10 }).map((_, j) => (
+                <Skeleton key={j} width={j === 0 ? '50px' : j === 1 ? '20px' : '70px'} height="14px" />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -142,38 +175,44 @@ export function NoticeGridSkeleton() {
 }
 
 // 대시보드 스켈레톤
+const DASHBOARD_LEGEND_TONES = ['present', 'absent', 'late', 'sleepover'] as const;
+
 export function DashboardSkeleton() {
   return (
     <div className="dashboard-skeleton">
       <div className="skeleton-dashboard-header">
-        <Skeleton width="120px" height="26px" />
+        <Skeleton width="120px" height="26px" borderRadius="8px" />
         <Skeleton width="280px" height="16px" />
       </div>
 
       <div className="skeleton-dashboard-section">
         <div className="skeleton-section-heading">
           <Skeleton width="150px" height="18px" />
-          <Skeleton width="70px" height="14px" />
+          <Skeleton width="84px" height="28px" borderRadius="8px" />
         </div>
         <div className="skeleton-period-grid">
           {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="skeleton-period-card">
-              <div className="skeleton-period-heading">
-                <div className="skeleton-period-label">
-                  <Skeleton width="30px" height="30px" borderRadius="8px" />
-                  <Skeleton width="64px" height="15px" />
+              <Skeleton width="64px" height="15px" />
+              <div className="skeleton-period-body">
+                <div className="skeleton-period-donut">
+                  <Skeleton width="100%" height="100%" borderRadius="50%" />
+                  <div className="skeleton-donut-center">
+                    <Skeleton width="26px" height="10px" />
+                    <Skeleton width="40px" height="16px" />
+                  </div>
                 </div>
-              </div>
-              <div className="skeleton-period-rate">
-                <Skeleton width="76px" height="32px" />
-                <Skeleton width="70px" height="14px" />
-              </div>
-              <Skeleton width="100%" height="6px" borderRadius="999px" />
-              <div className="skeleton-period-footer">
-                <Skeleton width="72px" height="13px" />
-                <Skeleton width="72px" height="13px" />
-                <Skeleton width="72px" height="13px" />
-                <Skeleton width="58px" height="13px" />
+                <div className="skeleton-legend">
+                  {DASHBOARD_LEGEND_TONES.map((tone) => (
+                    <div key={tone} className="skeleton-legend-row">
+                      <span className="skeleton-legend-label">
+                        <i className={`skeleton-legend-dot ${tone}`} />
+                        <Skeleton width="48px" height="13px" />
+                      </span>
+                      <Skeleton width="88px" height="13px" />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
@@ -192,6 +231,7 @@ export function DashboardSkeleton() {
                 <Skeleton width="84px" height="15px" />
                 <Skeleton width="90%" height="13px" />
               </div>
+              <Skeleton width="6px" height="16px" borderRadius="3px" />
             </div>
           ))}
         </div>
@@ -200,14 +240,17 @@ export function DashboardSkeleton() {
       <div className="skeleton-dashboard-section">
         <div className="skeleton-section-heading">
           <Skeleton width="110px" height="18px" />
-          <Skeleton width="64px" height="14px" />
+          <Skeleton width="76px" height="28px" borderRadius="8px" />
         </div>
         <div className="skeleton-notice-list">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="skeleton-notice-row">
               <Skeleton width="32px" height="32px" borderRadius="8px" />
               <Skeleton width="55%" height="15px" />
-              <Skeleton width="86px" height="26px" />
+              <div className="skeleton-notice-meta">
+                <Skeleton width="72px" height="12px" />
+                <Skeleton width="54px" height="12px" />
+              </div>
             </div>
           ))}
         </div>

@@ -1,11 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import apiClient from '../lib/api-client';
 import { authService } from '../services/auth.service';
-import { useTheme } from '../hooks/useTheme';
-import type { Theme } from '../hooks/useTheme';
 import defaultProfileImage from '../assets/default-profile.svg';
 import '../styles/Header.css';
 import type { MyUserResponse } from '../types/api';
@@ -33,15 +31,6 @@ function MoonIcon() {
   );
 }
 
-function MonitorIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="2" y="3" width="20" height="14" rx="2" />
-      <path d="M8 21h8M12 17v4" />
-    </svg>
-  );
-}
-
 function LogoutIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -52,22 +41,11 @@ function LogoutIcon() {
   );
 }
 
-const THEME_OPTIONS: {
-  value: Theme;
-  label: string;
-  Icon: () => ReactElement;
-}[] = [
-  { value: 'light', label: '라이트 모드', Icon: SunIcon },
-  { value: 'dark', label: '다크 모드', Icon: MoonIcon },
-  { value: 'system', label: '시스템 테마', Icon: MonitorIcon },
-];
-
 export default function Header({ actions }: HeaderProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
-  const { theme, setTheme } = useTheme();
   const { attendanceView, setAttendanceView } = useAttendanceView();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const isOpen = isHovered || isPinned;
@@ -211,23 +189,6 @@ export default function Header({ actions }: HeaderProps) {
                   <LogoutIcon />
                   로그아웃
                 </button>
-
-                <div className="user-dropdown-divider" />
-
-                <div className="theme-toggle">
-                  {THEME_OPTIONS.map(({ value, label, Icon }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      className={`theme-option ${theme === value ? 'active' : ''}`}
-                      aria-label={label}
-                      title={label}
-                      onClick={() => setTheme(value)}
-                    >
-                      <Icon />
-                    </button>
-                  ))}
-                </div>
               </div>
             )}
           </div>

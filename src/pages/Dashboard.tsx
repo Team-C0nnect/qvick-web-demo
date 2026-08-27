@@ -16,6 +16,7 @@ import type {
 } from '../types/api';
 import { DashboardSkeleton } from '../components/Skeleton';
 import { RollingNumber } from '../components/RollingNumber';
+import DonutChart from '../components/DonutChart';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useAttendanceView } from '../context/AttendanceViewContext';
 import CheckIcon from '../components/sidebar/svg/check.svg?react';
@@ -128,81 +129,25 @@ const DONUT_SEGMENTS = [
   { key: 'sleepover', color: '#8b5cf6' },
 ] as const;
 
-const DONUT_DRAW_DURATION = 900;
-const DONUT_MIN_SEGMENT_RATIO = 0.03;
-
 function PeriodDonut({ summary }: { summary: AttendanceSummary }) {
-  const radius = 40;
-  const circumference = 2 * Math.PI * radius;
   const total = summary.total;
-  const [isDrawn, setIsDrawn] = useState(false);
-
-  useEffect(() => {
-    const timerId = window.setTimeout(() => setIsDrawn(true), 50);
-    return () => window.clearTimeout(timerId);
-  }, []);
-
-  const adjustedRatios = DONUT_SEGMENTS.map(({ key }) => {
-    const ratio = total > 0 ? summary[key] / total : 0;
-    return ratio > 0 ? Math.max(ratio, DONUT_MIN_SEGMENT_RATIO) : 0;
-  });
-  const ratioSum =
-    adjustedRatios.reduce((sum, ratio) => sum + ratio, 0) || 1;
-
-  let accumulated = 0;
-  const segments = DONUT_SEGMENTS.map(({ key, color }, index) => {
-    const ratio = adjustedRatios[index] / ratioSum;
-    const length = ratio * circumference;
-    const segment = {
-      key,
-      color,
-      length,
-      offset: accumulated,
-      delay: (accumulated / circumference) * DONUT_DRAW_DURATION,
-      duration: Math.max(ratio * DONUT_DRAW_DURATION, 1),
-    };
-    accumulated += length;
-    return segment;
-  });
 
   return (
     <div className="period-donut">
-      <svg viewBox="0 0 100 100" role="img" aria-label="출결 현황 비율">
-        <circle
-          className="period-donut-track"
-          cx="50"
-          cy="50"
-          r={radius}
-          fill="none"
-          strokeWidth="11"
-        />
-        {segments.map((segment) => (
-          <circle
-            key={segment.key}
-            className="period-donut-segment"
-            cx="50"
-            cy="50"
-            r={radius}
-            fill="none"
-            stroke={segment.color}
-            strokeWidth="11"
-            strokeDasharray={`${
-              isDrawn ? segment.length : 0
-            } ${circumference - (isDrawn ? segment.length : 0)}`}
-            strokeDashoffset={-segment.offset}
-            style={{
-              transitionDuration: `${segment.duration}ms`,
-              transitionDelay: `${segment.delay}ms`,
-            }}
-          />
-        ))}
-      </svg>
-      <div className="period-donut-center">
+      <DonutChart
+        total={total}
+        label="출결 현황 비율"
+        segments={DONUT_SEGMENTS.map(({ key, color }) => ({
+          key,
+          color,
+          value: summary[key],
+        }))}
+      >
         <span>전체</span>
         <strong>
           <RollingNumber value={total} />명
         </strong>
-      </div>
+      </DonutChart>
     </div>
   );
 }

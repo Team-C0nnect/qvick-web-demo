@@ -22,6 +22,9 @@ import type {
   MergedAttendanceMember,
 } from '../services/excel.service';
 import { CheckTableSkeleton, TableRowSkeleton } from '../components/Skeleton';
+import AttendanceStatusPicker, {
+  type AttendanceDisplayStatus,
+} from '../components/AttendanceStatusPicker';
 import DonutChart from '../components/DonutChart';
 import { RollingNumber } from '../components/RollingNumber';
 import '../styles/Check.css';
@@ -43,7 +46,7 @@ interface Student {
   room: string;
   overnight: boolean;
   name: string;
-  status: '출석' | '미출석' | '외박' | '지연출석';
+  status: AttendanceDisplayStatus;
   gender: '남' | '여';
   studentId: string;
   grade: number;
@@ -56,7 +59,7 @@ interface Student {
   dormitory: string;
 }
 
-type DisplayAttendanceStatus = Student['status'];
+type DisplayAttendanceStatus = AttendanceDisplayStatus;
 type NightAttendanceDisplayStatus = '출석' | '미출석' | '-';
 type PhoneSubmissionDisplayStatus = '제출' | '미제출' | '외박' | '-';
 type AttendanceScheduleTime = {
@@ -526,7 +529,8 @@ export default function Check() {
   const handleStatusChange = useCallback(
     (
       student: Student,
-      newDisplayStatus: '출석' | '미출석' | '외박' | '지연출석',
+      newDisplayStatus: AttendanceDisplayStatus,
+      sleepoverReason?: string,
     ) => {
       if (!student.id) {
         console.error('학생 ID를 찾을 수 없습니다.');
@@ -555,6 +559,8 @@ export default function Check() {
             studentId: student.id,
             status: STATUS_MAP[effectiveDisplayStatus],
             attendanceType,
+            sleepoverReason:
+              effectiveDisplayStatus === '외박' ? sleepoverReason : null,
           },
         ],
       });
@@ -1462,34 +1468,21 @@ export default function Check() {
                   <td className="room-cell" data-label="호실">{student.room}</td>
                   <td data-label="이름">{student.name}</td>
                   <td data-label={`${periodLabels.title} 상태`}>
-                    <select
+                    <AttendanceStatusPicker
                       value={student.status}
-                      onChange={(e) =>
+                      completeLabel={periodLabels.complete}
+                      lateLabel={periodLabels.late}
+                      absentLabel={periodLabels.absent}
+                      studentName={student.name}
+                      onChange={(status, sleepoverReason) =>
                         handleStatusChange(
                           student,
-                          e.target.value as
-                            | '출석'
-                            | '미출석'
-                            | '외박'
-                            | '지연출석',
+                          status,
+                          sleepoverReason,
                         )
                       }
                       disabled={updateAttendancesMutation.isPending}
-                      className={`status-select ${
-                        student.status === '출석'
-                          ? 'status-present'
-                          : student.status === '지연출석'
-                            ? 'status-late'
-                            : student.status === '외박'
-                              ? 'status-sleepover'
-                              : 'status-absent'
-                      }`}
-                    >
-                      <option value="출석">{periodLabels.complete}</option>
-                      <option value="지연출석">{periodLabels.late}</option>
-                      <option value="미출석">{periodLabels.absent}</option>
-                      <option value="외박">외박</option>
-                    </select>
+                    />
                   </td>
                   <td data-label="성별">{student.gender}</td>
                   <td data-label="학번">{student.studentId}</td>

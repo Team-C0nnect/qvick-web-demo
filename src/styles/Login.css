@@ -166,6 +166,24 @@
   box-shadow: 0 0 0 2px var(--primary-normal, #6d23ed);
 }
 
+.input-field:-webkit-autofill,
+.input-field:-webkit-autofill:hover,
+.input-field:-webkit-autofill:active {
+  -webkit-text-fill-color: #0f0f10;
+  -webkit-box-shadow: 0 0 0 1000px var(--fill-normal, #ffffff) inset;
+  box-shadow: 0 0 0 1000px var(--fill-normal, #ffffff) inset;
+  caret-color: #0f0f10;
+  font-family: inherit;
+}
+
+.input-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: #0f0f10;
+  -webkit-box-shadow: 0 0 0 2px var(--primary-normal, #6d23ed), 0 0 0 1000px var(--fill-normal, #ffffff) inset;
+  box-shadow: 0 0 0 2px var(--primary-normal, #6d23ed), 0 0 0 1000px var(--fill-normal, #ffffff) inset;
+  caret-color: #0f0f10;
+  font-family: inherit;
+}
+
 .input-field:disabled {
   background: #f5f5f5;
   cursor: not-allowed;

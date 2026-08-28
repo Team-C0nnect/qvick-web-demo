@@ -1,7 +1,7 @@
 /* Sidebar Component Styles */
 .sidebar {
   width: 220px;
-  background: var(--app-surface, #ffffff);
+  background: var(--app-surface);
   height: calc(100vh - 60px);
   position: fixed;
   left: 0;
@@ -10,7 +10,7 @@
   display: flex;
   flex-direction: column;
   padding: 12px 10px;
-  border-right: 1px solid var(--app-border, #ececef);
+  border-right: 1px solid var(--app-border);
 }
 
 .sidebar-section {
@@ -23,7 +23,7 @@
 .sidebar-section-title {
   font-size: 11px;
   font-weight: 600;
-  color: #8e8e99;
+  color: var(--app-text-disabled);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 12px 10px 4px;
@@ -31,7 +31,7 @@
 
 .sidebar-divider {
   height: 1px;
-  background: #ececef;
+  background: var(--app-border);
   margin: 6px 4px;
 }
 
@@ -55,30 +55,30 @@
 }
 
 .menu-item.active {
-  background: #ede9fe;
-  color: #6d23ed;
+  background: var(--app-surface-muted);
+  color: var(--app-primary);
 }
 
 .menu-icon {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  color: #52525b;
+  color: var(--app-text-secondary);
 }
 
 .menu-item.active .menu-icon {
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .menu-text {
   font-size: 15px;
   font-weight: 500;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
   white-space: nowrap;
 }
 
 .menu-item.active .menu-text {
-  color: #6d23ed;
+  color: var(--app-primary);
   font-weight: 600;
 }
 
@@ -91,10 +91,10 @@
   min-height: 38px;
   padding: 8px 10px;
   margin-bottom: 12px;
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--app-border);
   border-radius: 10px;
-  background: #ffffff;
-  color: #52525b;
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
 }
 
 .sidebar-date-arrow {
@@ -116,7 +116,7 @@
 }
 
 .sidebar-date-arrow:hover {
-  background-color: #f4f4f5;
+  background-color: var(--app-surface-subtle);
 }
 
 .sidebar-date-value {
@@ -137,7 +137,7 @@
 }
 
 .sidebar-date-value:hover {
-  background-color: #f4f4f5;
+  background-color: var(--app-surface-subtle);
 }
 
 .sidebar-date-value .menu-text {

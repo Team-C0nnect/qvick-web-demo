@@ -10,7 +10,7 @@
 }
 
 .notice-create-form {
-  background: #ffffff;
+  background: var(--app-surface);
   border-radius: 16px;
   padding: 40px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -33,46 +33,46 @@
 .form-label {
   font-size: 15px;
   font-weight: 600;
-  color: #0f0f10;
+  color: var(--app-text);
   letter-spacing: -0.15px;
 }
 
 .required {
-  color: #ff4242;
+  color: var(--app-danger);
   margin-left: 2px;
 }
 
 .form-input {
-  background: #ffffff;
-  border: 1px solid #e6e6e7;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   height: 48px;
   padding: 0 16px;
   font-size: 14px;
   font-weight: 500;
-  color: #0f0f10;
+  color: var(--app-text);
   letter-spacing: 0.28px;
   outline: none;
   transition: all 0.2s;
 }
 
 .form-input:focus {
-  border-color: #6d23ed;
+  border-color: var(--app-primary);
   box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
 }
 
 .form-input::placeholder {
-  color: #9e9e9f;
+  color: var(--app-text-disabled);
 }
 
 .form-textarea {
-  background: #ffffff;
-  border: 1px solid #e6e6e7;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 16px;
   font-size: 14px;
   font-weight: 500;
-  color: #0f0f10;
+  color: var(--app-text);
   letter-spacing: 0.28px;
   line-height: 1.6;
   outline: none;
@@ -83,23 +83,23 @@
 }
 
 .form-textarea:focus {
-  border-color: #6d23ed;
+  border-color: var(--app-primary);
   box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
 }
 
 .form-textarea::placeholder {
-  color: #9e9e9f;
+  color: var(--app-text-disabled);
 }
 
 .char-count {
   font-size: 12px;
-  color: #9e9e9f;
+  color: var(--app-text-disabled);
   text-align: right;
   margin-top: 4px;
 }
 
 .checkbox-group {
-  background: #fafafa;
+  background: var(--app-surface);
   border-radius: 12px;
   padding: 20px;
 }
@@ -115,18 +115,18 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #6d23ed;
+  accent-color: var(--app-primary);
 }
 
 .checkbox-text {
   font-size: 15px;
   font-weight: 600;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .checkbox-description {
   font-size: 13px;
-  color: #5d5f60;
+  color: var(--app-text-muted);
   margin-top: 8px;
   margin-left: 32px;
 }
@@ -136,7 +136,7 @@
   justify-content: flex-end;
   gap: 12px;
   padding-top: 24px;
-  border-top: 1px solid #e6e6e7;
+  border-top: 1px solid var(--app-border);
 }
 
 .cancel-button,
@@ -152,27 +152,27 @@
 }
 
 .cancel-button {
-  background: #ffffff;
-  color: #5d5f60;
-  border: 1px solid #e6e6e7;
+  background: var(--app-surface);
+  color: var(--app-text-muted);
+  border: 1px solid var(--app-border);
 }
 
 .cancel-button:hover:not(:disabled) {
-  background: #fafafa;
-  border-color: #9e9e9f;
+  background: var(--app-surface);
+  border-color: var(--app-text-disabled);
 }
 
 .submit-button {
-  background: #6d23ed;
-  color: #ffffff;
+  background: var(--app-primary);
+  color: var(--app-surface);
 }
 
 .submit-button:hover:not(:disabled) {
-  background: #5919c7;
+  background: var(--app-primary-hover);
 }
 
 .submit-button:active:not(:disabled) {
-  background: #4a14a5;
+  background: var(--app-primary-active);
 }
 
 .cancel-button:disabled,
@@ -182,11 +182,11 @@
 }
 
 .error-message {
-  background-color: #fee;
-  border: 1px solid #fcc;
+  background-color: var(--app-danger-soft);
+  border: 1px solid var(--app-danger-border);
   border-radius: 8px;
   padding: 12px 16px;
-  color: #c00;
+  color: var(--app-danger-strong);
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 24px;

@@ -12,8 +12,8 @@
   padding: 12px 16px;
   border: 1px solid rgba(109, 35, 237, 0.25);
   border-radius: 10px;
-  background: #ede9fe;
-  color: #4a19a8;
+  background: var(--app-surface-muted);
+  color: var(--app-primary-text);
   font-size: 13px;
   font-weight: 600;
   line-height: 1.5;
@@ -22,7 +22,7 @@
 .phone-submission-page .phone-submission-message.error {
   border-color: rgba(239, 68, 68, 0.28);
   background: rgba(239, 68, 68, 0.08);
-  color: #b91c1c;
+  color: var(--app-danger);
 }
 
 /* ===== 빈 목록 상태 ===== */
@@ -31,13 +31,13 @@
   tbody
   tr.phone-submission-empty-row:hover
   td {
-  background: #ffffff;
+  background: var(--app-surface);
 }
 
 .phone-submission-page .phone-submission-empty-cell {
   padding: 48px 16px;
-  background: #ffffff;
-  color: #747678;
+  background: var(--app-surface);
+  color: var(--app-text-muted);
   font-size: 13px;
   font-weight: 600;
   text-align: center;

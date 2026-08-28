@@ -1208,12 +1208,12 @@ export default function Check() {
                 total={stats.total}
                 label={`${periodLabels.title} 상태 비율`}
                 segments={[
-                  { key: 'present', color: '#22c55e', value: stats.present },
-                  { key: 'absent', color: '#ef4444', value: stats.absent },
-                  { key: 'late', color: '#f59e0b', value: stats.late },
+                  { key: 'present', color: 'var(--app-success)', value: stats.present },
+                  { key: 'absent', color: 'var(--app-danger-strong)', value: stats.absent },
+                  { key: 'late', color: 'var(--app-warning)', value: stats.late },
                   {
                     key: 'sleepover',
-                    color: '#8b5cf6',
+                    color: 'var(--app-primary)',
                     value: stats.sleepover,
                   },
                 ]}
@@ -1273,12 +1273,12 @@ export default function Check() {
                   segments={[
                     {
                       key: 'present',
-                      color: '#22c55e',
+                      color: 'var(--app-success)',
                       value: stats.nightPresent,
                     },
                     {
                       key: 'absent',
-                      color: '#ef4444',
+                      color: 'var(--app-danger-strong)',
                       value: stats.nightAbsent,
                     },
                   ]}
@@ -1338,12 +1338,12 @@ export default function Check() {
                 segments={[
                   {
                     key: 'submitted',
-                    color: '#22c55e',
+                    color: 'var(--app-success)',
                     value: stats.phoneSubmitted,
                   },
                   {
                     key: 'not-submitted',
-                    color: '#ef4444',
+                    color: 'var(--app-danger-strong)',
                     value: stats.phoneNotSubmitted,
                   },
                 ]}

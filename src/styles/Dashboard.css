@@ -1,8 +1,8 @@
 .dashboard-page {
   min-height: 100%;
   padding: 32px 40px;
-  background: #fafafa;
-  color: #0f0f10;
+  background: var(--app-surface);
+  color: var(--app-text);
 }
 
 .dashboard-content {
@@ -29,7 +29,7 @@
 
 .dashboard-header p {
   margin: 0;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 14px;
   font-weight: 500;
 }
@@ -77,7 +77,7 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
@@ -87,7 +87,7 @@
 
 .dashboard-link:hover {
   background: rgba(109, 35, 237, 0.06);
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .dashboard-link-chevron {
@@ -107,15 +107,15 @@
   flex-direction: column;
   gap: 14px;
   padding: 18px 20px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--app-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--app-surface);
   transition: border-color 0.15s ease;
 }
 
 .period-card.active .period-card-icon {
-  background: #ede9fe;
-  color: #6d23ed;
+  background: var(--app-surface-muted);
+  color: var(--app-primary);
 }
 
 .period-card-heading {
@@ -131,7 +131,7 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 700;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
 }
 
 .period-card-body {
@@ -151,20 +151,20 @@
   gap: 10px;
   min-height: 140px;
   padding: 16px;
-  border: 1px dashed #ddd6ee;
+  border: 1px dashed var(--app-border);
   border-radius: 10px;
-  background: #faf9fc;
+  background: var(--app-surface);
 }
 
 .period-card-closed svg {
   width: 26px;
   height: 26px;
-  color: #a8a29e;
+  color: var(--app-text-muted);
 }
 
 .period-card-closed p {
   margin: 0;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 13px;
   font-weight: 600;
 }
@@ -177,7 +177,7 @@
 }
 
 .period-donut .donut-chart-center > span {
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 12px;
   font-weight: 600;
 }
@@ -203,7 +203,7 @@
   justify-content: space-between;
   gap: 10px;
   padding: 7px 0;
-  border-bottom: 1px solid #f4f4f5;
+  border-bottom: 1px solid var(--app-surface-subtle);
 }
 
 .period-legend li:last-child {
@@ -214,7 +214,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #52525b;
+  color: var(--app-text-secondary);
   font-size: 13px;
   font-weight: 600;
 }
@@ -227,30 +227,30 @@
 }
 
 .legend-dot.present {
-  background: #22c55e;
+  background: var(--app-success);
 }
 
 .legend-dot.absent {
-  background: #ef4444;
+  background: var(--app-danger);
 }
 
 .legend-dot.late {
-  background: #f59e0b;
+  background: var(--app-warning);
 }
 
 .legend-dot.sleepover {
-  background: #8b5cf6;
+  background: var(--app-primary);
 }
 
 .legend-value {
-  color: #0f0f10;
+  color: var(--app-text);
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .legend-value em {
-  color: #747678;
+  color: var(--app-text-muted);
   font-style: normal;
   font-weight: 600;
 }
@@ -267,9 +267,9 @@
   align-items: center;
   gap: 14px;
   padding: 16px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--app-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--app-surface);
   text-align: left;
   font-family: inherit;
   cursor: pointer;
@@ -277,7 +277,7 @@
 }
 
 .quick-link-card:hover {
-  border-color: #c9c9cc;
+  border-color: var(--app-border-strong);
 }
 
 .quick-link-icon {
@@ -287,8 +287,8 @@
   display: grid;
   place-items: center;
   border-radius: 10px;
-  background: #f4f4f5;
-  color: #52525b;
+  background: var(--app-surface-subtle);
+  color: var(--app-text-secondary);
 }
 
 .quick-link-icon svg {
@@ -307,7 +307,7 @@
 .quick-link-text strong {
   font-size: 15px;
   font-weight: 700;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .quick-link-text > span {
@@ -315,14 +315,14 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.45;
 }
 
 .quick-link-chevron {
-  color: #a1a1aa;
+  color: var(--app-text-disabled);
   font-size: 18px;
   line-height: 1;
 }
@@ -342,17 +342,17 @@
   align-items: center;
   gap: 12px;
   padding: 11px 12px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--app-border);
   border-radius: 10px;
-  background: #ffffff;
-  color: #0f0f10;
+  background: var(--app-surface);
+  color: var(--app-text);
   text-align: left;
   cursor: pointer;
   transition: border-color 0.15s ease;
 }
 
 .dashboard-page .notice-item:hover {
-  border-color: #c9c9cc;
+  border-color: var(--app-border-strong);
 }
 
 .dashboard-page .notice-index {
@@ -362,7 +362,7 @@
   place-items: center;
   border-radius: 8px;
   background: rgba(109, 35, 237, 0.1);
-  color: #6d23ed;
+  color: var(--app-primary);
   font-size: 12px;
   font-weight: 800;
 }
@@ -370,7 +370,7 @@
 .dashboard-page .notice-title {
   min-width: 0;
   overflow: hidden;
-  color: #0f0f10;
+  color: var(--app-text);
   font-size: 14px;
   font-weight: 700;
   line-height: 1.45;
@@ -383,7 +383,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
@@ -393,15 +393,15 @@
   display: grid;
   min-height: 120px;
   place-items: center;
-  border: 1px dashed #d8d2e7;
+  border: 1px dashed var(--app-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--app-surface);
   padding: 18px;
 }
 
 .dashboard-page .notice-empty p {
   margin: 0;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 14px;
   font-weight: 600;
 }

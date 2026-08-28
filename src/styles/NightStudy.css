@@ -5,10 +5,10 @@
   justify-content: center;
   min-height: 40px;
   padding: 0 14px;
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #52525b;
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -21,9 +21,9 @@
 }
 
 .check-page.night-study-page .night-study-secondary-button:hover:not(:disabled) {
-  border-color: #d4d4d8;
-  background: #f4f4f5;
-  color: #3f3f46;
+  border-color: var(--app-border-strong);
+  background: var(--app-surface-subtle);
+  color: var(--app-text-secondary);
 }
 
 .check-page.night-study-page .night-study-secondary-button:disabled {
@@ -37,8 +37,8 @@
   padding: 12px 16px;
   border: 1px solid rgba(109, 35, 237, 0.25);
   border-radius: 10px;
-  background: #ede9fe;
-  color: #4a19a8;
+  background: var(--app-surface-muted);
+  color: var(--app-primary-text);
   font-size: 13px;
   font-weight: 600;
   line-height: 1.5;
@@ -47,13 +47,13 @@
 .check-page.night-study-page .night-study-message.error {
   border-color: rgba(239, 68, 68, 0.28);
   background: rgba(239, 68, 68, 0.08);
-  color: #b91c1c;
+  color: var(--app-danger);
 }
 
 .check-page.night-study-page .student-table tbody .night-study-empty-cell {
   padding: 48px 16px;
-  background: #ffffff;
-  color: #747678;
+  background: var(--app-surface);
+  color: var(--app-text-muted);
   font-size: 13px;
   font-weight: 600;
   text-align: center;
@@ -61,7 +61,7 @@
 
 /* Check.css의 일반 행 hover 규칙에서 빈 상태 행을 제외한다. */
 .check-page.night-study-page .student-table tbody tr.night-study-empty-row:hover td {
-  background: #ffffff;
+  background: var(--app-surface);
 }
 
 @media (max-width: 1200px) {

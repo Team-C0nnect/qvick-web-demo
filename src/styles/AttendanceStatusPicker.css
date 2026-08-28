@@ -34,22 +34,22 @@
 }
 
 .attendance-status-trigger.present {
-  color: #15803d;
+  color: var(--app-success);
   background: rgba(34, 197, 94, 0.12);
 }
 
 .attendance-status-trigger.absent {
-  color: #b91c1c;
+  color: var(--app-danger);
   background: rgba(239, 68, 68, 0.09);
 }
 
 .attendance-status-trigger.sleepover {
-  color: #6d28d9;
+  color: var(--app-primary-hover);
   background: rgba(139, 92, 246, 0.12);
 }
 
 .attendance-status-trigger.late {
-  color: #b45309;
+  color: var(--app-warning);
   background: rgba(245, 158, 11, 0.14);
 }
 
@@ -63,9 +63,9 @@
   z-index: 1000;
   width: 208px;
   padding: 6px;
-  border: 1px solid #dedee3;
+  border: 1px solid var(--app-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--app-surface);
   box-shadow: 0 16px 32px rgba(15, 15, 16, 0.16);
 }
 
@@ -75,7 +75,7 @@
 
 .attendance-status-menu-title {
   margin: 2px 6px 5px;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 11px;
   font-weight: 750;
 }
@@ -90,7 +90,7 @@
   border: 0;
   border-radius: 9px;
   background: transparent;
-  color: #27272a;
+  color: var(--app-text);
   font: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -101,7 +101,7 @@
 
 .attendance-status-option:hover,
 .attendance-status-option.selected {
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
 }
 
 .attendance-status-option-dot {
@@ -112,17 +112,17 @@
 }
 
 .attendance-status-option.present {
-  color: #15803d;
+  color: var(--app-success);
 }
 
 .attendance-status-option.absent {
-  color: #b91c1c;
+  color: var(--app-danger);
 }
 
 .attendance-status-option.sleepover {
-  color: #6d28d9;
+  color: var(--app-primary-hover);
 }
 
 .attendance-status-option.late {
-  color: #b45309;
+  color: var(--app-warning);
 }

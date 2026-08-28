@@ -123,10 +123,10 @@ const toPercent = (value: number, total: number): string =>
   total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0.0%';
 
 const DONUT_SEGMENTS = [
-  { key: 'present', color: '#22c55e' },
-  { key: 'absent', color: '#ef4444' },
-  { key: 'late', color: '#f59e0b' },
-  { key: 'sleepover', color: '#8b5cf6' },
+  { key: 'present', color: 'var(--app-success)' },
+  { key: 'absent', color: 'var(--app-danger-strong)' },
+  { key: 'late', color: 'var(--app-warning)' },
+  { key: 'sleepover', color: 'var(--app-primary)' },
 ] as const;
 
 function PeriodDonut({ summary }: { summary: AttendanceSummary }) {

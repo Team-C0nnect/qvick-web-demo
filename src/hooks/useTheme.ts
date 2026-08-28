@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -26,7 +26,14 @@ const resolveTheme = (theme: Theme): ResolvedTheme => {
   return systemDarkQuery.matches ? 'dark' : 'light';
 };
 
-export function useTheme() {
+interface ThemeContextValue {
+  theme: Theme;
+  setTheme: (next: Theme) => void;
+}
+
+const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+function useThemeState(): ThemeContextValue {
   const [theme, setThemeState] = useState<Theme>(getStoredTheme);
 
   useEffect(() => {
@@ -51,5 +58,20 @@ export function useTheme() {
     setThemeState(next);
   }, []);
 
-  return { theme, setTheme };
+  return useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const value = useThemeState();
+  return createElement(ThemeContext.Provider, { value }, children);
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+
+  if (!context) {
+    throw new Error('useTheme은 ThemeProvider 내부에서 사용해야 합니다.');
+  }
+
+  return context;
 }

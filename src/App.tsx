@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import IntroAnimation from './components/IntroAnimation';
-import './App.css';
+import { ThemeProvider } from './hooks/useTheme';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Check = lazy(() => import('./pages/Check'));
@@ -30,10 +30,11 @@ const TemporaryScan = lazy(() => import('./pages/TemporaryScan'));
 
 function App() {
   return (
-    <Router>
-      <IntroAnimation />
-      <Suspense fallback={null}>
-        <Routes>
+    <ThemeProvider>
+      <Router>
+        <IntroAnimation />
+        <Suspense fallback={null}>
+          <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
@@ -78,9 +79,10 @@ function App() {
             element={<StudentManagement />}
           />
         </Route>
-        </Routes>
-      </Suspense>
-    </Router>
+          </Routes>
+        </Suspense>
+      </Router>
+    </ThemeProvider>
   );
 }
 

@@ -48,10 +48,10 @@ export interface UpdatePatchNoteRequest {
 
 // 카테고리 라벨 및 색상
 export const CATEGORY_CONFIG: Record<PatchNoteCategory, { label: string; color: string; bgColor: string }> = {
-  feature: { label: '새 기능', color: '#6d23ed', bgColor: '#f3eaff' },
-  improvement: { label: '개선', color: '#1492fc', bgColor: '#e6f4ff' },
-  bugfix: { label: '버그 수정', color: '#ff6b35', bgColor: '#fff2ed' },
-  notice: { label: '공지', color: '#10b981', bgColor: '#ecfdf5' },
+  feature: { label: '새 기능', color: 'var(--app-primary)', bgColor: 'var(--app-primary-soft)' },
+  improvement: { label: '개선', color: 'var(--app-info)', bgColor: 'var(--app-info-soft)' },
+  bugfix: { label: '버그 수정', color: 'var(--app-danger-strong)', bgColor: 'var(--app-danger-soft)' },
+  notice: { label: '공지', color: 'var(--app-success)', bgColor: 'var(--app-success-soft)' },
 };
 
 // 공개 대상 라벨

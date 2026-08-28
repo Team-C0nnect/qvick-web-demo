@@ -16,9 +16,9 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--app-border);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--app-surface);
   box-shadow: 0 18px 54px rgba(15, 15, 16, 0.18);
 }
 
@@ -28,13 +28,13 @@
   justify-content: space-between;
   gap: 16px;
   padding: 22px 24px;
-  border-bottom: 1px solid #ececef;
-  background: #ffffff;
+  border-bottom: 1px solid var(--app-border);
+  background: var(--app-surface);
 }
 
 .notice-modal-backdrop .modal-title {
   margin: 0;
-  color: #0f0f10;
+  color: var(--app-text);
   font-size: 20px;
   font-weight: 800;
   line-height: 1.25;
@@ -45,10 +45,10 @@
   width: 36px;
   height: 36px;
   flex-shrink: 0;
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #52525b;
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
@@ -57,8 +57,8 @@
 }
 
 .notice-modal-backdrop .modal-close-button:hover:not(:disabled) {
-  border-color: #c9c9cc;
-  background: #f4f4f5;
+  border-color: var(--app-border-strong);
+  background: var(--app-surface-subtle);
 }
 
 .notice-modal-backdrop .modal-close-button:disabled {
@@ -83,23 +83,23 @@
 }
 
 .notice-modal-backdrop .form-label {
-  color: #3f3f46;
+  color: var(--app-text-secondary);
   font-size: 14px;
   font-weight: 700;
 }
 
 .notice-modal-backdrop .required {
-  color: #ef4444;
+  color: var(--app-danger);
 }
 
 .notice-modal-backdrop .form-input,
 .notice-modal-backdrop .form-textarea,
 .notice-modal-backdrop .markdown-preview {
   width: 100%;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--app-border);
   border-radius: 10px;
-  background: #ffffff;
-  color: #0f0f10;
+  background: var(--app-surface);
+  color: var(--app-text);
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   font-size: 14px;
   font-weight: 500;
@@ -124,13 +124,13 @@
 
 .notice-modal-backdrop .form-input:focus,
 .notice-modal-backdrop .form-textarea:focus {
-  border-color: #6d23ed;
+  border-color: var(--app-primary);
   box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
 }
 
 .notice-modal-backdrop .form-input::placeholder,
 .notice-modal-backdrop .form-textarea::placeholder {
-  color: #a1a1aa;
+  color: var(--app-text-disabled);
 }
 
 .notice-modal-backdrop .content-header {
@@ -150,10 +150,10 @@
 
 .notice-modal-backdrop .refine-button {
   min-height: 34px;
-  border: 1px solid #6d23ed;
+  border: 1px solid var(--app-primary);
   border-radius: 8px;
-  background: #6d23ed;
-  color: #ffffff;
+  background: var(--app-primary);
+  color: var(--app-surface);
   padding: 0 14px;
   font-size: 13px;
   font-weight: 600;
@@ -163,23 +163,23 @@
 }
 
 .notice-modal-backdrop .refine-button:hover:not(:disabled) {
-  border-color: #5919c7;
-  background: #5919c7;
+  border-color: var(--app-primary-hover);
+  background: var(--app-primary-hover);
 }
 
 .notice-modal-backdrop .refine-button:disabled {
-  border-color: #e4e4e7;
-  background: #f4f4f5;
-  color: #a1a1aa;
+  border-color: var(--app-border);
+  background: var(--app-surface-subtle);
+  color: var(--app-text-disabled);
   cursor: not-allowed;
 }
 
 .notice-modal-backdrop .editor-tabs {
   display: flex;
   gap: 4px;
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   padding: 3px;
 }
 
@@ -188,7 +188,7 @@
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
-  color: #52525b;
+  color: var(--app-text-secondary);
   padding: 0 12px;
   font-size: 13px;
   font-weight: 600;
@@ -197,14 +197,14 @@
 }
 
 .notice-modal-backdrop .tab-button:hover:not(.active) {
-  background: #ffffff;
-  color: #6d23ed;
+  background: var(--app-surface);
+  color: var(--app-primary);
 }
 
 .notice-modal-backdrop .tab-button.active {
-  border-color: #e4e4e7;
-  background: #ffffff;
-  color: #6d23ed;
+  border-color: var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-primary);
 }
 
 .notice-modal-backdrop .input-footer {
@@ -217,27 +217,27 @@
 
 .notice-modal-backdrop .char-count {
   margin-left: auto;
-  color: #a1a1aa;
+  color: var(--app-text-disabled);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .notice-modal-backdrop .error-text {
-  color: #ef4444;
+  color: var(--app-danger);
   font-size: 12px;
   font-weight: 600;
 }
 
 .notice-modal-backdrop .markdown-preview {
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .notice-modal-backdrop .markdown-preview h1 {
   font-size: 24px;
   font-weight: 800;
   margin: 16px 0 12px;
-  border-bottom: 1px solid #ececef;
+  border-bottom: 1px solid var(--app-border);
   padding-bottom: 8px;
 }
 
@@ -245,7 +245,7 @@
   font-size: 20px;
   font-weight: 800;
   margin: 14px 0 10px;
-  border-bottom: 1px solid #ececef;
+  border-bottom: 1px solid var(--app-border);
   padding-bottom: 6px;
 }
 
@@ -270,16 +270,16 @@
 }
 
 .notice-modal-backdrop .markdown-preview a {
-  color: #6d23ed;
+  color: var(--app-primary);
   text-decoration: none;
   border-bottom: 1px solid rgba(109, 35, 237, 0.3);
 }
 
 .notice-modal-backdrop .markdown-preview code {
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   padding: 2px 6px;
   border-radius: 4px;
-  color: #d63384;
+  color: var(--app-accent);
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 13px;
 }
@@ -288,20 +288,20 @@
   overflow-x: auto;
   margin: 12px 0;
   border-radius: 8px;
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   padding: 12px;
 }
 
 .notice-modal-backdrop .markdown-preview pre code {
   background: transparent;
-  color: #0f0f10;
+  color: var(--app-text);
   padding: 0;
 }
 
 .notice-modal-backdrop .markdown-preview blockquote {
   margin: 12px 0;
-  border-left: 4px solid #6d23ed;
-  color: #52525b;
+  border-left: 4px solid var(--app-primary);
+  color: var(--app-text-secondary);
   padding-left: 16px;
 }
 
@@ -313,13 +313,13 @@
 
 .notice-modal-backdrop .markdown-preview table th,
 .notice-modal-backdrop .markdown-preview table td {
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--app-border);
   padding: 8px 12px;
   text-align: left;
 }
 
 .notice-modal-backdrop .markdown-preview table th {
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   font-weight: 700;
 }
 
@@ -333,7 +333,7 @@
   display: grid;
   min-height: 220px;
   place-items: center;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 13px;
   font-weight: 600;
 }
@@ -344,7 +344,7 @@
   gap: 10px;
   margin-top: 4px;
   padding-top: 18px;
-  border-top: 1px solid #ececef;
+  border-top: 1px solid var(--app-border);
 }
 
 .notice-modal-backdrop .cancel-button,
@@ -359,24 +359,24 @@
 }
 
 .notice-modal-backdrop .cancel-button {
-  border: 1px solid #e4e4e7;
-  background: #ffffff;
-  color: #52525b;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
 }
 
 .notice-modal-backdrop .cancel-button:hover:not(:disabled) {
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
 }
 
 .notice-modal-backdrop .submit-button {
-  border: 1px solid #6d23ed;
-  background: #6d23ed;
-  color: #ffffff;
+  border: 1px solid var(--app-primary);
+  background: var(--app-primary);
+  color: var(--app-surface);
 }
 
 .notice-modal-backdrop .submit-button:hover:not(:disabled) {
-  border-color: #5919c7;
-  background: #5919c7;
+  border-color: var(--app-primary-hover);
+  background: var(--app-primary-hover);
 }
 
 .notice-modal-backdrop .cancel-button:disabled,

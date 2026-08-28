@@ -2,7 +2,7 @@
 
 .inquiry-page {
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--app-surface);
   padding: 0;
 }
 
@@ -20,13 +20,13 @@
 .inquiry-header h1 {
   font-size: 24px;
   font-weight: 600;
-  color: #111827;
+  color: var(--app-text);
   margin: 0 0 8px;
 }
 
 .inquiry-header p {
   font-size: 15px;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin: 0;
 }
 
@@ -34,7 +34,7 @@
   background: none;
   border: none;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--app-text-muted);
   cursor: pointer;
   padding: 0;
   margin-bottom: 16px;
@@ -42,7 +42,7 @@
 }
 
 .back-button:hover {
-  color: #111827;
+  color: var(--app-text);
 }
 
 .type-badge {
@@ -62,8 +62,8 @@
 }
 
 .inquiry-type-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 20px;
   cursor: pointer;
@@ -72,19 +72,19 @@
 }
 
 .inquiry-type-card:hover {
-  border-color: #6d23ed;
+  border-color: var(--app-primary);
 }
 
 .inquiry-type-card h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: var(--app-text);
   margin: 0 0 6px;
 }
 
 .inquiry-type-card p {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin: 0;
   line-height: 1.5;
 }
@@ -105,14 +105,14 @@
 .form-section h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: var(--app-text);
   margin: 0 0 16px;
 }
 
 .form-section h3 .required {
   font-size: 12px;
   font-weight: 400;
-  color: #ef4444;
+  color: var(--app-danger);
   margin-left: 4px;
 }
 
@@ -128,7 +128,7 @@
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--app-text-secondary);
   margin-bottom: 6px;
 }
 
@@ -137,11 +137,11 @@
 .form-group select {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--app-border-strong);
   border-radius: 6px;
   font-size: 15px;
-  color: #111827;
-  background: #ffffff;
+  color: var(--app-text);
+  background: var(--app-surface);
   box-sizing: border-box;
   transition: border-color 0.2s;
 }
@@ -150,7 +150,7 @@
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #6d23ed;
+  border-color: var(--app-primary);
 }
 
 .form-group textarea {
@@ -161,7 +161,7 @@
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-  color: #9ca3af;
+  color: var(--app-text-disabled);
 }
 
 .form-row {
@@ -178,8 +178,8 @@
 
 /* 기기 정보 알림 */
 .device-info-notice {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-border);
   border-radius: 6px;
   padding: 12px;
   margin-top: 12px;
@@ -187,25 +187,25 @@
 
 .device-info-notice p {
   font-size: 13px;
-  color: #374151;
+  color: var(--app-text-secondary);
   margin: 0 0 4px;
   font-weight: 500;
 }
 
 .device-info-notice small {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--app-text-muted);
   line-height: 1.4;
 }
 
 /* 에러 메시지 */
 .error-message {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--app-danger-soft);
+  border: 1px solid var(--app-danger-border);
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 16px;
-  color: #dc2626;
+  color: var(--app-danger-strong);
   font-size: 14px;
 }
 
@@ -213,14 +213,14 @@
 .form-actions {
   margin-top: 32px;
   padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--app-border);
 }
 
 .btn-submit {
   width: 100%;
   padding: 12px 24px;
-  background: #111827;
-  color: white;
+  background: var(--app-text);
+  color: var(--app-surface);
   border: none;
   border-radius: 6px;
   font-size: 15px;
@@ -230,7 +230,7 @@
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: #1f2937;
+  background: var(--app-text);
 }
 
 .btn-submit:disabled {
@@ -247,7 +247,7 @@
 .success-icon {
   width: 56px;
   height: 56px;
-  background: #f0fdf4;
+  background: var(--app-success-soft);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -258,19 +258,19 @@
 .success-icon svg {
   width: 28px;
   height: 28px;
-  color: #22c55e;
+  color: var(--app-success);
 }
 
 .inquiry-success h2 {
   font-size: 20px;
   font-weight: 600;
-  color: #111827;
+  color: var(--app-text);
   margin: 0 0 8px;
 }
 
 .inquiry-success p {
   font-size: 15px;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin: 0 0 32px;
   line-height: 1.6;
 }
@@ -285,8 +285,8 @@
 
 .btn-primary {
   padding: 12px 24px;
-  background: #111827;
-  color: white;
+  background: var(--app-text);
+  color: var(--app-surface);
   border: none;
   border-radius: 6px;
   font-size: 15px;
@@ -299,14 +299,14 @@
 }
 
 .btn-primary:hover {
-  background: #1f2937;
+  background: var(--app-text);
 }
 
 .btn-secondary {
   padding: 12px 24px;
   background: transparent;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
+  color: var(--app-text-muted);
+  border: 1px solid var(--app-border-strong);
   border-radius: 6px;
   font-size: 15px;
   font-weight: 400;
@@ -318,8 +318,8 @@
 }
 
 .btn-secondary:hover {
-  border-color: #9ca3af;
-  color: #374151;
+  border-color: var(--app-text-disabled);
+  color: var(--app-text-secondary);
 }
 
 /* 모바일 최적화 */

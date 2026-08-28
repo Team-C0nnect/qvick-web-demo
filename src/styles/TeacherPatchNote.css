@@ -1,11 +1,11 @@
 /* Teacher 전용 패치노트 페이지 스타일
-   - 대시보드/사이드바/탑바 톤의 디자인 토큰 적용 (배경 #fafafa, 카드 보더 중심, 그림자 없음)
+   - 대시보드/사이드바/탑바 톤의 디자인 토큰 적용 (배경 var(--app-surface), 카드 보더 중심, 그림자 없음)
    - 모든 선택자는 .teacher-patchnote-page 하위로 스코핑하여 다른 페이지와의 충돌 방지 */
 
 .teacher-patchnote-page {
   min-height: 100%;
   padding: 32px 40px;
-  background: #fafafa;
+  background: var(--app-surface);
 }
 
 /* 페이지 헤더 */
@@ -19,14 +19,14 @@
   font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.3px;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .teacher-patchnote-header .header-info p {
   margin: 6px 0 0;
   font-size: 14px;
   font-weight: 500;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 /* 컨테이너 */
@@ -37,7 +37,7 @@
 
 /* 로딩 스켈레톤 (페이지 스코프 내에서만 적용) */
 .teacher-patchnote-page .skeleton {
-  background: linear-gradient(90deg, #f1f1f3 25%, #e9e9ec 50%, #f1f1f3 75%);
+  background: linear-gradient(90deg, var(--app-surface-subtle) 25%, var(--app-border) 50%, var(--app-surface-subtle) 75%);
   background-size: 200% 100%;
   animation: tpn-skeleton-loading 1.5s infinite ease-in-out;
   border-radius: 4px;
@@ -91,8 +91,8 @@
 .teacher-patchnote-sidebar {
   width: 280px;
   flex-shrink: 0;
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   overflow: hidden;
   position: sticky;
@@ -101,7 +101,7 @@
 
 .teacher-patchnote-sidebar .sidebar-header {
   padding: 14px 16px;
-  border-bottom: 1px solid #ececef;
+  border-bottom: 1px solid var(--app-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -111,16 +111,16 @@
   margin: 0;
   font-size: 17px;
   font-weight: 700;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .teacher-patchnote-sidebar .version-count {
   padding: 3px 9px;
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 .teacher-patchnote-sidebar .version-list {
@@ -147,21 +147,21 @@
 }
 
 .teacher-patchnote-sidebar .version-item:hover {
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
 }
 
 .teacher-patchnote-sidebar .version-item:focus-visible {
-  outline: 2px solid #6d23ed;
+  outline: 2px solid var(--app-primary);
   outline-offset: 2px;
 }
 
 .teacher-patchnote-sidebar .version-item.active {
-  background: #ede9fe;
+  background: var(--app-surface-muted);
 }
 
 .teacher-patchnote-sidebar .version-item.active .version-number,
 .teacher-patchnote-sidebar .version-item.active .version-item-title {
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .teacher-patchnote-sidebar .version-item.active .version-item-date {
@@ -195,7 +195,7 @@
 .teacher-patchnote-sidebar .version-number {
   font-size: 12px;
   font-weight: 800;
-  color: #6d23ed;
+  color: var(--app-primary);
   white-space: nowrap;
 }
 
@@ -210,7 +210,7 @@
   margin: 6px 0 0;
   font-size: 13px;
   font-weight: 600;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
   line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -221,7 +221,7 @@
 .teacher-patchnote-sidebar .version-item-date {
   font-size: 12px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
   white-space: nowrap;
 }
 
@@ -232,15 +232,15 @@
 }
 
 .teacher-patchnote-article {
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   overflow: hidden;
 }
 
 .teacher-patchnote-article .article-header {
   padding: 24px;
-  border-bottom: 1px solid #ececef;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .teacher-patchnote-article .article-meta {
@@ -265,13 +265,13 @@
 }
 
 .teacher-patchnote-article .version-badge {
-  color: #52525b;
-  background: #f4f4f5;
+  color: var(--app-text-secondary);
+  background: var(--app-surface-subtle);
 }
 
 .teacher-patchnote-article .visibility-badge.teacher {
-  color: #6d23ed;
-  background: #ede9fe;
+  color: var(--app-primary);
+  background: var(--app-surface-muted);
 }
 
 .teacher-patchnote-article .article-title {
@@ -280,7 +280,7 @@
   font-weight: 800;
   letter-spacing: -0.3px;
   line-height: 1.35;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .teacher-patchnote-article .article-info {
@@ -289,7 +289,7 @@
   gap: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 .teacher-patchnote-article .article-author::before {
@@ -303,7 +303,7 @@
   font-size: 15px;
   font-weight: 500;
   line-height: 1.7;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
 }
 
 .teacher-patchnote-article .article-content > :first-child {
@@ -320,7 +320,7 @@
   font-weight: 800;
   letter-spacing: -0.3px;
   line-height: 1.35;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .teacher-patchnote-article .article-content h2 {
@@ -329,14 +329,14 @@
   font-weight: 800;
   letter-spacing: -0.3px;
   line-height: 1.4;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .teacher-patchnote-article .article-content h3 {
   margin: 20px 0 8px;
   font-size: 17px;
   font-weight: 700;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .teacher-patchnote-article .article-content h4,
@@ -345,7 +345,7 @@
   margin: 16px 0 8px;
   font-size: 15px;
   font-weight: 700;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
 }
 
 .teacher-patchnote-article .article-content p {
@@ -368,16 +368,16 @@
 }
 
 .teacher-patchnote-article .article-content li::marker {
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .teacher-patchnote-article .article-content strong {
   font-weight: 700;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .teacher-patchnote-article .article-content a {
-  color: #6d23ed;
+  color: var(--app-primary);
   font-weight: 600;
   text-decoration: none;
 }
@@ -388,17 +388,17 @@
 
 .teacher-patchnote-article .article-content code {
   padding: 2px 6px;
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   border-radius: 6px;
   font-family: 'SF Mono', 'Menlo', 'Monaco', 'Fira Code', monospace;
   font-size: 13px;
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .teacher-patchnote-article .article-content pre {
   margin: 12px 0;
   padding: 12px 16px;
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   border-radius: 8px;
   overflow-x: auto;
 }
@@ -407,20 +407,20 @@
   padding: 0;
   background: transparent;
   border-radius: 0;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
 }
 
 .teacher-patchnote-article .article-content blockquote {
   margin: 12px 0;
   padding: 2px 0 2px 14px;
-  border-left: 3px solid #e5e5e5;
-  color: #747678;
+  border-left: 3px solid var(--app-border);
+  color: var(--app-text-muted);
 }
 
 .teacher-patchnote-article .article-content hr {
   margin: 20px 0;
   border: none;
-  border-top: 1px solid #ececef;
+  border-top: 1px solid var(--app-border);
 }
 
 .teacher-patchnote-article .article-content table {
@@ -433,13 +433,13 @@
 .teacher-patchnote-article .article-content th,
 .teacher-patchnote-article .article-content td {
   padding: 8px 12px;
-  border: 1px solid #ececef;
+  border: 1px solid var(--app-border);
   text-align: left;
 }
 
 .teacher-patchnote-article .article-content th {
-  background: #fafafa;
-  color: #0f0f10;
+  background: var(--app-surface);
+  color: var(--app-text);
   font-weight: 700;
 }
 
@@ -448,7 +448,7 @@
   max-width: 100%;
   height: auto;
   margin: 16px 0;
-  border: 1px solid #ececef;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
 }
 
@@ -461,8 +461,8 @@
   justify-content: center;
   text-align: center;
   padding: 64px 32px;
-  background: #ffffff;
-  border: 1px dashed #d8d2e7;
+  background: var(--app-surface);
+  border: 1px dashed var(--app-border);
   border-radius: 10px;
 }
 
@@ -479,7 +479,7 @@
   margin: 0 0 6px;
   font-size: 15px;
   font-weight: 700;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .teacher-patchnote-container .empty-state p,
@@ -487,7 +487,7 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 /* 반응형 */

@@ -2,7 +2,7 @@
 
 .inquiry-admin-page {
   padding: 24px;
-  background: #f8f9fa;
+  background: var(--app-surface);
   min-height: 100%;
 }
 
@@ -14,13 +14,13 @@
 .inquiry-admin-header h1 {
   font-size: 24px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--app-text);
   margin: 0 0 8px;
 }
 
 .inquiry-admin-header p {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin: 0;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--app-surface);
   border-radius: 12px;
   padding: 20px;
   text-align: center;
@@ -50,19 +50,19 @@
   display: block;
   font-size: 32px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--app-text);
 }
 
 .stat-card .stat-label {
   display: block;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin-top: 4px;
 }
 
-.stat-card.pending .stat-value { color: #f59e0b; }
-.stat-card.in-progress .stat-value { color: #3b82f6; }
-.stat-card.resolved .stat-value { color: #10b981; }
+.stat-card.pending .stat-value { color: var(--app-warning); }
+.stat-card.in-progress .stat-value { color: var(--app-info); }
+.stat-card.resolved .stat-value { color: var(--app-success); }
 
 /* 레이아웃 */
 .inquiry-admin-layout {
@@ -79,7 +79,7 @@
 
 /* 목록 패널 */
 .inquiry-list-panel {
-  background: white;
+  background: var(--app-surface);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -90,13 +90,13 @@
 
 .list-header {
   padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .list-header h2 {
   font-size: 16px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--app-text);
   margin: 0 0 12px;
 }
 
@@ -108,10 +108,10 @@
 .list-filters select {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--app-border-strong);
   border-radius: 6px;
   font-size: 13px;
-  background: white;
+  background: var(--app-surface);
 }
 
 .inquiry-list {
@@ -122,7 +122,7 @@
 .empty-list {
   padding: 40px 20px;
   text-align: center;
-  color: #6b7280;
+  color: var(--app-text-muted);
 }
 
 .inquiry-item {
@@ -130,20 +130,20 @@
   width: 100%;
   padding: 16px 20px;
   border: none;
-  border-bottom: 1px solid #f3f4f6;
-  background: white;
+  border-bottom: 1px solid var(--app-surface-subtle);
+  background: var(--app-surface);
   text-align: left;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .inquiry-item:hover {
-  background: #f9fafb;
+  background: var(--app-surface-subtle);
 }
 
 .inquiry-item.active {
-  background: #f3e8ff;
-  border-left: 3px solid #6d23ed;
+  background: var(--app-surface-muted);
+  border-left: 3px solid var(--app-primary);
 }
 
 .inquiry-item-header {
@@ -164,7 +164,7 @@
 .inquiry-item-title {
   font-size: 14px;
   font-weight: 500;
-  color: #1f2937;
+  color: var(--app-text);
   margin: 0 0 8px;
   line-height: 1.4;
   display: -webkit-box;
@@ -177,12 +177,12 @@
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--app-text-disabled);
 }
 
 /* 상세 패널 */
 .inquiry-detail-panel {
-  background: white;
+  background: var(--app-surface);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -195,12 +195,12 @@
   align-items: center;
   justify-content: center;
   min-height: 400px;
-  color: #6b7280;
+  color: var(--app-text-muted);
 }
 
 .detail-header {
   padding: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .detail-badges {
@@ -212,7 +212,7 @@
 .detail-header h2 {
   font-size: 20px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--app-text);
   margin: 0 0 12px;
 }
 
@@ -221,17 +221,17 @@
   flex-wrap: wrap;
   gap: 16px;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--app-text-muted);
 }
 
 .detail-meta strong {
-  color: #374151;
+  color: var(--app-text-secondary);
 }
 
 /* 상세 내용 */
 .detail-content {
   padding: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .detail-content section {
@@ -245,7 +245,7 @@
 .detail-content h3 {
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--app-text-secondary);
   margin: 0 0 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -254,18 +254,18 @@
 .detail-content .description {
   font-size: 15px;
   line-height: 1.7;
-  color: #374151;
+  color: var(--app-text-secondary);
   white-space: pre-wrap;
 }
 
 .info-row {
   font-size: 14px;
-  color: #374151;
+  color: var(--app-text-secondary);
   margin-bottom: 8px;
 }
 
 .info-row strong {
-  color: #1f2937;
+  color: var(--app-text);
 }
 
 .info-block {
@@ -275,23 +275,23 @@
 .info-block strong {
   display: block;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin-bottom: 6px;
 }
 
 .info-block p,
 .info-block pre {
   font-size: 14px;
-  color: #374151;
+  color: var(--app-text-secondary);
   margin: 0;
-  background: #f9fafb;
+  background: var(--app-surface-subtle);
   padding: 12px;
   border-radius: 8px;
   white-space: pre-wrap;
 }
 
 .device-info {
-  background: #f9fafb;
+  background: var(--app-surface-subtle);
   border-radius: 8px;
   padding: 16px;
 }
@@ -299,7 +299,7 @@
 .device-info strong {
   display: block;
   margin-bottom: 12px;
-  color: #1f2937;
+  color: var(--app-text);
 }
 
 .device-info ul {
@@ -310,20 +310,20 @@
 
 .device-info li {
   font-size: 13px;
-  color: #374151;
+  color: var(--app-text-secondary);
   margin-bottom: 6px;
 }
 
 .device-info li strong {
   display: inline;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin-right: 4px;
 }
 
 .device-info code {
   display: block;
   font-size: 11px;
-  color: #6b7280;
+  color: var(--app-text-muted);
   word-break: break-all;
   margin-top: 4px;
 }
@@ -331,7 +331,7 @@
 /* 관리자 액션 */
 .detail-actions {
   padding: 24px;
-  background: #f9fafb;
+  background: var(--app-surface-subtle);
 }
 
 .detail-actions section {
@@ -345,7 +345,7 @@
 .detail-actions h3 {
   font-size: 13px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--app-text-muted);
   margin: 0 0 10px;
 }
 
@@ -382,7 +382,7 @@
 .detail-actions textarea {
   width: 100%;
   padding: 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--app-border-strong);
   border-radius: 8px;
   font-size: 14px;
   resize: vertical;
@@ -392,8 +392,8 @@
 
 .save-note-btn {
   padding: 10px 20px;
-  background: #6d23ed;
-  color: white;
+  background: var(--app-primary);
+  color: var(--app-surface);
   border: none;
   border-radius: 6px;
   font-size: 14px;
@@ -402,18 +402,18 @@
 }
 
 .save-note-btn:hover {
-  background: #5b1dc9;
+  background: var(--app-primary-hover);
 }
 
 .danger-zone {
   padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--app-border);
 }
 
 .delete-btn {
   padding: 10px 20px;
-  background: #dc2626;
-  color: white;
+  background: var(--app-danger-strong);
+  color: var(--app-surface);
   border: none;
   border-radius: 6px;
   font-size: 14px;
@@ -422,7 +422,7 @@
 }
 
 .delete-btn:hover {
-  background: #b91c1c;
+  background: var(--app-danger);
 }
 
 /* 로딩 & 에러 상태 */
@@ -434,14 +434,14 @@
   justify-content: center;
   min-height: 400px;
   gap: 16px;
-  color: #6b7280;
+  color: var(--app-text-muted);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #6d23ed;
+  border: 3px solid var(--app-border);
+  border-top-color: var(--app-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

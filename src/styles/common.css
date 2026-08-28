@@ -5,12 +5,12 @@
   height: 400px;
   font-size: 16px;
   font-weight: 500;
-  color: var(--label-alternative, #5d5f60);
+  color: var(--label-alternative, var(--app-text-muted));
 }
 
 .pinned-badge {
-  background-color: var(--primary-normal, #6d23ed);
-  color: white;
+  background-color: var(--primary-normal, var(--app-primary));
+  color: var(--app-surface);
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 11px;

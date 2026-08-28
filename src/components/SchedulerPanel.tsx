@@ -19,7 +19,7 @@ const SchedulerPanel: React.FC<SchedulerPanelProps> = ({
   onComplete
 }) => {
   const dormitoryName = gender === '남' ? '남기숙사' : '여기숙사';
-  const genderColor = gender === '남' ? '#1492fc' : '#ed4ca4';
+  const genderColor = gender === '남' ? 'var(--app-info)' : 'var(--app-accent)';
 
   if (variant === 'no-schedule') {
     return (

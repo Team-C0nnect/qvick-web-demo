@@ -4,7 +4,7 @@
   z-index: 500;
   display: grid;
   place-items: center;
-  background: #ffffff;
+  background: var(--app-surface);
 }
 
 .intro-animation.leaving {
@@ -48,7 +48,7 @@
   position: relative;
   margin: 0;
   min-height: 1.4em;
-  color: #6d23ed;
+  color: var(--app-primary);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -67,7 +67,7 @@
   bottom: -7px;
   height: 2px;
   border-radius: 999px;
-  background: #6d23ed;
+  background: var(--app-primary);
   transform: scaleX(0);
   transform-origin: left;
   animation: intro-underline-sweep 0.4s ease-out 0.1s forwards;
@@ -79,7 +79,7 @@
   height: 0.95em;
   margin-left: 3px;
   vertical-align: -0.12em;
-  background: #6d23ed;
+  background: var(--app-primary);
   animation: intro-cursor-blink 0.6s step-end infinite;
 }
 

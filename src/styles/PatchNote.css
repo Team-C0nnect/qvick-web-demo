@@ -1,17 +1,17 @@
 /* 패치노트 공개 페이지 스타일
-   - 대시보드/사이드바/탑바 톤의 디자인 토큰 적용 (배경 #fafafa, 카드 보더 중심, 그림자 없음)
+   - 대시보드/사이드바/탑바 톤의 디자인 토큰 적용 (배경 var(--app-surface), 카드 보더 중심, 그림자 없음)
    - 모든 선택자는 .patchnote-page 하위로 스코핑하여 다른 페이지와의 충돌 방지 */
 
 .patchnote-page {
   min-height: 100vh;
-  background: #fafafa;
+  background: var(--app-surface);
   display: flex;
   flex-direction: column;
 }
 
 /* 로딩 스켈레톤 (페이지 스코프 내에서만 적용) */
 .patchnote-page .skeleton {
-  background: linear-gradient(90deg, #f1f1f3 25%, #e9e9ec 50%, #f1f1f3 75%);
+  background: linear-gradient(90deg, var(--app-surface-subtle) 25%, var(--app-border) 50%, var(--app-surface-subtle) 75%);
   background-size: 200% 100%;
   animation: pn-skeleton-loading 1.5s infinite ease-in-out;
   border-radius: 4px;
@@ -68,8 +68,8 @@
   position: relative;
   overflow: hidden;
   padding: 48px 24px 44px;
-  background: #ffffff;
-  border-bottom: 1px solid #ececef;
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
 }
 
 .patchnote-page .header-content {
@@ -93,14 +93,14 @@
 }
 
 .patchnote-page .qvick-logo path:not([fill^='url']) {
-  fill: #0f0f10;
+  fill: var(--app-text);
 }
 
 .patchnote-page .brand-text {
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.3px;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .header-title {
@@ -108,14 +108,14 @@
   font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.3px;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .header-subtitle {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 /* 헤더 장식 (밝은 배경 위 은은한 브랜드 컬러 워시) */
@@ -176,8 +176,8 @@
   align-items: center;
   justify-content: center;
   padding: 64px 32px;
-  background: #ffffff;
-  border: 1px dashed #d8d2e7;
+  background: var(--app-surface);
+  border: 1px dashed var(--app-border);
   border-radius: 10px;
   text-align: center;
 }
@@ -191,14 +191,14 @@
   margin: 0 0 6px;
   font-size: 15px;
   font-weight: 700;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .empty-state p {
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 /* 레이아웃 */
@@ -211,8 +211,8 @@
 
 /* 버전 목록 사이드바 */
 .patchnote-page .patchnote-sidebar {
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 16px;
   height: fit-content;
@@ -227,23 +227,23 @@
   gap: 8px;
   margin-bottom: 12px;
   padding: 2px 4px 12px;
-  border-bottom: 1px solid #ececef;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .patchnote-page .sidebar-header h2 {
   margin: 0;
   font-size: 17px;
   font-weight: 700;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .version-count {
   padding: 3px 9px;
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 .patchnote-page .version-list {
@@ -270,21 +270,21 @@
 }
 
 .patchnote-page .version-item:hover {
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
 }
 
 .patchnote-page .version-item:focus-visible {
-  outline: 2px solid #6d23ed;
+  outline: 2px solid var(--app-primary);
   outline-offset: 2px;
 }
 
 .patchnote-page .version-item.active {
-  background: #ede9fe;
+  background: var(--app-surface-muted);
 }
 
 .patchnote-page .version-item.active .version-number,
 .patchnote-page .version-item.active .version-item-title {
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .patchnote-page .version-item.active .version-item-date {
@@ -300,7 +300,7 @@
 .patchnote-page .version-number {
   font-size: 12px;
   font-weight: 800;
-  color: #6d23ed;
+  color: var(--app-primary);
   white-space: nowrap;
 }
 
@@ -315,7 +315,7 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
   line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -326,13 +326,13 @@
 .patchnote-page .version-item-date {
   font-size: 12px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 /* 메인 컨텐츠 */
 .patchnote-page .patchnote-main {
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -343,8 +343,8 @@
   justify-content: center;
   min-height: 360px;
   padding: 32px;
-  background: #ffffff;
-  border: 1px dashed #d8d2e7;
+  background: var(--app-surface);
+  border: 1px dashed var(--app-border);
   border-radius: 10px;
   margin: 16px;
 }
@@ -353,7 +353,7 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 /* 아티클 */
@@ -364,7 +364,7 @@
 .patchnote-page .article-header {
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #ececef;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .patchnote-page .article-meta {
@@ -388,8 +388,8 @@
 }
 
 .patchnote-page .version-badge {
-  color: #52525b;
-  background: #f4f4f5;
+  color: var(--app-text-secondary);
+  background: var(--app-surface-subtle);
 }
 
 .patchnote-page .article-title {
@@ -398,7 +398,7 @@
   font-weight: 800;
   letter-spacing: -0.3px;
   line-height: 1.35;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .article-info {
@@ -406,7 +406,7 @@
   align-items: center;
   font-size: 12px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 .patchnote-page .article-author::before {
@@ -419,7 +419,7 @@
   font-size: 15px;
   font-weight: 500;
   line-height: 1.7;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
 }
 
 .patchnote-page .article-content > :first-child {
@@ -436,7 +436,7 @@
   font-weight: 800;
   letter-spacing: -0.3px;
   line-height: 1.35;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .article-content h2 {
@@ -445,14 +445,14 @@
   font-weight: 800;
   letter-spacing: -0.3px;
   line-height: 1.4;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .article-content h3 {
   margin: 20px 0 8px;
   font-size: 17px;
   font-weight: 700;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .article-content h4,
@@ -461,7 +461,7 @@
   margin: 16px 0 8px;
   font-size: 15px;
   font-weight: 700;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
 }
 
 .patchnote-page .article-content p {
@@ -484,16 +484,16 @@
 }
 
 .patchnote-page .article-content li::marker {
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .patchnote-page .article-content strong {
   font-weight: 700;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .article-content a {
-  color: #6d23ed;
+  color: var(--app-primary);
   font-weight: 600;
   text-decoration: none;
 }
@@ -504,17 +504,17 @@
 
 .patchnote-page .article-content code {
   padding: 2px 6px;
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   border-radius: 6px;
   font-family: 'SF Mono', 'Menlo', 'Monaco', 'Fira Code', monospace;
   font-size: 13px;
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .patchnote-page .article-content pre {
   margin: 12px 0;
   padding: 12px 16px;
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   border-radius: 8px;
   overflow-x: auto;
 }
@@ -523,20 +523,20 @@
   padding: 0;
   background: transparent;
   border-radius: 0;
-  color: #3f3f46;
+  color: var(--app-text-secondary);
 }
 
 .patchnote-page .article-content blockquote {
   margin: 12px 0;
   padding: 2px 0 2px 14px;
-  border-left: 3px solid #e5e5e5;
-  color: #747678;
+  border-left: 3px solid var(--app-border);
+  color: var(--app-text-muted);
 }
 
 .patchnote-page .article-content hr {
   margin: 20px 0;
   border: none;
-  border-top: 1px solid #ececef;
+  border-top: 1px solid var(--app-border);
 }
 
 .patchnote-page .article-content table {
@@ -549,13 +549,13 @@
 .patchnote-page .article-content th,
 .patchnote-page .article-content td {
   padding: 8px 12px;
-  border: 1px solid #ececef;
+  border: 1px solid var(--app-border);
   text-align: left;
 }
 
 .patchnote-page .article-content th {
-  background: #fafafa;
-  color: #0f0f10;
+  background: var(--app-surface);
+  color: var(--app-text);
   font-weight: 700;
 }
 
@@ -565,14 +565,14 @@
   max-width: 100%;
   height: auto;
   margin: 16px 0;
-  border: 1px solid #ececef;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
 }
 
 /* 푸터 (탑바 톤: 밝은 배경 + 크롬 보더) */
 .patchnote-page .patchnote-footer {
-  background: #ffffff;
-  border-top: 1px solid #ececef;
+  background: var(--app-surface);
+  border-top: 1px solid var(--app-border);
   padding: 28px 40px;
 }
 
@@ -600,14 +600,14 @@
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.3px;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .patchnote-page .footer-copyright {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 /* 반응형 */

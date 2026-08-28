@@ -2,8 +2,8 @@
 .notice-page {
   min-height: 100%;
   padding: 32px 40px;
-  background: #fafafa;
-  color: #0f0f10;
+  background: var(--app-surface);
+  color: var(--app-text);
 }
 
 .notice-page > .notice-page-header,
@@ -26,14 +26,14 @@
 
 .notice-page .notice-kicker {
   display: block;
-  color: #6d23ed;
+  color: var(--app-primary);
   font-size: 12px;
   font-weight: 700;
 }
 
 .notice-page .page-title {
   margin: 6px 0 8px;
-  color: #0f0f10;
+  color: var(--app-text);
   font-size: 26px;
   font-weight: 800;
   line-height: 1.25;
@@ -42,7 +42,7 @@
 
 .notice-page .notice-page-description {
   margin: 0;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 14px;
   font-weight: 500;
   line-height: 1.55;
@@ -51,10 +51,10 @@
 .notice-page .create-button {
   flex-shrink: 0;
   min-height: 40px;
-  border: 1px solid #6d23ed;
+  border: 1px solid var(--app-primary);
   border-radius: 8px;
-  background: #6d23ed;
-  color: #ffffff;
+  background: var(--app-primary);
+  color: var(--app-surface);
   padding: 0 18px;
   font-size: 13px;
   font-weight: 700;
@@ -63,8 +63,8 @@
 }
 
 .notice-page .create-button:hover:not(:disabled) {
-  border-color: #5919c7;
-  background: #5919c7;
+  border-color: var(--app-primary-hover);
+  background: var(--app-primary-hover);
 }
 
 .notice-page .notice-toolbar {
@@ -86,10 +86,10 @@
 
 .notice-page .filter-button {
   min-height: 34px;
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #52525b;
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
   padding: 0 14px;
   font-size: 13px;
   font-weight: 600;
@@ -99,13 +99,13 @@
 }
 
 .notice-page .filter-button:hover {
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
 }
 
 .notice-page .filter-button.active {
-  border-color: #ede9fe;
-  background: #ede9fe;
-  color: #6d23ed;
+  border-color: var(--app-surface-muted);
+  background: var(--app-surface-muted);
+  color: var(--app-primary);
 }
 
 .notice-page .notice-summary {
@@ -114,7 +114,7 @@
   flex-wrap: wrap;
   gap: 6px;
   flex: 0 0 auto;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 12px;
   font-weight: 600;
 }
@@ -125,12 +125,12 @@
   align-items: center;
   gap: 5px;
   border-radius: 999px;
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
   padding: 0 11px;
 }
 
 .notice-page .notice-summary strong {
-  color: #0f0f10;
+  color: var(--app-text);
   font-weight: 700;
 }
 
@@ -144,7 +144,7 @@
 
 .notice-page .notice-list-header h2 {
   margin: 3px 0 0;
-  color: #0f0f10;
+  color: var(--app-text);
   font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.3px;
@@ -173,48 +173,48 @@
 .notice-page .select-all-button {
   border: none;
   background: transparent;
-  color: #747678;
+  color: var(--app-text-muted);
 }
 
 .notice-page .select-all-button:hover:not(:disabled) {
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
 }
 
 .notice-page .action-button {
-  border: 1px solid #e4e4e7;
-  background: #ffffff;
-  color: #52525b;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
 }
 
 .notice-page .action-button:hover:not(:disabled) {
-  background: #f4f4f5;
+  background: var(--app-surface-subtle);
 }
 
 .notice-page .action-button.pin {
   border-color: rgba(109, 35, 237, 0.24);
-  background: #ede9fe;
-  color: #6d23ed;
+  background: var(--app-surface-muted);
+  color: var(--app-primary);
 }
 
 .notice-page .action-button.pin:hover:not(:disabled) {
   border-color: rgba(109, 35, 237, 0.36);
   background: rgba(109, 35, 237, 0.14);
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .notice-page .action-button.unpin:hover:not(:disabled) {
-  border-color: #c9c9cc;
+  border-color: var(--app-border-strong);
 }
 
 .notice-page .action-button.delete {
   border-color: rgba(239, 68, 68, 0.32);
-  color: #ef4444;
+  color: var(--app-danger);
 }
 
 .notice-page .action-button.delete:hover:not(:disabled) {
-  border-color: #ef4444;
+  border-color: var(--app-danger);
   background: rgba(239, 68, 68, 0.06);
-  color: #ef4444;
+  color: var(--app-danger);
 }
 
 .notice-page .action-button:disabled,
@@ -235,19 +235,19 @@
   flex-direction: column;
   gap: 14px;
   padding: 18px 20px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--app-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--app-surface);
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .notice-page .notice-card:hover {
-  border-color: #c9c9cc;
+  border-color: var(--app-border-strong);
 }
 
 .notice-page .notice-card.selected {
-  border-color: #6d23ed;
+  border-color: var(--app-primary);
   background: rgba(109, 35, 237, 0.04);
 }
 
@@ -284,7 +284,7 @@
 
 .notice-page .notice-pin-badge {
   background: rgba(109, 35, 237, 0.08);
-  color: #6d23ed;
+  color: var(--app-primary);
   font-weight: 700;
 }
 
@@ -295,8 +295,8 @@
 }
 
 .notice-page .notice-category {
-  background: #f4f4f5;
-  color: #747678;
+  background: var(--app-surface-subtle);
+  color: var(--app-text-muted);
 }
 
 .notice-page .notice-select {
@@ -318,14 +318,14 @@
   height: 16px;
   margin: 0;
   cursor: pointer;
-  accent-color: #6d23ed;
+  accent-color: var(--app-primary);
 }
 
 .notice-page .notice-title {
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  color: #0f0f10;
+  color: var(--app-text);
   font-size: 15px;
   font-weight: 700;
   line-height: 1.5;
@@ -338,14 +338,14 @@
 .notice-page .notice-card-footer {
   margin-top: auto;
   align-items: flex-end;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 12px;
   font-weight: 600;
 }
 
 .notice-page .notice-author {
   margin: 0;
-  color: #52525b;
+  color: var(--app-text-secondary);
   font-size: 12px;
   font-weight: 600;
 }
@@ -356,14 +356,14 @@
   align-items: flex-end;
   gap: 2px;
   margin: 0;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .notice-page .notice-date small {
-  color: #a1a1aa;
+  color: var(--app-text-disabled);
   font-size: 11px;
   font-weight: 600;
 }
@@ -373,11 +373,11 @@
   min-height: 200px;
   display: grid;
   place-items: center;
-  border: 1px dashed #d8d2e7;
+  border: 1px dashed var(--app-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--app-surface);
   padding: 20px;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 13px;
   font-weight: 600;
   text-align: center;

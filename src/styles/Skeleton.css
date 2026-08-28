@@ -1,5 +1,5 @@
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--app-surface-subtle) 25%, var(--app-border) 50%, var(--app-surface-subtle) 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite ease-in-out;
 }
@@ -27,9 +27,9 @@
 
 .skeleton-donut-card {
   padding: 18px 20px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--app-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--app-surface);
 }
 
 .skeleton-donut-card-body {
@@ -47,21 +47,21 @@
 }
 
 .skeleton-table-panel {
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--app-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--app-surface);
 }
 
 .skeleton-table-toolbar {
   padding: 12px 16px;
-  border-bottom: 1px solid #f4f4f5;
+  border-bottom: 1px solid var(--app-surface-subtle);
 }
 
 .skeleton-filters {
   display: flex;
   gap: 32px;
   padding: 16px;
-  border-bottom: 1px solid #ececef;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .skeleton-filter-group {
@@ -76,25 +76,25 @@
 }
 
 .skeleton-table {
-  background: white;
+  background: var(--app-surface);
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #eee;
+  border: 1px solid var(--app-border);
 }
 
 .skeleton-table-header {
   display: flex;
   gap: 24px;
   padding: 14px 16px;
-  background: #fafafa;
-  border-bottom: 1px solid #eee;
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
 }
 
 .skeleton-table-row {
   display: flex;
   gap: 24px;
   padding: 14px 16px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--app-surface-subtle);
 }
 
 .skeleton-table-row:last-child {
@@ -111,8 +111,8 @@
 .skeleton-notice-hero,
 .skeleton-notice-toolbar,
 .notice-card-skeleton {
-  background: #ffffff;
-  border: 1px solid #e6e6e7;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(15, 15, 16, 0.04);
 }
@@ -226,8 +226,8 @@
 .skeleton-period-card,
 .skeleton-quick-card,
 .skeleton-notice-row {
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: 12px;
 }
 
@@ -259,7 +259,7 @@
   inset: 13px;
   z-index: 1;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--app-surface);
 }
 
 .skeleton-donut-center {
@@ -302,19 +302,19 @@
 }
 
 .skeleton-legend-dot.present {
-  background: #22c55e;
+  background: var(--app-success);
 }
 
 .skeleton-legend-dot.absent {
-  background: #ef4444;
+  background: var(--app-danger);
 }
 
 .skeleton-legend-dot.late {
-  background: #f59e0b;
+  background: var(--app-warning);
 }
 
 .skeleton-legend-dot.sleepover {
-  background: #8b5cf6;
+  background: var(--app-primary);
 }
 
 .skeleton-quick-grid {

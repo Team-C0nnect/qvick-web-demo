@@ -11,7 +11,7 @@
 }
 
 .donut-chart-track {
-  stroke: #f1f1f3;
+  stroke: var(--app-surface-subtle);
 }
 
 .donut-chart-segment {

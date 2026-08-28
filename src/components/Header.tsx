@@ -9,6 +9,7 @@ import '../styles/Header.css';
 import type { MyUserResponse } from '../types/api';
 import { ChevronDownIcon, QvickLogoIcon } from './Icons';
 import { useAttendanceView } from '../context/AttendanceViewContext';
+import { useTheme } from '../hooks/useTheme';
 
 interface HeaderProps {
   actions?: ReactNode;
@@ -47,6 +48,7 @@ export default function Header({ actions }: HeaderProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const { attendanceView, setAttendanceView } = useAttendanceView();
+  const { theme, setTheme } = useTheme();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const isOpen = isHovered || isPinned;
 
@@ -130,6 +132,35 @@ export default function Header({ actions }: HeaderProps) {
 
             {isOpen && (
               <div className="user-dropdown" role="menu">
+                <div className="theme-toggle" role="group" aria-label="화면 테마">
+                  <button
+                    type="button"
+                    className={`theme-option ${theme === 'light' ? 'active' : ''}`}
+                    aria-pressed={theme === 'light'}
+                    onClick={() => setTheme('light')}
+                  >
+                    라이트
+                  </button>
+                  <button
+                    type="button"
+                    className={`theme-option ${theme === 'system' ? 'active' : ''}`}
+                    aria-pressed={theme === 'system'}
+                    onClick={() => setTheme('system')}
+                  >
+                    시스템
+                  </button>
+                  <button
+                    type="button"
+                    className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
+                    aria-pressed={theme === 'dark'}
+                    onClick={() => setTheme('dark')}
+                  >
+                    다크
+                  </button>
+                </div>
+
+                <div className="user-dropdown-divider" />
+
                 <div className="attendance-view-row">
                   <button
                     type="button"

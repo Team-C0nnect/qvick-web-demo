@@ -85,21 +85,21 @@ export interface UpdateInquiryRequest {
 
 // 타입별 설정
 export const INQUIRY_TYPE_CONFIG: Record<InquiryType, { label: string; color: string; bgColor: string }> = {
-  bug: { label: '오류 제보', color: '#dc2626', bgColor: '#fef2f2' },
-  feature: { label: '기능 제안', color: '#2563eb', bgColor: '#eff6ff' },
-  other: { label: '기타 문의', color: '#6b7280', bgColor: '#f3f4f6' },
+  bug: { label: '오류 제보', color: 'var(--app-danger-strong)', bgColor: 'var(--app-danger-soft)' },
+  feature: { label: '기능 제안', color: 'var(--app-info)', bgColor: 'var(--app-info-soft)' },
+  other: { label: '기타 문의', color: 'var(--app-text-muted)', bgColor: 'var(--app-surface-subtle)' },
 };
 
 export const INQUIRY_STATUS_CONFIG: Record<InquiryStatus, { label: string; color: string; bgColor: string }> = {
-  pending: { label: '대기중', color: '#f59e0b', bgColor: '#fffbeb' },
-  'in-progress': { label: '처리중', color: '#3b82f6', bgColor: '#eff6ff' },
-  resolved: { label: '해결됨', color: '#10b981', bgColor: '#ecfdf5' },
-  closed: { label: '종료', color: '#6b7280', bgColor: '#f3f4f6' },
+  pending: { label: '대기중', color: 'var(--app-warning)', bgColor: 'var(--app-warning-soft)' },
+  'in-progress': { label: '처리중', color: 'var(--app-info)', bgColor: 'var(--app-info-soft)' },
+  resolved: { label: '해결됨', color: 'var(--app-success)', bgColor: 'var(--app-success-soft)' },
+  closed: { label: '종료', color: 'var(--app-text-muted)', bgColor: 'var(--app-surface-subtle)' },
 };
 
 export const INQUIRY_PRIORITY_CONFIG: Record<InquiryPriority, { label: string; color: string; bgColor: string }> = {
-  low: { label: '낮음', color: '#6b7280', bgColor: '#f3f4f6' },
-  medium: { label: '보통', color: '#f59e0b', bgColor: '#fffbeb' },
-  high: { label: '높음', color: '#f97316', bgColor: '#fff7ed' },
-  critical: { label: '긴급', color: '#dc2626', bgColor: '#fef2f2' },
+  low: { label: '낮음', color: 'var(--app-text-muted)', bgColor: 'var(--app-surface-subtle)' },
+  medium: { label: '보통', color: 'var(--app-warning)', bgColor: 'var(--app-warning-soft)' },
+  high: { label: '높음', color: 'var(--app-warning)', bgColor: 'var(--app-warning-soft)' },
+  critical: { label: '긴급', color: 'var(--app-danger-strong)', bgColor: 'var(--app-danger-soft)' },
 };

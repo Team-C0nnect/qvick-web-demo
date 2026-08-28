@@ -3,13 +3,13 @@
   min-height: 100vh;
   min-height: 100dvh;
   padding-top: 60px;
-  background-color: #fafafa;
+  background-color: var(--app-surface);
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
 .login-header {
   height: 60px;
-  background: #ffffff;
+  background: var(--app-surface);
   box-shadow: 0px -2px 4px 0px rgba(0, 0, 0, 0.1);
   padding: 0 25px;
   display: flex;
@@ -40,7 +40,7 @@
 .logo-text {
   font-size: 24px;
   font-weight: 800;
-  color: #6d23ed;
+  color: var(--app-primary);
   letter-spacing: -0.48px;
   margin: 0;
 }
@@ -84,7 +84,7 @@
 .brand-title {
   font-size: 28px;
   font-weight: 800;
-  color: #0f0f10;
+  color: var(--app-text);
   letter-spacing: -0.84px;
   margin: 0;
 }
@@ -92,7 +92,7 @@
 .brand-subtitle {
   font-size: 20px;
   font-weight: 500;
-  color: #5d5f60;
+  color: var(--app-text-muted);
   letter-spacing: -0.2px;
   margin: 0;
 }
@@ -105,11 +105,11 @@
 }
 
 .error-message {
-  background-color: #fee;
-  border: 1px solid #fcc;
+  background-color: var(--app-danger-soft);
+  border: 1px solid var(--app-danger-border);
   border-radius: 8px;
   padding: 12px 16px;
-  color: #c00;
+  color: var(--app-danger-strong);
   font-size: 14px;
   font-weight: 500;
   text-align: center;
@@ -133,7 +133,7 @@
 .input-label {
   font-size: 13px;
   font-weight: 400;
-  color: var(--label-alternative, #5d5f60);
+  color: var(--label-alternative, var(--app-text-muted));
   letter-spacing: 0.39px;
   line-height: 1.3;
   text-align: left;
@@ -141,7 +141,7 @@
 }
 
 .input-field {
-  background: var(--fill-normal, #ffffff);
+  background: var(--fill-normal, var(--app-surface));
   border: none;
   border-radius: 12px;
   height: 48px;
@@ -149,7 +149,7 @@
   padding: 0 16px;
   font-size: 14px;
   font-weight: 500;
-  color: #0f0f10;
+  color: var(--app-text);
   letter-spacing: 0.28px;
   line-height: 1.4;
   outline: none;
@@ -158,43 +158,43 @@
 }
 
 .input-field::placeholder {
-  color: var(--label-alternative, #5d5f60);
+  color: var(--label-alternative, var(--app-text-muted));
   font-weight: 500;
 }
 
 .input-field:focus {
-  box-shadow: 0 0 0 2px var(--primary-normal, #6d23ed);
+  box-shadow: 0 0 0 2px var(--primary-normal, var(--app-primary));
 }
 
 .input-field:-webkit-autofill,
 .input-field:-webkit-autofill:hover,
 .input-field:-webkit-autofill:active {
-  -webkit-text-fill-color: #0f0f10;
-  -webkit-box-shadow: 0 0 0 1000px var(--fill-normal, #ffffff) inset;
-  box-shadow: 0 0 0 1000px var(--fill-normal, #ffffff) inset;
-  caret-color: #0f0f10;
+  -webkit-text-fill-color: var(--app-text);
+  -webkit-box-shadow: 0 0 0 1000px var(--fill-normal, var(--app-surface)) inset;
+  box-shadow: 0 0 0 1000px var(--fill-normal, var(--app-surface)) inset;
+  caret-color: var(--app-text);
   font-family: inherit;
   transition: none;
 }
 
 .input-field:-webkit-autofill:focus {
-  -webkit-text-fill-color: #0f0f10;
-  -webkit-box-shadow: 0 0 0 2px var(--primary-normal, #6d23ed), 0 0 0 1000px var(--fill-normal, #ffffff) inset;
-  box-shadow: 0 0 0 2px var(--primary-normal, #6d23ed), 0 0 0 1000px var(--fill-normal, #ffffff) inset;
-  caret-color: #0f0f10;
+  -webkit-text-fill-color: var(--app-text);
+  -webkit-box-shadow: 0 0 0 2px var(--primary-normal, var(--app-primary)), 0 0 0 1000px var(--fill-normal, var(--app-surface)) inset;
+  box-shadow: 0 0 0 2px var(--primary-normal, var(--app-primary)), 0 0 0 1000px var(--fill-normal, var(--app-surface)) inset;
+  caret-color: var(--app-text);
   font-family: inherit;
   transition: none;
 }
 
 .input-field:disabled {
-  background: #f5f5f5;
+  background: var(--app-surface-subtle);
   cursor: not-allowed;
-  color: #9e9e9e;
+  color: var(--app-text-disabled);
 }
 
 .login-button {
-  background: #6d23ed;
-  color: #ffffff;
+  background: var(--app-primary);
+  color: var(--app-surface);
   border: none;
   border-radius: 12px;
   height: 48px;
@@ -208,15 +208,15 @@
 }
 
 .login-button:hover {
-  background: #5919c7;
+  background: var(--app-primary-hover);
 }
 
 .login-button:active {
-  background: #4a14a5;
+  background: var(--app-primary-active);
 }
 
 .login-button:disabled {
-  background: #9e7dd8;
+  background: var(--app-text-disabled);
   cursor: not-allowed;
 }
 
@@ -229,18 +229,18 @@
 
 .signup-text {
   font-weight: 500;
-  color: #0f0f10;
+  color: var(--app-text);
 }
 
 .signup-action {
   font-weight: 700;
-  color: #5b96c7;
+  color: var(--app-info);
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .signup-action:hover {
-  color: #4a7ba8;
+  color: var(--app-info);
   text-decoration: underline;
 }
 

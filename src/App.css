@@ -1,36 +1,125 @@
-/* Global App Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* Global theme tokens. Component styles must consume these semantic values. */
 :root {
   color-scheme: light;
   --app-background: #fafafa;
   --app-surface: #ffffff;
+  --app-surface-subtle: #f4f4f5;
+  --app-surface-muted: #ede9fe;
   --app-text: #0f0f10;
-  --app-text-secondary: #747678;
-  --app-border: #ececef;
+  --app-text-secondary: #52525b;
+  --app-text-muted: #747678;
+  --app-text-disabled: #a1a1aa;
+  --app-border: #e4e4e7;
+  --app-border-strong: #c9c9cc;
+  --app-primary: #6d23ed;
+  --app-primary-hover: #5919c7;
+  --app-primary-active: #4f19af;
+  --app-primary-soft: #ede9fe;
+  --app-primary-text: #4a19a8;
+  --app-danger: #b91c1c;
+  --app-danger-strong: #dc2626;
+  --app-danger-soft: #fef2f2;
+  --app-danger-border: #fecaca;
+  --app-success: #15803d;
+  --app-success-soft: #f0fdf4;
+  --app-warning: #b45309;
+  --app-warning-soft: #fef3c7;
+  --app-info: #2563eb;
+  --app-info-soft: #dbeafe;
+  --app-accent: #db2777;
+  --app-accent-soft: #fce7f3;
+  --app-shadow: rgba(15, 15, 16, 0.12);
+  --app-focus-ring: rgba(109, 35, 237, 0.28);
+  --fill-normal: var(--app-surface);
+  --fill-neutral: var(--app-surface);
+  --label-normal: var(--app-text);
+  --label-alternative: var(--app-text-muted);
+  --primary-normal: var(--app-primary);
+  --common-100: var(--app-surface);
+  --status-positive: var(--app-success);
+  --status-negative: var(--app-danger);
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --app-background: #161618;
-  --app-surface: #1f1f23;
+  --app-background: #141416;
+  --app-surface: #1e1e22;
+  --app-surface-subtle: #28282e;
+  --app-surface-muted: #302449;
   --app-text: #f4f4f5;
-  --app-text-secondary: #a1a1aa;
-  --app-border: #2e2e33;
+  --app-text-secondary: #d4d4d8;
+  --app-text-muted: #a1a1aa;
+  --app-text-disabled: #73737d;
+  --app-border: #3a3a42;
+  --app-border-strong: #585861;
+  --app-primary: #a78bfa;
+  --app-primary-hover: #c4b5fd;
+  --app-primary-active: #8b5cf6;
+  --app-primary-soft: #302449;
+  --app-primary-text: #ddd6fe;
+  --app-danger: #fca5a5;
+  --app-danger-strong: #f87171;
+  --app-danger-soft: #3d2025;
+  --app-danger-border: #7f3038;
+  --app-success: #86efac;
+  --app-success-soft: #1d3b2c;
+  --app-warning: #fcd34d;
+  --app-warning-soft: #463617;
+  --app-info: #93c5fd;
+  --app-info-soft: #1e3555;
+  --app-accent: #f9a8d4;
+  --app-accent-soft: #4a243b;
+  --app-shadow: rgba(0, 0, 0, 0.42);
+  --app-focus-ring: rgba(196, 181, 253, 0.38);
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
 #root {
   width: 100%;
-  min-height: 100vh;
+  min-width: 320px;
+  min-height: 100%;
 }
 
 body {
+  margin: 0;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  background-color: var(--app-background);
+  background: var(--app-background);
   color: var(--app-text);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

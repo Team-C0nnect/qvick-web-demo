@@ -16,9 +16,9 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid #ececef;
+  border: 1px solid var(--app-border);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--app-surface);
   box-shadow: 0 18px 54px rgba(15, 15, 16, 0.18);
 }
 
@@ -28,12 +28,12 @@
   justify-content: space-between;
   gap: 16px;
   padding: 20px 24px;
-  border-bottom: 1px solid #ececef;
+  border-bottom: 1px solid var(--app-border);
 }
 
 .room-modal-backdrop .room-modal-eyebrow {
   margin: 0 0 4px;
-  color: #6d23ed;
+  color: var(--app-primary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -42,7 +42,7 @@
 
 .room-modal-backdrop .room-modal-title {
   margin: 0;
-  color: #0f0f10;
+  color: var(--app-text);
   font-size: 20px;
   font-weight: 800;
   line-height: 1.25;
@@ -57,10 +57,10 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #747678;
+  background: var(--app-surface);
+  color: var(--app-text-muted);
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
@@ -72,9 +72,9 @@
 }
 
 .room-modal-backdrop .room-modal-close-button:hover:not(:disabled) {
-  border-color: #d4d4d8;
-  background: #f4f4f5;
-  color: #3f3f46;
+  border-color: var(--app-border-strong);
+  background: var(--app-surface-subtle);
+  color: var(--app-text-secondary);
 }
 
 .room-modal-backdrop .room-modal-close-button:disabled {
@@ -97,23 +97,23 @@
 }
 
 .room-modal-backdrop .room-form-label {
-  color: #3f3f46;
+  color: var(--app-text-secondary);
   font-size: 14px;
   font-weight: 700;
 }
 
 .room-modal-backdrop .required {
-  color: #ef4444;
+  color: var(--app-danger);
 }
 
 .room-modal-backdrop .room-form-input {
   width: 100%;
   min-height: 42px;
   padding: 0 12px;
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #0f0f10;
+  background: var(--app-surface);
+  color: var(--app-text);
   font-size: 14px;
   outline: none;
   transition:
@@ -122,22 +122,22 @@
 }
 
 .room-modal-backdrop .room-form-input:hover:not(:disabled) {
-  border-color: #d4d4d8;
+  border-color: var(--app-border-strong);
 }
 
 .room-modal-backdrop .room-form-input:focus {
-  border-color: #6d23ed;
+  border-color: var(--app-primary);
   box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.1);
 }
 
 .room-modal-backdrop .room-form-input::placeholder {
-  color: #a1a1aa;
+  color: var(--app-text-disabled);
   font-weight: 500;
 }
 
 .room-modal-backdrop .input-helper {
   margin: 0;
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.5;
@@ -152,14 +152,14 @@
 }
 
 .room-modal-backdrop .error-text {
-  color: #dc2626;
+  color: var(--app-danger-strong);
   font-size: 12px;
   font-weight: 600;
 }
 
 .room-modal-backdrop .input-example,
 .room-modal-backdrop .char-count {
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 12px;
   font-weight: 600;
 }
@@ -192,25 +192,25 @@
 }
 
 .room-modal-backdrop .room-cancel-button {
-  background: #f4f4f5;
-  color: #52525b;
+  background: var(--app-surface-subtle);
+  color: var(--app-text-secondary);
 }
 
 .room-modal-backdrop .room-cancel-button:hover:not(:disabled) {
-  background: #e4e4e7;
+  background: var(--app-border);
 }
 
 .room-modal-backdrop .room-submit-button {
-  background: #6d23ed;
-  color: #ffffff;
+  background: var(--app-primary);
+  color: var(--app-surface);
 }
 
 .room-modal-backdrop .room-submit-button:hover:not(:disabled) {
-  background: #5b1dc9;
+  background: var(--app-primary-hover);
 }
 
 .room-modal-backdrop .room-submit-button:active:not(:disabled) {
-  background: #4f19af;
+  background: var(--app-primary-active);
 }
 
 .room-modal-backdrop .room-cancel-button:disabled,
@@ -266,10 +266,10 @@
   justify-content: space-between;
   gap: 12px;
   padding: 11px 14px;
-  border: 1px solid #e4e4e7;
+  border: 1px solid var(--app-border);
   border-radius: 10px;
-  background: #ffffff;
-  color: #0f0f10;
+  background: var(--app-surface);
+  color: var(--app-text);
   text-align: left;
   cursor: pointer;
   transition:
@@ -280,7 +280,7 @@
 
 .room-modal-backdrop .sleepover-student-option:hover:not(:disabled),
 .room-modal-backdrop .sleepover-student-option.selected {
-  border-color: #6d23ed;
+  border-color: var(--app-primary);
   background: rgba(109, 35, 237, 0.06);
 }
 
@@ -291,23 +291,23 @@
 
 .room-modal-backdrop .sleepover-student-option.assigned:disabled {
   border-style: dashed;
-  background: #f4f4f5;
-  color: #a1a1aa;
+  background: var(--app-surface-subtle);
+  color: var(--app-text-disabled);
   opacity: 1;
 }
 
 .room-modal-backdrop .sleepover-student-option.assigned .sleepover-student-meta {
-  color: #6d23ed;
+  color: var(--app-primary);
 }
 
 .room-modal-backdrop .sleepover-student-main {
-  color: #0f0f10;
+  color: var(--app-text);
   font-size: 13px;
   font-weight: 700;
 }
 
 .room-modal-backdrop .sleepover-student-meta {
-  color: #747678;
+  color: var(--app-text-muted);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
@@ -315,10 +315,10 @@
 
 .room-modal-backdrop .sleepover-empty-option {
   padding: 16px;
-  border: 1px dashed #d8d2e7;
+  border: 1px dashed var(--app-border);
   border-radius: 10px;
-  background: #ffffff;
-  color: #747678;
+  background: var(--app-surface);
+  color: var(--app-text-muted);
   font-size: 13px;
   font-weight: 600;
   text-align: center;

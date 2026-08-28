@@ -5,7 +5,7 @@ import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { SearchIcon } from '../components/Icons';
 import '../styles/Check.css';
-import '../styles/Sleepover.css';
+import '../styles/PhoneSubmission.css';
 import type { DeviceSubmission, DeviceSubmissionStatus, Gender } from '../types/api';
 import { useSelectedDate } from '../context/SelectedDateContext';
 
@@ -233,7 +233,7 @@ export default function PhoneSubmission() {
   };
 
   return (
-    <div className="check-page sleepover-page">
+    <div className="check-page phone-submission-page">
       <div className="controls-section">
         <div className="controls-left">
           <div className="date-picker">
@@ -305,7 +305,7 @@ export default function PhoneSubmission() {
       </div>
 
       {updateMutation.isError && (
-        <div className="sleepover-message error">
+        <div className="phone-submission-message error">
           휴대폰 제출 상태 수정에 실패했습니다. 다시 시도해주세요.
         </div>
       )}
@@ -325,8 +325,8 @@ export default function PhoneSubmission() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr className="sleepover-empty-row">
-                <td colSpan={7} className="sleepover-empty-cell">
+              <tr className="phone-submission-empty-row">
+                <td colSpan={7} className="phone-submission-empty-cell">
                   휴대폰 제출 현황을 불러오는 중입니다.
                 </td>
               </tr>
@@ -366,8 +366,8 @@ export default function PhoneSubmission() {
                 </tr>
               ))
             ) : (
-              <tr className="sleepover-empty-row">
-                <td colSpan={7} className="sleepover-empty-cell">
+              <tr className="phone-submission-empty-row">
+                <td colSpan={7} className="phone-submission-empty-cell">
                   조건에 맞는 학생이 없습니다.
                 </td>
               </tr>

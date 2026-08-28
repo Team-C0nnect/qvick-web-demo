@@ -96,6 +96,9 @@
 @media (max-width: 768px) {
   .council-page .student-table tbody tr.council-empty-row {
     padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
   }
 
   .council-page .student-table tbody .council-empty-cell {

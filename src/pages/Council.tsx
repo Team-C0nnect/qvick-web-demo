@@ -6,7 +6,6 @@ import { SearchIcon } from '../components/Icons';
 import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import '../styles/Check.css';
-import '../styles/Sleepover.css';
 import '../styles/Council.css';
 import type { StudentResponse } from '../types/api';
 
@@ -116,7 +115,7 @@ export default function Council() {
       </div>
 
       {hasRequestError && (
-        <div className="sleepover-message error">
+        <div className="council-message council-message-error">
           요청 처리에 실패했습니다. 다시 시도해주세요.
         </div>
       )}
@@ -134,7 +133,7 @@ export default function Council() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
+              <tr className="council-empty-row">
                 <td colSpan={5} className="council-empty-cell">
                   자치위원 목록을 불러오는 중입니다.
                 </td>
@@ -165,7 +164,7 @@ export default function Council() {
                 </tr>
               ))
             ) : (
-              <tr>
+              <tr className="council-empty-row">
                 <td colSpan={5} className="council-empty-cell">
                   {searchQuery ? '검색 결과가 없습니다.' : '자치위원이 없습니다.'}
                 </td>

@@ -1,4 +1,7 @@
 .council-page .council-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 38px;
   padding: 0 16px;
   border: none;
@@ -23,38 +26,85 @@
   cursor: not-allowed;
 }
 
-.council-revoke-button {
-  border: 1px solid #ff4242;
-  background: transparent;
-  color: #ff4242;
-  padding: 4.5px 12px;
-  border-radius: 4px;
-  font-size: 15px;
+.council-page .council-revoke-button {
+  min-height: 30px;
+  padding: 5px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition:
     background-color 0.2s,
+    border-color 0.2s,
     color 0.2s,
     opacity 0.2s;
 }
 
-.council-revoke-button:hover:not(:disabled) {
-  background: #ff4242;
+.council-page .council-revoke-button:hover:not(:disabled) {
+  border-color: #ef4444;
+  background: #ef4444;
   color: #ffffff;
 }
 
-.council-revoke-button:disabled {
+.council-page .council-revoke-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-.council-empty-cell {
-  height: 180px;
-  color: #747678;
+.council-page .council-message {
+  width: min(1180px, 100%);
+  margin: 0 auto 24px;
+  padding: 12px 16px;
+  border: 1px solid rgba(109, 35, 237, 0.25);
+  border-radius: 10px;
+  background: #ede9fe;
+  color: #4a19a8;
+  font-size: 13px;
   font-weight: 600;
+  line-height: 1.5;
+}
+
+.council-page .council-message-error {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+}
+
+.council-page .student-table .council-empty-cell {
+  height: 180px;
+  padding: 48px 16px;
+  background: #ffffff;
+  color: #747678;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.council-page .student-table tbody tr.council-empty-row:hover td {
+  background: #ffffff;
 }
 
 @media (max-width: 1200px) {
   .council-page .council-add-button {
     flex: 1 1 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .council-page .student-table tbody tr.council-empty-row {
+    padding: 0;
+  }
+
+  .council-page .student-table tbody .council-empty-cell {
+    display: block;
+    padding: 48px 16px;
+    text-align: center;
+  }
+
+  .council-page .student-table tbody .council-empty-cell::before {
+    display: none;
   }
 }

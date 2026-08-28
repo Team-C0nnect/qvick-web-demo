@@ -46,6 +46,9 @@
 @media (max-width: 768px) {
   .phone-submission-page .student-table tbody .phone-submission-empty-row {
     padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
   }
 
   .phone-submission-page

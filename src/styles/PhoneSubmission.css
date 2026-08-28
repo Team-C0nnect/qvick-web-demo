@@ -1,0 +1,71 @@
+/* =========================================================
+   Phone Submission Page 스타일
+   - 휴대폰 제출 화면의 오류·빈 상태를 페이지 범위에만 적용
+   ========================================================= */
+
+/* ===== 상태 변경 오류 배너 ===== */
+.phone-submission-page .phone-submission-message {
+  width: min(1180px, 100%);
+  margin-right: auto;
+  margin-bottom: 24px;
+  margin-left: auto;
+  padding: 12px 16px;
+  border: 1px solid rgba(109, 35, 237, 0.25);
+  border-radius: 10px;
+  background: #ede9fe;
+  color: #4a19a8;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.phone-submission-page .phone-submission-message.error {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+}
+
+/* ===== 빈 목록 상태 ===== */
+.check-page.phone-submission-page
+  .student-table
+  tbody
+  tr.phone-submission-empty-row:hover
+  td {
+  background: #ffffff;
+}
+
+.phone-submission-page .phone-submission-empty-cell {
+  padding: 48px 16px;
+  background: #ffffff;
+  color: #747678;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .phone-submission-page .student-table tbody .phone-submission-empty-row {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .phone-submission-page
+    .student-table
+    tbody
+    .phone-submission-empty-row
+    .phone-submission-empty-cell {
+    display: block;
+    padding: 48px 16px;
+    text-align: center;
+  }
+
+  .phone-submission-page
+    .student-table
+    tbody
+    .phone-submission-empty-row
+    .phone-submission-empty-cell::before {
+    display: none;
+  }
+}

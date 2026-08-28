@@ -115,8 +115,9 @@ export default function Login() {
           <div className="form-body">
             <div className="input-group">
               <div className="login-input-wrapper">
-                <label className="input-label">이메일</label>
+                <label className="input-label" htmlFor="email">이메일</label>
                 <input
+                  id="email"
                   type="email"
                   className="input-field"
                   placeholder="example@gmail.com"
@@ -126,8 +127,9 @@ export default function Login() {
               </div>
 
               <div className="login-input-wrapper">
-                <label className="input-label">비밀번호</label>
+                <label className="input-label" htmlFor="password">비밀번호</label>
                 <input
+                  id="password"
                   type="password"
                   className="input-field"
                   placeholder="password"

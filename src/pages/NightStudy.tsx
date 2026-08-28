@@ -7,7 +7,7 @@ import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { SearchIcon } from '../components/Icons';
 import '../styles/Check.css';
-import '../styles/Sleepover.css';
+import '../styles/NightStudy.css';
 import type { AttendanceResponse } from '../types/api';
 import { useSelectedDate } from '../context/SelectedDateContext';
 
@@ -203,7 +203,7 @@ export default function NightStudy() {
   );
 
   return (
-    <div className="check-page sleepover-page">
+    <div className="check-page night-study-page">
       <div className="controls-section">
         <div className="controls-left">
           <div className="date-picker">
@@ -240,7 +240,7 @@ export default function NightStudy() {
           </div>
           <button
             type="button"
-            className="sleepover-secondary-button"
+            className="night-study-secondary-button"
             onClick={() => syncMutation.mutate()}
             disabled={syncMutation.isPending}
           >
@@ -285,7 +285,7 @@ export default function NightStudy() {
 
       {(syncMessage || syncMutation.isError) && (
         <div
-          className={`sleepover-message ${syncMutation.isError ? 'error' : ''}`}
+          className={`night-study-message ${syncMutation.isError ? 'error' : ''}`}
         >
           {syncMutation.isError
             ? '심야자습 동기화에 실패했습니다. 다시 시도해주세요.'
@@ -307,8 +307,8 @@ export default function NightStudy() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr className="sleepover-empty-row">
-                <td colSpan={6} className="sleepover-empty-cell">
+              <tr className="night-study-empty-row">
+                <td colSpan={6} className="night-study-empty-cell">
                   심야자습 현황을 불러오는 중입니다.
                 </td>
               </tr>
@@ -328,8 +328,8 @@ export default function NightStudy() {
                 </tr>
               ))
             ) : (
-              <tr className="sleepover-empty-row">
-                <td colSpan={6} className="sleepover-empty-cell">
+              <tr className="night-study-empty-row">
+                <td colSpan={6} className="night-study-empty-cell">
                   조건에 맞는 학생이 없습니다.
                 </td>
               </tr>

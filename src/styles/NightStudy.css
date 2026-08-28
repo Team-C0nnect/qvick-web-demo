@@ -1,0 +1,90 @@
+/* 심야자습 화면 전용 스타일: 공용 인원 확인 레이아웃의 액션·상태 영역만 확장한다. */
+.check-page.night-study-page .night-study-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #52525b;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.check-page.night-study-page .night-study-secondary-button:hover:not(:disabled) {
+  border-color: #d4d4d8;
+  background: #f4f4f5;
+  color: #3f3f46;
+}
+
+.check-page.night-study-page .night-study-secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.check-page.night-study-page .night-study-message {
+  width: min(1180px, 100%);
+  margin: 0 auto 24px;
+  padding: 12px 16px;
+  border: 1px solid rgba(109, 35, 237, 0.25);
+  border-radius: 10px;
+  background: #ede9fe;
+  color: #4a19a8;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.check-page.night-study-page .night-study-message.error {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+}
+
+.check-page.night-study-page .student-table tbody .night-study-empty-cell {
+  padding: 48px 16px;
+  background: #ffffff;
+  color: #747678;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Check.css의 일반 행 hover 규칙에서 빈 상태 행을 제외한다. */
+.check-page.night-study-page .student-table tbody tr.night-study-empty-row:hover td {
+  background: #ffffff;
+}
+
+@media (max-width: 1200px) {
+  .check-page.night-study-page .night-study-secondary-button {
+    flex: 1 1 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .check-page.night-study-page .student-table tbody tr.night-study-empty-row {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .check-page.night-study-page .student-table tbody .night-study-empty-cell {
+    display: block;
+    padding: 48px 16px;
+    text-align: center;
+  }
+
+  .check-page.night-study-page .student-table tbody .night-study-empty-cell::before {
+    display: none;
+  }
+}

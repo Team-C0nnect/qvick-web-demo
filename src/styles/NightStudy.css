@@ -73,6 +73,9 @@
 @media (max-width: 768px) {
   .check-page.night-study-page .student-table tbody tr.night-study-empty-row {
     padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
   }
 
   .check-page.night-study-page .student-table tbody .night-study-empty-cell {

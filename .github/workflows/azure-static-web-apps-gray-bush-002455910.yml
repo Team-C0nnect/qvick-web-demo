@@ -13,6 +13,11 @@ permissions:
   contents: read
   pull-requests: write
 
+# Azure Static Web Apps가 동일 브랜치의 동시 배포를 취소하지 않도록 직렬화한다.
+concurrency:
+  group: azure-static-web-apps-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')

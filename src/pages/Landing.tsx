@@ -50,8 +50,38 @@ function StoreBadge({ name, url, badgeSrc, badgeAlt }: (typeof STORE_LINKS)[numb
 }
 
 export default function Landing() {
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const page = pageRef.current;
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (!page || !finePointer.matches || reducedMotion.matches) return;
+
+    let animationFrame: number | undefined;
+    let pointerPosition = { x: -400, y: -400 };
+
+    const updatePointerSpotlight = () => {
+      page.style.setProperty('--landing-pointer-x', `${pointerPosition.x}px`);
+      page.style.setProperty('--landing-pointer-y', `${pointerPosition.y}px`);
+      animationFrame = undefined;
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      pointerPosition = { x: event.clientX, y: event.clientY };
+      if (animationFrame !== undefined) return;
+      animationFrame = window.requestAnimationFrame(updatePointerSpotlight);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    return () => {
+      if (animationFrame !== undefined) window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener('pointermove', handlePointerMove);
+    };
+  }, []);
+
   return (
-    <div className="landing-page">
+    <div ref={pageRef} className="landing-page">
       <header className="landing-header">
         <Link className="landing-brand" to="/" aria-label="Qvick 홈"><img src="/qvick.svg" alt="" /><span>Qvick</span></Link>
         <Link className="landing-login-link" to="/login">Qvick Teacher <span aria-hidden="true">↗</span></Link>

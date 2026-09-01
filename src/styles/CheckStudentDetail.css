@@ -300,6 +300,11 @@
   color: #dc2626;
 }
 
+.attendance-record-status.no-record {
+  background: #f4f4f5;
+  color: #71717a;
+}
+
 .attendance-record-status.sleepover {
   background: #f3edff;
   color: #6d23ed;

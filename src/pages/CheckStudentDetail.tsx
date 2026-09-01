@@ -1,13 +1,16 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import DonutChart from '../components/DonutChart';
 import { attendanceService } from '../services/attendance.service';
+import { scheduleService } from '../services/schedule.service';
 import { studentService } from '../services/student.service';
 import { useSelectedDate } from '../context/SelectedDateContext';
-import { getAdjacentDate } from '../utils/date';
+import { getAdjacentDate, formatLocalDate } from '../utils/date';
+import { getKoreanHolidayName } from '../constants/koreanHolidays';
 import type {
   AttendanceResponse,
+  AttendanceScheduleResponse,
   AttendanceStatus,
   StudentResponse,
 } from '../types/api';
@@ -20,6 +23,7 @@ interface StudentAttendanceRecord {
   period: AttendancePeriod;
   status: AttendanceStatus;
   checkedAt?: string;
+  isNoRecord?: boolean;
 }
 
 const formatPhoneNumber = (phoneNumber?: string) => {
@@ -52,15 +56,47 @@ const isAttended = (status: AttendanceStatus) =>
 const getPeriodLabel = (period: AttendancePeriod) =>
   period === 'MORNING' ? '아침 퇴실' : '저녁 입실';
 
-const isClosedAttendancePeriod = (date: string, period: AttendancePeriod) => {
-  const day = new Date(`${date}T00:00:00`).getDay();
-  const isWeekendMorning = period === 'MORNING' && (day === 0 || day === 6);
-  const isWeekendNight = period === 'NIGHT' && (day === 5 || day === 6);
+const isNonOperatingAttendancePeriod = (
+  date: string,
+  period: AttendancePeriod,
+) => {
+  if (getKoreanHolidayName(date)) return true;
 
-  return isWeekendMorning || isWeekendNight;
+  const day = new Date(`${date}T00:00:00`).getDay();
+  return period === 'MORNING'
+    ? day === 0 || day === 6
+    : day === 5 || day === 6;
 };
 
-const getStatusLabel = (status: AttendanceStatus) => {
+const getPeriodEndTime = (
+  schedule: AttendanceScheduleResponse | undefined,
+  period: AttendancePeriod,
+) =>
+  period === 'MORNING' ? schedule?.morningEndTime : schedule?.nightEndTime;
+
+const hasAttendancePeriodEnded = (
+  date: string,
+  endTime: string | undefined,
+  now: Date,
+) => {
+  const today = formatLocalDate(now);
+
+  if (date < today) return true;
+  if (date > today || !endTime) return false;
+
+  const match = endTime.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return false;
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const endMinutes = Number(match[1]) * 60 + Number(match[2]);
+
+  return currentMinutes > endMinutes;
+};
+
+const getStatusLabel = (record: StudentAttendanceRecord) => {
+  if (record.isNoRecord) return '기록 없음';
+
+  const { status } = record;
   switch (status) {
     case 'PRESENT':
       return '출석';
@@ -101,6 +137,7 @@ export default function CheckStudentDetail() {
   const navigate = useNavigate();
   const { userId } = useParams();
   const { selectedDate } = useSelectedDate();
+  const [now, setNow] = useState(() => new Date());
   const studentId = Number(userId);
   const isValidStudentId = Number.isInteger(studentId) && studentId > 0;
   const historyDates = useMemo(
@@ -110,6 +147,11 @@ export default function CheckStudentDetail() {
       ),
     [selectedDate],
   );
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const {
     data: student,
@@ -133,6 +175,30 @@ export default function CheckStudentDetail() {
       ),
     enabled: Boolean(student),
   });
+
+  const { data: attendanceSchedules } = useQuery({
+    queryKey: [
+      'student-attendance-history-schedules',
+      student?.gender,
+      historyDates[historyDates.length - 1],
+      historyDates[0],
+    ],
+    queryFn: () =>
+      scheduleService.getSchedules(
+        historyDates[historyDates.length - 1],
+        historyDates[0],
+        student!.gender,
+      ),
+    enabled: Boolean(student),
+  });
+
+  const attendanceScheduleMap = useMemo(
+    () =>
+      new Map(
+        attendanceSchedules?.map((schedule) => [schedule.date, schedule]),
+      ),
+    [attendanceSchedules],
+  );
 
   const attendanceRecords = useMemo<StudentAttendanceRecord[]>(() => {
     if (!student || !attendanceHistory) return [];
@@ -158,11 +224,27 @@ export default function CheckStudentDetail() {
         },
       ];
 
-      return records.filter(
-        (record) => !isClosedAttendancePeriod(record.date, record.period),
-      );
+      return records.flatMap((record) => {
+        const hasCheckedRecord = Boolean(record.checkedAt);
+        const hasRecordedStatus = record.status !== 'ABSENT';
+
+        // 주말·공휴일에는 기본 생성된 미출석 행을 숨기고 실제 체크 기록만 남긴다.
+        if (isNonOperatingAttendancePeriod(record.date, record.period)) {
+          return hasCheckedRecord ? [record] : [];
+        }
+
+        if (hasCheckedRecord || hasRecordedStatus) return [record];
+
+        const endTime = getPeriodEndTime(
+          attendanceScheduleMap.get(record.date),
+          record.period,
+        );
+        if (!hasAttendancePeriodEnded(record.date, endTime, now)) return [];
+
+        return [{ ...record, isNoRecord: true }];
+      });
     });
-  }, [attendanceHistory, historyDates, student]);
+  }, [attendanceHistory, attendanceScheduleMap, historyDates, now, student]);
 
   const attendanceSummary = useMemo(() => {
     const targetRecords = attendanceRecords.filter(
@@ -351,12 +433,14 @@ export default function CheckStudentDetail() {
                   {getPeriodLabel(record.period)}
                 </span>
                 <strong
-                  className={`attendance-record-status ${record.status.toLowerCase()}`}
+                  className={`attendance-record-status ${
+                    record.isNoRecord ? 'no-record' : record.status.toLowerCase()
+                  }`}
                 >
-                  {getStatusLabel(record.status)}
+                  {getStatusLabel(record)}
                 </strong>
                 <span className="student-attendance-time">
-                  {formatExactTime(record.checkedAt)}
+                  {record.isNoRecord ? '-' : formatExactTime(record.checkedAt)}
                 </span>
               </article>
             ))}

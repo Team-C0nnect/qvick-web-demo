@@ -134,7 +134,7 @@ export default function Header({ actions }: HeaderProps) {
                 <div className="attendance-view-row">
                   <button
                     type="button"
-                    className={`view-label ${
+                    className={`view-label male ${
                       genderView === '남' ? 'active' : ''
                     }`}
                     onClick={() => setGenderView('남')}
@@ -148,7 +148,7 @@ export default function Header({ actions }: HeaderProps) {
                     aria-checked={genderView === '여'}
                     aria-label="남/여 보기 전환"
                     className={`view-switch ${
-                      genderView === '여' ? 'on' : ''
+                      genderView === '여' ? 'on female' : 'male'
                     }`}
                     onClick={() =>
                       setGenderView(
@@ -160,7 +160,7 @@ export default function Header({ actions }: HeaderProps) {
                   </button>
                   <button
                     type="button"
-                    className={`view-label ${
+                    className={`view-label female ${
                       genderView === '여' ? 'active' : ''
                     }`}
                     onClick={() => setGenderView('여')}

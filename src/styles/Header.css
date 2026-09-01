@@ -228,8 +228,15 @@
 }
 
 .view-label.active {
-  color: #6d23ed;
   font-weight: 700;
+}
+
+.view-label.male {
+  color: #3b82f6;
+}
+
+.view-label.female {
+  color: #ec4899;
 }
 
 .view-switch {
@@ -244,8 +251,12 @@
   transition: background-color 0.2s ease;
 }
 
-.view-switch.on {
-  background: #6d23ed;
+.view-switch.male {
+  background: #3b82f6;
+}
+
+.view-switch.female {
+  background: #ec4899;
 }
 
 .view-switch-knob {

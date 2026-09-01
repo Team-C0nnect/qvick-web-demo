@@ -1,33 +1,58 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import SplashCursor from '../components/SplashCursor';
-import { LANDING_TEAM_MEMBERS } from '../data/landingTeam';
 import '../styles/Landing.css';
 
 const STORE_LINKS = [
-  { name: 'Google Play', url: import.meta.env.VITE_GOOGLE_PLAY_URL?.trim(), badgeSrc: '/store-badges/google-play.svg', badgeAlt: 'Google Play에서 다운로드' },
-  { name: 'App Store', url: import.meta.env.VITE_APP_STORE_URL?.trim(), badgeSrc: '/store-badges/app-store.svg', badgeAlt: 'App Store에서 다운로드' },
-] as const;
-
-const FEATURES = [
-  { number: '01', eyebrow: 'ATTENDANCE', title: '출석은 빠르게, 기록은 정확하게.', description: 'QR을 스캔하면 출석이 바로 처리됩니다. 바쁜 저녁에도 필요한 확인을 놓치지 않도록 간단하게 만들었어요.' },
-  { number: '02', eyebrow: 'SCHEDULE', title: '오늘의 일정부터 한눈에.', description: '점호 시간과 기숙사 주요 일정을 한 화면에서 확인하세요. 매일의 흐름을 미리 알고 편안하게 준비할 수 있어요.' },
-  { number: '03', eyebrow: 'NOTICE', title: '중요한 공지는 놓치지 않게.', description: '기숙사에서 전하는 안내를 필요한 때 바로 확인합니다. 새 소식이 쌓여도 중요한 내용부터 차분하게 볼 수 있어요.' },
+  {
+    name: 'Google Play',
+    url: 'https://play.google.com/store/apps/details?id=com.hs.dgsw.v3.qvick&pcampaignid=web_share'.trim(),
+    badgeSrc: '/store-badges/google-play.svg',
+    badgeAlt: 'Google Play에서 다운로드',
+  },
+  {
+    name: 'App Store',
+    url: 'https://apps.apple.com/us/app/%ED%81%90%EB%B9%85-%EC%8A%A4%EB%A7%88%ED%8A%B8-%EA%B8%B0%EC%88%99%EC%82%AC-%EA%B4%80%EB%A6%AC-%ED%94%8C%EB%9E%AB%ED%8F%BC/id6756354850'.trim(),
+    badgeSrc: '/store-badges/app-store.svg',
+    badgeAlt: 'App Store에서 다운로드',
+  },
 ] as const;
 
 const FAQS = [
-  { question: 'Qvick은 누가 사용할 수 있나요?', answer: 'Qvick과 연동된 기숙사의 학생과 운영진이 사용할 수 있습니다. 학교 또는 기숙사에서 안내한 계정으로 로그인해 주세요.' },
-  { question: '출석은 어떻게 확인하나요?', answer: '앱에서 제공되는 QR 출석 기능을 이용하면 됩니다. 출석 가능한 시간과 장소는 기숙사 운영 정책에 따라 달라질 수 있습니다.' },
-  { question: '공지와 일정은 어디에서 확인하나요?', answer: '앱의 공지와 홈 화면에서 최신 안내 및 오늘의 일정을 확인할 수 있습니다. 중요한 변경 사항은 알림으로도 안내됩니다.' },
-  { question: '문제가 생기면 어디에 문의하나요?', answer: '기숙사 운영진에게 문의해 주세요. 앱 이용과 관련된 문의는 운영진이 안내한 채널을 통해 접수할 수 있습니다.' },
+  {
+    question: 'Qvick은 어떤 서비스인가요?',
+    answer:
+      'Qvick은 기숙사 생활에 필요한 출석, 공지, 일정 등 다양한 기능을 한곳에서 이용할 수 있는 온라인 기숙사 관리 서비스입니다.',
+  },
+  {
+    question: 'Qvick은 누가 사용할 수 있나요?',
+    answer:
+      'Qvick을 도입한 학교의 기숙사 학생과 담당 교사 및 사감 선생님이 사용할 수 있습니다. 학교에서 안내받은 계정으로 로그인해 주세요.',
+  },
+  {
+    question: '출석은 어떻게 확인하나요?',
+    answer:
+      'Qvick에서 제공하는 출석 기능을 통해 간편하게 출석할 수 있습니다. 출석 가능 시간과 방식은 각 기숙사의 운영 정책에 따라 달라질 수 있습니다.',
+  },
+  {
+    question: '공지사항과 일정은 어디에서 확인하나요?',
+    answer:
+      'Qvick에서 기숙사 공지사항과 주요 일정을 한눈에 확인할 수 있습니다. 새로운 공지나 중요한 변경 사항도 빠르게 확인할 수 있습니다.',
+  },
+  {
+    question: '서비스 이용 중 문제가 발생하면 어떻게 하나요?',
+    answer:
+      '계정이나 기숙사 운영과 관련된 문제는 Team Connect에게 문의해 주세요.',
+  },
 ] as const;
 
-const TEAM_LEADER = LANDING_TEAM_MEMBERS.find((member) => member.isLeader);
-const TEAM_MEMBERS = LANDING_TEAM_MEMBERS
-  .filter((member) => !member.isLeader)
-  .sort((left, right) => left.generation - right.generation);
-
-function Reveal({ children, delayed = false }: { children: ReactNode; delayed?: boolean }) {
+function Reveal({
+  children,
+  delayed = false,
+}: {
+  children: ReactNode;
+  delayed?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,23 +62,54 @@ function Reveal({ children, delayed = false }: { children: ReactNode; delayed?: 
       return;
     }
 
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add('is-visible');
-      observer.unobserve(entry.target);
-    }, { threshold: 0.16 });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      },
+      { threshold: 0.16 },
+    );
 
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
 
-  return <div ref={ref} className={`landing-reveal${delayed ? ' is-delayed' : ''}`}>{children}</div>;
+  return (
+    <div ref={ref} className={`landing-reveal${delayed ? ' is-delayed' : ''}`}>
+      {children}
+    </div>
+  );
 }
 
-function StoreBadge({ name, url, badgeSrc, badgeAlt }: (typeof STORE_LINKS)[number]) {
+function StoreBadge({
+  name,
+  url,
+  badgeSrc,
+  badgeAlt,
+}: (typeof STORE_LINKS)[number]) {
   const badge = <img src={badgeSrc} alt={badgeAlt} />;
-  if (!url) return <div className="landing-store-badge is-unavailable" aria-label={`${name} 출시 준비 중`}>{badge}<span>출시 준비 중</span></div>;
-  return <a className="landing-store-badge" href={url} target="_blank" rel="noreferrer" aria-label={`${name}에서 Qvick 다운로드`}>{badge}</a>;
+  if (!url)
+    return (
+      <div
+        className="landing-store-badge is-unavailable"
+        aria-label={`${name} 출시 준비 중`}
+      >
+        {badge}
+        <span>출시 준비 중</span>
+      </div>
+    );
+  return (
+    <a
+      className="landing-store-badge"
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`${name}에서 Qvick 다운로드`}
+    >
+      {badge}
+    </a>
+  );
 }
 
 export default function Landing() {
@@ -81,9 +137,12 @@ export default function Landing() {
       animationFrame = window.requestAnimationFrame(updatePointerSpotlight);
     };
 
-    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('pointermove', handlePointerMove, {
+      passive: true,
+    });
     return () => {
-      if (animationFrame !== undefined) window.cancelAnimationFrame(animationFrame);
+      if (animationFrame !== undefined)
+        window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('pointermove', handlePointerMove);
     };
   }, []);
@@ -105,61 +164,95 @@ export default function Landing() {
         COLOR="#f2ebff"
       />
       <header className="landing-header">
-        <Link className="landing-brand" to="/" aria-label="Qvick 홈"><img src="/qvick.svg" alt="" /><span>Qvick</span></Link>
-        <Link className="landing-login-link" to="/login">Qvick Teacher <span aria-hidden="true">↗</span></Link>
+        <Link className="landing-brand" to="/" aria-label="Qvick 홈">
+          <img src="/qvick.svg" alt="" />
+          <span>Qvick</span>
+        </Link>
+        <Link className="landing-login-link" to="/login">
+          Qvick Teacher <span aria-hidden="true">↗</span>
+        </Link>
       </header>
 
       <main>
         <section className="landing-hero" aria-labelledby="landing-title">
-          <Reveal><div className="landing-hero-copy"><p className="landing-eyebrow">DORMITORY LIFE, SIMPLIFIED</p><h1 id="landing-title">기숙사 생활을<strong>더 스마트하게.</strong></h1><p className="landing-description">출석부터 일정, 공지 확인까지. Qvick은 기숙사에서 필요한 일상을 한곳에 모아두었습니다.</p><div className="landing-store-list" aria-label="Qvick 앱 다운로드">{STORE_LINKS.map((store) => <StoreBadge key={store.name} {...store} />)}</div></div></Reveal>
-          <Reveal delayed><div className="landing-hero-art"><img src="/images/qvick-iphone-mockup.png" alt="Qvick 앱의 시작 화면과 프로필 화면을 담은 iPhone 목업" /></div></Reveal>
-        </section>
-
-        <section className="landing-intro" aria-label="Qvick 소개">
-          <Reveal><p>기숙사에서 매일 반복되는 작은 일들을<br className="landing-desktop-break" /><strong>더 쉽고 분명하게.</strong></p></Reveal>
-          <Reveal delayed><div className="landing-intro-detail"><span>Qvick은 학생과 기숙사 운영진 모두가 필요한 정보를 빠르게 확인할 수 있도록 돕습니다.</span><a href="#features">Qvick이 하는 일 보기 <span aria-hidden="true">↓</span></a></div></Reveal>
-        </section>
-
-        <section className="landing-features" id="features" aria-labelledby="features-title">
-          <Reveal><div className="landing-section-heading"><p className="landing-eyebrow">EVERYDAY WITH QVICK</p><h2 id="features-title">필요한 순간에,<br className="landing-desktop-break" />필요한 기능만.</h2></div></Reveal>
-          <div className="landing-story-list">
-            {FEATURES.map((feature, index) => <Reveal delayed={index > 0} key={feature.number}><article className="landing-story-card"><span className="landing-story-number">{feature.number}</span><div><p className="landing-story-eyebrow">{feature.eyebrow}</p><h3>{feature.title}</h3></div><p className="landing-story-description">{feature.description}</p></article></Reveal>)}
-          </div>
-        </section>
-
-        <section className="landing-flow" aria-labelledby="flow-title">
-          <Reveal><p className="landing-eyebrow">MADE FOR EVERYDAY</p><h2 id="flow-title">하루의 시작부터 끝까지,<br className="landing-desktop-break" />필요한 정보는 가까이에.</h2></Reveal>
-          <div className="landing-flow-grid">
-            <Reveal><div className="landing-flow-item"><span>01</span><h3>오늘을 확인하고</h3><p>일정과 공지로 하루에 필요한 내용을 먼저 살펴봅니다.</p></div></Reveal>
-            <Reveal delayed><div className="landing-flow-item"><span>02</span><h3>필요한 일을 마치고</h3><p>QR 출석처럼 꼭 해야 하는 일을 빠르게 처리합니다.</p></div></Reveal>
-            <Reveal delayed><div className="landing-flow-item"><span>03</span><h3>내일을 준비합니다</h3><p>쌓인 안내와 변경된 일정을 놓치지 않고 확인합니다.</p></div></Reveal>
-          </div>
-        </section>
-
-        {/* <section className="landing-team" aria-labelledby="team-title">
-          <Reveal><div className="landing-team-heading"><p className="landing-eyebrow">THE PEOPLE BEHIND QVICK</p><h2 id="team-title">Team. Connect</h2></div></Reveal>
-          <Reveal delayed><div className="landing-team-directory" role="table" aria-label="Qvick 부원 소개"><div className="landing-team-directory-head" role="row"><span role="columnheader">구분</span><span role="columnheader">이름</span><span role="columnheader">역할</span></div>{TEAM_LEADER && <div className="landing-team-directory-row is-leader" role="row"><span role="cell">부장 · {TEAM_LEADER.generation}기</span><strong className="landing-team-leader-name" role="cell">{TEAM_LEADER.name}<img className="landing-team-crown" src="/images/qvick-crown.svg" alt="" aria-hidden="true" /></strong><span role="cell">{TEAM_LEADER.role}</span></div>}{TEAM_MEMBERS.map((member, index) => <div className="landing-team-directory-row" role="row" key={`${member.name}-${member.role}-${index}`}><span role="cell">{member.generation}기</span><strong role="cell">{member.name}</strong><span role="cell">{member.role}</span></div>)}</div></Reveal>
-        </section> */}
-
-        <section className="landing-closing" aria-labelledby="closing-title">
-          <Reveal><div><p className="landing-eyebrow">WITH QVICK</p><h2 id="closing-title">기숙사 생활을<br className="landing-desktop-break" />조금 더 가볍게.</h2></div></Reveal>
-          <Reveal delayed><p>필요한 기능을 필요한 순간에. Qvick과 함께 더 편안한 일상을 시작하세요.</p></Reveal>
+          <Reveal>
+            <div className="landing-hero-copy">
+              <p className="landing-eyebrow">DORMITORY LIFE, SIMPLIFIED</p>
+              <h1 id="landing-title">
+                기숙사 생활을<strong>더 스마트하게.</strong>
+              </h1>
+              <p className="landing-description">
+                출석부터 일정, 공지 확인까지. Qvick은 기숙사에서 필요한 일상을
+                한곳에 모아두었습니다.
+              </p>
+              <div
+                className="landing-store-list"
+                aria-label="Qvick 앱 다운로드"
+              >
+                {STORE_LINKS.map((store) => (
+                  <StoreBadge key={store.name} {...store} />
+                ))}
+              </div>
+            </div>
+          </Reveal>
+          <Reveal delayed>
+            <div className="landing-hero-art">
+              <img
+                src="/images/qvick-iphone-mockup.png"
+                alt="Qvick 앱의 시작 화면과 프로필 화면을 담은 iPhone 목업"
+              />
+            </div>
+          </Reveal>
         </section>
 
         <section className="landing-faq" aria-labelledby="faq-title">
-          <Reveal><div className="landing-faq-heading"><p className="landing-eyebrow">FAQ</p><h2 id="faq-title">자주 묻는 질문</h2><p>Qvick 이용 전 알아두면 좋은 내용을 모았습니다.</p></div></Reveal>
-          <div className="landing-faq-list">{FAQS.map((faq, index) => {
-            const isOpen = openFaqIndex === index;
-            const answerId = `faq-answer-${index}`;
+          <Reveal>
+            <div className="landing-faq-heading">
+              <p className="landing-eyebrow">FAQ</p>
+              <h2 id="faq-title">자주 묻는 질문</h2>
+              <p>Qvick 이용 전 알아두면 좋은 내용을 모았습니다.</p>
+            </div>
+          </Reveal>
+          <div className="landing-faq-list">
+            {FAQS.map((faq, index) => {
+              const isOpen = openFaqIndex === index;
+              const answerId = `faq-answer-${index}`;
 
-            return <Reveal delayed={index > 0} key={faq.question}><div className="landing-faq-item"><button className={`landing-faq-button${isOpen ? ' is-open' : ''}`} type="button" aria-expanded={isOpen} aria-controls={answerId} onClick={() => setOpenFaqIndex(isOpen ? null : index)}><span>{faq.question}</span><b aria-hidden="true">+</b></button>{isOpen && <p id={answerId} className="landing-faq-answer">{faq.answer}</p>}</div></Reveal>;
-          })}</div>
+              return (
+                <Reveal delayed={index > 0} key={faq.question}>
+                  <div className="landing-faq-item">
+                    <button
+                      className={`landing-faq-button${isOpen ? ' is-open' : ''}`}
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={answerId}
+                      onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                    >
+                      <span>{faq.question}</span>
+                      <b aria-hidden="true">+</b>
+                    </button>
+                    {isOpen && (
+                      <p id={answerId} className="landing-faq-answer">
+                        {faq.answer}
+                      </p>
+                    )}
+                  </div>
+                </Reveal>
+              );
+            })}
+          </div>
         </section>
       </main>
 
       <footer className="landing-footer">
-        <Link className="landing-brand" to="/" aria-label="Qvick 홈"><img src="/qvick.svg" alt="" /><span>Qvick</span></Link>
-        <div className="landing-footer-links"><Link to="/terms">이용약관</Link><Link to="/privacy">개인정보처리방침</Link></div>
+        <Link className="landing-brand" to="/" aria-label="Qvick 홈">
+          <img src="/qvick.svg" alt="" />
+          <span>Qvick</span>
+        </Link>
+        <div className="landing-footer-links">
+          <Link to="/terms">이용약관</Link>
+          <Link to="/privacy">개인정보처리방침</Link>
+        </div>
         <p>© 2026 Qvick. All rights reserved.</p>
       </footer>
     </div>

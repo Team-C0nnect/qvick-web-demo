@@ -228,6 +228,11 @@
   height: 14px;
 }
 
+/* 여성 기호의 SVG 내부 좌측 여백을 보정해 남성 기호와 시각 간격을 맞춘다. */
+.view-label.female svg {
+  margin-left: -3px;
+}
+
 .view-label.active {
   font-weight: 700;
 }

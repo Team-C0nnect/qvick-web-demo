@@ -1,17 +1,54 @@
 .check-student-detail {
-  width: min(1100px, 100%);
+  position: relative;
+  width: min(1220px, 100%);
   min-height: 100%;
   margin: 0 auto;
-  padding: 32px 40px 48px;
+  padding: 28px 48px 68px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 72% 12%, rgba(118, 93, 255, 0.3), transparent 26%),
+    radial-gradient(circle at 16% 54%, rgba(52, 115, 255, 0.17), transparent 29%),
+    linear-gradient(145deg, #050507 0%, #0c0c12 44%, #13131d 100%);
+  box-shadow: 0 0 0 100vmax #050507;
+  clip-path: inset(0 -100vmax);
+}
+
+.check-student-detail::before,
+.check-student-detail::after {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  content: '';
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.check-student-detail::before {
+  width: 440px;
+  height: 440px;
+  top: -210px;
+  right: 6%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(235, 232, 255, 0.3), rgba(117, 83, 255, 0.08) 39%, transparent 69%);
+}
+
+.check-student-detail::after {
+  width: 340px;
+  height: 340px;
+  bottom: 8%;
+  left: -150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(75, 135, 255, 0.16), transparent 68%);
 }
 
 .check-student-detail.loading,
 .check-student-detail.empty {
   display: grid;
-  min-height: 280px;
+  min-height: 320px;
   place-content: center;
   gap: 14px;
-  color: #71717a;
+  color: rgba(255, 255, 255, 0.7);
   text-align: center;
 }
 
@@ -27,7 +64,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: #5b21d2;
+  color: #c5b5ff;
   font: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -39,81 +76,120 @@
 }
 
 .check-student-back-button {
-  margin-bottom: 18px;
+  margin-bottom: 42px;
+  opacity: 0.9;
 }
 
 .check-student-back-button:hover,
 .check-student-detail.empty button:hover {
+  color: #ffffff;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
 
 .student-dashboard-hero {
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 28px;
-  overflow: hidden;
-  margin-bottom: 18px;
-  border: 1px solid #e4e4e7;
-  border-radius: 16px;
-  background: #ffffff;
+  position: relative;
+  display: grid;
+  min-height: 350px;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr);
+  align-items: end;
+  gap: 34px;
+  margin-bottom: 58px;
+  padding: 20px 6px 10px;
+}
+
+.student-dashboard-hero::after {
+  position: absolute;
+  right: 18%;
+  bottom: -70px;
+  width: 390px;
+  height: 160px;
+  z-index: -1;
+  border-radius: 50%;
+  background: rgba(181, 160, 255, 0.18);
+  content: '';
+  filter: blur(56px);
 }
 
 .student-dashboard-identity {
-  flex: 1;
-  padding: 30px 32px;
-  background: linear-gradient(135deg, #faf7ff 0%, #ffffff 72%);
+  padding-bottom: 16px;
 }
 
 .student-dashboard-kicker,
 .student-dashboard-card-heading span {
   display: block;
-  color: #6d23ed;
+  color: #c6b7ff;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
 }
 
 .student-dashboard-identity h1 {
-  margin: 8px 0 6px;
-  color: #18181b;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
+  max-width: 680px;
+  margin: 13px 0 13px;
+  color: #f5f5f7;
+  font-size: clamp(52px, 8vw, 104px);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.075em;
 }
 
 .student-dashboard-identity p {
   margin: 0;
-  color: #71717a;
-  font-size: 14px;
+  color: rgba(245, 245, 247, 0.62);
+  font-size: 15px;
   font-weight: 600;
 }
 
 .student-dashboard-latest {
+  position: relative;
   display: flex;
-  width: min(320px, 38%);
+  min-height: 152px;
   flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  padding: 24px 28px;
-  background: #6d23ed;
-  color: #ffffff;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 23px 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 28px;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.19), rgba(255, 255, 255, 0.06));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.18), 0 24px 50px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(24px) saturate(140%);
+}
+
+.student-dashboard-latest::before {
+  position: absolute;
+  top: -66px;
+  right: -20px;
+  width: 142px;
+  height: 142px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.36), transparent 67%);
+  content: '';
+}
+
+.student-dashboard-latest span,
+.student-dashboard-latest em,
+.student-dashboard-latest strong {
+  position: relative;
 }
 
 .student-dashboard-latest span {
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
   font-weight: 700;
-  opacity: 0.78;
+  letter-spacing: 0.06em;
 }
 
 .student-dashboard-latest strong {
-  font-size: 18px;
-  font-weight: 800;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
 }
 
 .student-dashboard-latest em {
-  color: rgba(255, 255, 255, 0.84);
+  color: rgba(255, 255, 255, 0.76);
   font-size: 12px;
   font-style: normal;
   font-weight: 600;
@@ -121,15 +197,30 @@
 
 .student-dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-  gap: 18px;
-  margin-bottom: 18px;
+  grid-template-columns: minmax(0, 1.16fr) minmax(320px, 0.84fr);
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .student-dashboard-card {
-  border: 1px solid #e4e4e7;
-  border-radius: 16px;
-  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.065);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.08), 0 28px 70px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(22px) saturate(125%);
+}
+
+.student-dashboard-card::before {
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.66), transparent);
+  content: '';
+  opacity: 0.38;
 }
 
 .student-dashboard-card-heading {
@@ -137,20 +228,20 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px 0;
+  padding: 28px 30px 0;
 }
 
 .student-dashboard-card-heading h2 {
-  margin: 5px 0 0;
-  color: #18181b;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  margin: 7px 0 0;
+  color: #f5f5f7;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.045em;
 }
 
 .student-dashboard-card-heading small {
-  margin-top: 3px;
-  color: #a1a1aa;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.48);
   font-size: 11px;
   font-weight: 600;
   text-align: right;
@@ -159,26 +250,32 @@
 .student-attendance-rate-content {
   display: flex;
   align-items: center;
-  gap: 26px;
-  padding: 20px 24px 24px;
+  gap: 34px;
+  padding: 28px 30px 32px;
 }
 
 .student-attendance-donut {
-  width: 136px;
-  height: 136px;
+  width: 174px;
+  height: 174px;
   flex-shrink: 0;
+  filter: drop-shadow(0 16px 28px rgba(107, 58, 240, 0.24));
+}
+
+.student-attendance-donut .donut-chart-track {
+  stroke: rgba(255, 255, 255, 0.1);
 }
 
 .student-attendance-donut .donut-chart-center > span {
-  color: #71717a;
+  color: rgba(255, 255, 255, 0.58);
   font-size: 11px;
   font-weight: 700;
 }
 
 .student-attendance-donut .donut-chart-center > strong {
-  color: #18181b;
-  font-size: 21px;
-  font-weight: 800;
+  color: #ffffff;
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.06em;
 }
 
 .student-attendance-summary {
@@ -192,8 +289,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 0;
-  border-bottom: 1px solid #f0f0f2;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .student-attendance-summary > div:last-child {
@@ -201,31 +298,32 @@
 }
 
 .student-attendance-summary dt {
-  color: #71717a;
+  color: rgba(255, 255, 255, 0.58);
   font-size: 13px;
   font-weight: 600;
 }
 
 .student-attendance-summary dd {
   margin: 0;
-  color: #27272a;
-  font-size: 14px;
-  font-weight: 800;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .student-profile-summary {
   display: grid;
   gap: 0;
-  margin: 17px 24px 20px;
+  margin: 20px 30px 24px;
 }
 
 .student-profile-summary > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f2;
+  gap: 18px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .student-profile-summary > div:last-child {
@@ -233,111 +331,123 @@
 }
 
 .student-profile-summary dt {
-  color: #71717a;
+  color: rgba(255, 255, 255, 0.52);
   font-size: 12px;
   font-weight: 700;
 }
 
 .student-profile-summary dd {
   margin: 0;
-  color: #27272a;
-  font-size: 13px;
-  font-weight: 700;
+  color: #f5f5f7;
+  font-size: 14px;
+  font-weight: 650;
   text-align: right;
 }
 
 .attendance-history-card {
-  overflow: hidden;
+  margin-top: 8px;
 }
 
 .student-attendance-history {
-  margin-top: 18px;
+  margin-top: 24px;
 }
 
 .student-attendance-record {
   display: grid;
-  grid-template-columns: minmax(120px, 0.9fr) minmax(110px, 0.7fr) minmax(100px, 0.6fr) minmax(220px, 1.4fr);
+  grid-template-columns: minmax(126px, 0.88fr) minmax(118px, 0.72fr) minmax(100px, 0.5fr) minmax(220px, 1.35fr);
   align-items: center;
-  gap: 16px;
-  min-height: 58px;
-  padding: 0 24px;
-  border-top: 1px solid #f0f0f2;
+  gap: 18px;
+  min-height: 68px;
+  padding: 0 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  transition: background-color 0.2s ease;
+}
+
+.student-attendance-record:hover {
+  background: rgba(255, 255, 255, 0.055);
 }
 
 .student-attendance-record time,
 .student-attendance-period,
 .student-attendance-time {
-  color: #52525b;
+  color: rgba(255, 255, 255, 0.68);
   font-size: 13px;
   font-weight: 600;
 }
 
 .student-attendance-time {
-  color: #71717a;
+  color: rgba(255, 255, 255, 0.48);
+  font-feature-settings: 'tnum';
   text-align: right;
 }
 
 .attendance-record-status {
   width: fit-content;
-  padding: 5px 9px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 800;
 }
 
 .attendance-record-status.present {
-  background: #e9f9ee;
-  color: #15803d;
+  border-color: rgba(114, 234, 161, 0.22);
+  background: rgba(42, 196, 106, 0.15);
+  color: #8aefb2;
 }
 
 .attendance-record-status.late {
-  background: #fff7e6;
-  color: #b45309;
+  border-color: rgba(255, 194, 91, 0.25);
+  background: rgba(236, 164, 43, 0.14);
+  color: #ffd47c;
 }
 
 .attendance-record-status.absent {
-  background: #fff0f0;
-  color: #dc2626;
-}
-
-.attendance-record-status.no-record {
-  background: #f4f4f5;
-  color: #71717a;
+  border-color: rgba(255, 126, 126, 0.24);
+  background: rgba(230, 76, 76, 0.15);
+  color: #ff9c9c;
 }
 
 .attendance-record-status.sleepover {
-  background: #f3edff;
-  color: #6d23ed;
+  border-color: rgba(195, 161, 255, 0.28);
+  background: rgba(135, 85, 245, 0.17);
+  color: #d5bcff;
 }
 
 .student-history-message {
-  margin: 20px 24px 24px;
-  color: #71717a;
+  margin: 28px 30px 32px;
+  color: rgba(255, 255, 255, 0.54);
   font-size: 13px;
   font-weight: 600;
 }
 
 @media (max-width: 768px) {
   .check-student-detail {
-    padding: 20px 14px 32px;
+    padding: 20px 18px 44px;
   }
 
-  .student-dashboard-hero,
+  .check-student-back-button {
+    margin-bottom: 28px;
+  }
+
+  .student-dashboard-hero {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    margin-bottom: 34px;
+    padding-bottom: 0;
+  }
+
+  .student-dashboard-identity h1 {
+    font-size: clamp(48px, 15vw, 78px);
+  }
+
+  .student-dashboard-latest {
+    min-height: 130px;
+  }
+
   .student-dashboard-grid {
     grid-template-columns: 1fr;
-    flex-direction: column;
-  }
-
-  .student-dashboard-latest {
-    width: auto;
-  }
-
-  .student-dashboard-identity {
-    padding: 24px 20px;
-  }
-
-  .student-dashboard-latest {
-    padding: 20px;
   }
 
   .student-attendance-rate-content {
@@ -351,8 +461,8 @@
 
   .student-attendance-record {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px 12px;
-    padding: 14px 20px;
+    gap: 10px 12px;
+    padding: 16px 24px;
   }
 
   .student-attendance-time {
@@ -361,19 +471,29 @@
 }
 
 @media (max-width: 480px) {
+  .check-student-detail {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
   .student-dashboard-card-heading {
-    padding: 20px 18px 0;
+    padding: 24px 22px 0;
+  }
+
+  .student-dashboard-card-heading h2 {
+    font-size: 23px;
   }
 
   .student-attendance-rate-content {
-    padding: 18px;
+    padding: 24px 22px;
   }
 
   .student-profile-summary {
-    margin: 15px 18px 18px;
+    margin: 18px 22px 22px;
   }
 
   .student-attendance-record {
     grid-template-columns: 1fr;
+    padding: 16px 22px;
   }
 }

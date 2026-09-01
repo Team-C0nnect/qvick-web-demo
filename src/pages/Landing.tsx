@@ -8,9 +8,9 @@ const STORE_LINKS = [
 ] as const;
 
 const FEATURES = [
-  { number: '01', eyebrow: 'ATTENDANCE', title: '출석은 빠르게,\n기록은 정확하게.', description: 'QR을 스캔하면 출석이 바로 처리됩니다. 바쁜 저녁에도 필요한 확인을 놓치지 않도록 간단하게 만들었어요.' },
-  { number: '02', eyebrow: 'SCHEDULE', title: '오늘의 일정부터\n한눈에.', description: '점호 시간과 기숙사 주요 일정을 한 화면에서 확인하세요. 매일의 흐름을 미리 알고 편안하게 준비할 수 있어요.' },
-  { number: '03', eyebrow: 'NOTICE', title: '중요한 공지는\n놓치지 않게.', description: '기숙사에서 전하는 안내를 필요한 때 바로 확인합니다. 새 소식이 쌓여도 중요한 내용부터 차분하게 볼 수 있어요.' },
+  { number: '01', eyebrow: 'ATTENDANCE', title: '출석은 빠르게, 기록은 정확하게.', description: 'QR을 스캔하면 출석이 바로 처리됩니다. 바쁜 저녁에도 필요한 확인을 놓치지 않도록 간단하게 만들었어요.' },
+  { number: '02', eyebrow: 'SCHEDULE', title: '오늘의 일정부터 한눈에.', description: '점호 시간과 기숙사 주요 일정을 한 화면에서 확인하세요. 매일의 흐름을 미리 알고 편안하게 준비할 수 있어요.' },
+  { number: '03', eyebrow: 'NOTICE', title: '중요한 공지는 놓치지 않게.', description: '기숙사에서 전하는 안내를 필요한 때 바로 확인합니다. 새 소식이 쌓여도 중요한 내용부터 차분하게 볼 수 있어요.' },
 ] as const;
 
 function Reveal({ children, delayed = false }: { children: ReactNode; delayed?: boolean }) {
@@ -51,7 +51,7 @@ export default function Landing() {
     <div className="landing-page">
       <header className="landing-header">
         <Link className="landing-brand" to="/" aria-label="Qvick 홈"><img src="/qvick.svg" alt="" /><span>Qvick</span></Link>
-        <Link className="landing-login-link" to="/login">운영 화면 로그인 <span aria-hidden="true">↗</span></Link>
+        <Link className="landing-login-link" to="/login">Qvick Teacher <span aria-hidden="true">↗</span></Link>
       </header>
 
       <main>
@@ -72,7 +72,7 @@ export default function Landing() {
         </section>
 
         <section className="landing-intro" aria-label="Qvick 소개">
-          <Reveal><p>기숙사에서 매일 반복되는 작은 일들을<br /><strong>더 쉽고 분명하게.</strong></p></Reveal>
+          <Reveal><p>기숙사에서 매일 반복되는 작은 일들을<br className="landing-desktop-break" /><strong>더 쉽고 분명하게.</strong></p></Reveal>
           <Reveal delayed>
             <div className="landing-intro-detail">
               <span>Qvick은 학생과 기숙사 운영진 모두가 필요한 정보를 빠르게 확인할 수 있도록 돕습니다.</span>
@@ -82,7 +82,7 @@ export default function Landing() {
         </section>
 
         <section className="landing-features" id="features" aria-labelledby="features-title">
-          <Reveal><div className="landing-section-heading"><p className="landing-eyebrow">EVERYDAY WITH QVICK</p><h2 id="features-title">필요한 순간에,<br />필요한 기능만.</h2></div></Reveal>
+          <Reveal><div className="landing-section-heading"><p className="landing-eyebrow">EVERYDAY WITH QVICK</p><h2 id="features-title">필요한 순간에,<br className="landing-desktop-break" />필요한 기능만.</h2></div></Reveal>
           <div className="landing-story-list">
             {FEATURES.map((feature, index) => (
               <Reveal delayed={index > 0} key={feature.number}>
@@ -97,7 +97,7 @@ export default function Landing() {
         </section>
 
         <section className="landing-flow" aria-labelledby="flow-title">
-          <Reveal><p className="landing-eyebrow">MADE FOR EVERYDAY</p><h2 id="flow-title">하루의 시작부터 끝까지,<br />필요한 정보는 가까이에.</h2></Reveal>
+          <Reveal><p className="landing-eyebrow">MADE FOR EVERYDAY</p><h2 id="flow-title">하루의 시작부터 끝까지,<br className="landing-desktop-break" />필요한 정보는 가까이에.</h2></Reveal>
           <div className="landing-flow-grid">
             <Reveal><div className="landing-flow-item"><span>01</span><h3>오늘을 확인하고</h3><p>일정과 공지로 하루에 필요한 내용을 먼저 살펴봅니다.</p></div></Reveal>
             <Reveal delayed><div className="landing-flow-item"><span>02</span><h3>필요한 일을 마치고</h3><p>QR 출석처럼 꼭 해야 하는 일을 빠르게 처리합니다.</p></div></Reveal>
@@ -106,7 +106,7 @@ export default function Landing() {
         </section>
 
         <section className="landing-closing" aria-labelledby="closing-title">
-          <Reveal><div><p className="landing-eyebrow">WITH QVICK</p><h2 id="closing-title">기숙사 생활을<br />조금 더 가볍게.</h2></div></Reveal>
+          <Reveal><div><p className="landing-eyebrow">WITH QVICK</p><h2 id="closing-title">기숙사 생활을<br className="landing-desktop-break" />조금 더 가볍게.</h2></div></Reveal>
           <Reveal delayed><p>필요한 기능을 필요한 순간에. Qvick과 함께 더 편안한 일상을 시작하세요.</p></Reveal>
         </section>
       </main>

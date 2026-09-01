@@ -108,8 +108,47 @@
 }
 
 /* ===== 외박자 목록 테이블 ===== */
+.sleepover-page .student-table {
+  table-layout: fixed;
+}
+
+.sleepover-page .student-table th:nth-child(1),
+.sleepover-page .student-table td:nth-child(1) {
+  width: 8%;
+}
+
+.sleepover-page .student-table th:nth-child(2),
+.sleepover-page .student-table td:nth-child(2) {
+  width: 13%;
+}
+
+.sleepover-page .student-table th:nth-child(3),
+.sleepover-page .student-table td:nth-child(3) {
+  width: 7%;
+}
+
+.sleepover-page .student-table th:nth-child(4),
+.sleepover-page .student-table td:nth-child(4) {
+  width: 10%;
+}
+
+.sleepover-page .student-table th:nth-child(5),
+.sleepover-page .student-table td:nth-child(5) {
+  width: 36%;
+}
+
+.sleepover-page .student-table th:nth-child(6),
+.sleepover-page .student-table td:nth-child(6) {
+  width: 14%;
+}
+
+.sleepover-page .student-table th:nth-child(7),
+.sleepover-page .student-table td:nth-child(7) {
+  width: 12%;
+}
+
 .sleepover-page .sleepover-reason-cell {
-  max-width: 280px;
+  max-width: none;
   color: #52525b;
   font-size: 13px;
   line-height: 1.5;
@@ -163,6 +202,10 @@
 }
 
 @media (max-width: 768px) {
+  .sleepover-page .student-table td:nth-child(n) {
+    width: 100%;
+  }
+
   .sleepover-page .table-filters {
     align-items: stretch;
     flex-direction: column;

@@ -26,6 +26,11 @@
   cursor: not-allowed;
 }
 
+.council-page .council-filter-action {
+  display: flex;
+  margin-left: auto;
+}
+
 .council-page .council-revoke-button {
   min-height: 30px;
   padding: 5px 12px;
@@ -52,6 +57,47 @@
 .council-page .council-revoke-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.check-page.council-page .student-table.student-table-council th:nth-child(1),
+.check-page.council-page .student-table.student-table-council td:nth-child(1) {
+  width: 15%;
+}
+
+.check-page.council-page .student-table.student-table-council th:nth-child(2),
+.check-page.council-page .student-table.student-table-council td:nth-child(2) {
+  width: 30%;
+}
+
+.check-page.council-page .student-table.student-table-council th:nth-child(3),
+.check-page.council-page .student-table.student-table-council td:nth-child(3) {
+  width: 15%;
+}
+
+.check-page.council-page .student-table.student-table-council th:nth-child(4),
+.check-page.council-page .student-table.student-table-council td:nth-child(4) {
+  width: 20%;
+}
+
+.check-page.council-page .student-table.student-table-council th:nth-child(5),
+.check-page.council-page .student-table.student-table-council td:nth-child(5) {
+  width: 20%;
+}
+
+.council-page .student-table .council-grade-divider td {
+  padding: 11px 16px 8px;
+  border-top: 1px solid #dedee3;
+  border-bottom: none;
+  background: #fafafa;
+  color: #6d23ed;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  text-align: left;
+}
+
+.council-page .student-table tbody tr.council-grade-divider:hover td {
+  background: #fafafa;
 }
 
 .council-page .council-message {
@@ -87,13 +133,48 @@
   background: #ffffff;
 }
 
+@media (max-width: 1400px) {
+  .council-page .table-filters {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
 @media (max-width: 1200px) {
   .council-page .council-add-button {
     flex: 1 1 160px;
   }
+
+  .council-page .council-filter-action {
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 768px) {
+  .council-page .table-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .council-page .council-filter-action,
+  .council-page .council-add-button {
+    width: 100%;
+  }
+
+  .council-page .student-table tbody .council-grade-divider td {
+    display: block;
+    width: 100%;
+    padding: 12px 0 8px;
+    border-top: 1px solid #dedee3;
+    background: transparent;
+    color: #6d23ed;
+    text-align: left;
+  }
+
+  .council-page .student-table tbody .council-grade-divider td::before {
+    display: none;
+  }
+
   .council-page .student-table tbody tr.council-empty-row {
     padding: 0;
     border: none;

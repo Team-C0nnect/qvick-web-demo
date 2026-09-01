@@ -177,7 +177,7 @@ export default function Landing() {
         <section className="landing-hero" aria-labelledby="landing-title">
           <Reveal>
             <div className="landing-hero-copy">
-              <p className="landing-eyebrow">DORMITORY LIFE, SIMPLIFIED</p>
+              {/* <p className="landing-eyebrow">DORMITORY LIFE, SIMPLIFIED</p> */}
               <h1 id="landing-title">
                 기숙사 생활을<strong>더 스마트하게.</strong>
               </h1>

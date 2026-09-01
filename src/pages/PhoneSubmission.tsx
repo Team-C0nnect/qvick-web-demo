@@ -228,13 +228,11 @@ export default function PhoneSubmission() {
     (acc, student) => {
       if (student.gender === '남') acc.male += 1;
       else if (student.gender === '여') acc.female += 1;
-      else acc.unknown += 1;
       return acc;
     },
-    { male: 0, female: 0, unknown: 0 },
+    { male: 0, female: 0 },
   );
-  const genderTotal =
-    genderStats.male + genderStats.female + genderStats.unknown;
+  const genderTotal = genderStats.male + genderStats.female;
 
   const handleStatusChange = (
     student: DeviceSubmissionStudent,
@@ -304,7 +302,7 @@ export default function PhoneSubmission() {
             <h3 className="donut-card-title">성별 인원 구성</h3>
             <div className="donut-card-body">
               <DonutChart
-                key={`${genderStats.male}-${genderStats.female}-${genderStats.unknown}`}
+                key={`${genderStats.male}-${genderStats.female}`}
                 className="donut-card-chart"
                 total={genderTotal}
                 label="휴대폰 제출 대상 성별 인원 비율"
@@ -314,11 +312,6 @@ export default function PhoneSubmission() {
                     key: 'female',
                     color: '#ec4899',
                     value: genderStats.female,
-                  },
-                  {
-                    key: 'unknown',
-                    color: '#a1a1aa',
-                    value: genderStats.unknown,
                   },
                 ]}
               >
@@ -331,11 +324,6 @@ export default function PhoneSubmission() {
                 {[
                   { label: '남학생', value: genderStats.male, tone: 'male' },
                   { label: '여학생', value: genderStats.female, tone: 'female' },
-                  {
-                    label: '성별 미확인',
-                    value: genderStats.unknown,
-                    tone: 'unknown',
-                  },
                 ].map((item) => (
                   <li key={item.tone}>
                     <span className="legend-label">

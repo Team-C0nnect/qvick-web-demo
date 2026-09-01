@@ -19,6 +19,7 @@ import { RollingNumber } from '../components/RollingNumber';
 import DonutChart from '../components/DonutChart';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useAttendanceView } from '../context/AttendanceViewContext';
+import { useGenderView } from '../context/GenderViewContext';
 import CheckIcon from '../components/sidebar/svg/check.svg?react';
 import NightStudyIcon from '../components/sidebar/svg/night-study.svg?react';
 import PhoneSubmissionIcon from '../components/sidebar/svg/phone-submission.svg?react';
@@ -253,6 +254,7 @@ export default function Dashboard() {
   const { selectedDate: today } = useSelectedDate();
   const navigate = useNavigate();
   const { isManual, syncAttendanceView } = useAttendanceView();
+  const { genderView } = useGenderView();
 
   const {
     data: attendancesData,
@@ -308,7 +310,10 @@ export default function Dashboard() {
   ]);
 
   const isLoading = attendancesLoading || announcementsLoading;
-  const attendances = attendancesData ?? [];
+  const attendances = (attendancesData ?? []).filter(
+    (attendance) =>
+      attendance.student.gender === (genderView === '남' ? 'MALE' : 'FEMALE'),
+  );
   const summaries = {
     MORNING: buildAttendanceSummary(attendances, 'MORNING'),
     NIGHT: buildAttendanceSummary(attendances, 'NIGHT'),
@@ -369,7 +374,7 @@ export default function Dashboard() {
         <section className="dashboard-section">
           <div className="dashboard-section-heading">
             <h2 key={dateHeading.label} className="dashboard-date-heading">
-              {dateHeading.label} 출결
+              {genderView}기숙사 {dateHeading.label} 출결
             </h2>
             <button
               type="button"

@@ -5,6 +5,7 @@ import Sidebar from './sidebar/Sidebar';
 import TopProgressbar from './TopProgressbar';
 import { SelectedDateProvider } from '../context/SelectedDateContext';
 import { AttendanceViewProvider } from '../context/AttendanceViewContext';
+import { GenderViewProvider } from '../context/GenderViewContext';
 import '../styles/Layout.css';
 
 export interface LayoutOutletContext {
@@ -17,16 +18,18 @@ export default function Layout() {
   return (
     <SelectedDateProvider>
       <AttendanceViewProvider>
-        <TopProgressbar />
-        <div className="app-layout">
-          <Header actions={headerActions} />
-          <div className="content-wrapper">
-            <Sidebar />
-            <main className="main-content">
-              <Outlet context={{ setHeaderActions } satisfies LayoutOutletContext} />
-            </main>
+        <GenderViewProvider>
+          <TopProgressbar />
+          <div className="app-layout">
+            <Header actions={headerActions} />
+            <div className="content-wrapper">
+              <Sidebar />
+              <main className="main-content">
+                <Outlet context={{ setHeaderActions } satisfies LayoutOutletContext} />
+              </main>
+            </div>
           </div>
-        </div>
+        </GenderViewProvider>
       </AttendanceViewProvider>
     </SelectedDateProvider>
   );

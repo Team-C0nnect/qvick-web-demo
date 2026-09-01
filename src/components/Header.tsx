@@ -8,27 +8,10 @@ import defaultProfileImage from '../assets/default-profile.svg';
 import '../styles/Header.css';
 import type { MyUserResponse } from '../types/api';
 import { ChevronDownIcon, QvickLogoIcon } from './Icons';
-import { useAttendanceView } from '../context/AttendanceViewContext';
+import { useGenderView } from '../context/GenderViewContext';
 
 interface HeaderProps {
   actions?: ReactNode;
-}
-
-function SunIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </svg>
-  );
 }
 
 function LogoutIcon() {
@@ -46,7 +29,7 @@ export default function Header({ actions }: HeaderProps) {
   const queryClient = useQueryClient();
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
-  const { attendanceView, setAttendanceView } = useAttendanceView();
+  const { genderView, setGenderView } = useGenderView();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const isOpen = isHovered || isPinned;
 
@@ -134,24 +117,23 @@ export default function Header({ actions }: HeaderProps) {
                   <button
                     type="button"
                     className={`view-label ${
-                      attendanceView === 'MORNING' ? 'active' : ''
+                      genderView === '남' ? 'active' : ''
                     }`}
-                    onClick={() => setAttendanceView('MORNING')}
+                    onClick={() => setGenderView('남')}
                   >
-                    <SunIcon />
-                    아침
+                    남
                   </button>
                   <button
                     type="button"
                     role="switch"
-                    aria-checked={attendanceView === 'NIGHT'}
-                    aria-label="아침/저녁 보기 전환"
+                    aria-checked={genderView === '여'}
+                    aria-label="남/여 보기 전환"
                     className={`view-switch ${
-                      attendanceView === 'NIGHT' ? 'on' : ''
+                      genderView === '여' ? 'on' : ''
                     }`}
                     onClick={() =>
-                      setAttendanceView(
-                        attendanceView === 'MORNING' ? 'NIGHT' : 'MORNING',
+                      setGenderView(
+                        genderView === '남' ? '여' : '남',
                       )
                     }
                   >
@@ -160,12 +142,11 @@ export default function Header({ actions }: HeaderProps) {
                   <button
                     type="button"
                     className={`view-label ${
-                      attendanceView === 'NIGHT' ? 'active' : ''
+                      genderView === '여' ? 'active' : ''
                     }`}
-                    onClick={() => setAttendanceView('NIGHT')}
+                    onClick={() => setGenderView('여')}
                   >
-                    <MoonIcon />
-                    저녁
+                    여
                   </button>
                 </div>
 

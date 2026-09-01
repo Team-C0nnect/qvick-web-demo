@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deviceSubmissionService } from '../services/device-submission.service';
 import { studentService } from '../services/student.service';
@@ -12,6 +12,7 @@ import '../styles/Check.css';
 import '../styles/PhoneSubmission.css';
 import type { DeviceSubmission, DeviceSubmissionStatus, Gender } from '../types/api';
 import { useSelectedDate } from '../context/SelectedDateContext';
+import { useGenderView } from '../context/GenderViewContext';
 
 type DeviceSubmissionDisplayStatus = '제출' | '미제출' | '외박';
 type GenderLabel = '남' | '여' | '-';
@@ -86,9 +87,14 @@ const toPercent = (value: number, total: number): string =>
 export default function PhoneSubmission() {
   const queryClient = useQueryClient();
   const { selectedDate: currentDate } = useSelectedDate();
+  const { genderView } = useGenderView();
   const [searchQuery, setSearchQuery] = useState('');
-  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
+  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(genderView);
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
+
+  useEffect(() => {
+    setGenderFilter(genderView);
+  }, [genderView]);
 
   const { data: submissionsData, isLoading } = useQuery({
     queryKey: ['device-submissions', currentDate],

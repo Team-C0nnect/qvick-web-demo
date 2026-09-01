@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SleepoverCreateModal from '../components/SleepoverCreateModal';
@@ -13,6 +13,7 @@ import '../styles/Check.css';
 import '../styles/Sleepover.css';
 import type { SleepoverResponse } from '../types/api';
 import { useSelectedDate } from '../context/SelectedDateContext';
+import { useGenderView } from '../context/GenderViewContext';
 
 type DeleteTarget = {
   studentId: number;
@@ -28,14 +29,19 @@ const toPercent = (value: number, total: number): string =>
 export default function Sleepover() {
   const queryClient = useQueryClient();
   const { selectedDate: currentDate } = useSelectedDate();
+  const { genderView } = useGenderView();
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(
-    '전체',
+    genderView,
   );
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [syncMessage, setSyncMessage] = useState('');
+
+  useEffect(() => {
+    setGenderFilter(genderView);
+  }, [genderView]);
 
   const { data: sleepoversData, isLoading } = useQuery({
     queryKey: ['sleepovers', currentDate],

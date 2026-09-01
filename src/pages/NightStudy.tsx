@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { attendanceService } from '../services/attendance.service';
@@ -13,6 +13,7 @@ import '../styles/Check.css';
 import '../styles/NightStudy.css';
 import type { AttendanceResponse } from '../types/api';
 import { useSelectedDate } from '../context/SelectedDateContext';
+import { useGenderView } from '../context/GenderViewContext';
 
 type NightStudyDisplayStatus = '출석' | '미출석' | '-';
 
@@ -104,12 +105,17 @@ const renderNightStudyStatus = (status: NightStudyDisplayStatus) => {
 export default function NightStudy() {
   const queryClient = useQueryClient();
   const { selectedDate: currentDate } = useSelectedDate();
+  const { genderView } = useGenderView();
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(
-    '전체',
+    genderView,
   );
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
   const [syncMessage, setSyncMessage] = useState('');
+
+  useEffect(() => {
+    setGenderFilter(genderView);
+  }, [genderView]);
 
   const { data: attendancesData, isLoading } = useAttendances(currentDate);
 

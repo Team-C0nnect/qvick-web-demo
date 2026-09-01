@@ -43,6 +43,7 @@ import type {
 import { formatLocalDate, getAdjacentDate } from '../utils/date';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useAttendanceView } from '../context/AttendanceViewContext';
+import { useGenderView } from '../context/GenderViewContext';
 
 interface Student {
   id: number | null;
@@ -301,6 +302,7 @@ export default function Check() {
     syncAttendanceView,
     resetToAuto,
   } = useAttendanceView();
+  const { genderView } = useGenderView();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey | null>('room');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -332,10 +334,14 @@ export default function Check() {
     '전체' | '출석' | '미출석' | '외박' | '지연출석'
   >('전체');
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
-  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
+  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(genderView);
   const [selectedStudentIds, setSelectedStudentIds] = useState<Set<number>>(
     () => new Set(),
   );
+
+  useEffect(() => {
+    setGenderFilter(genderView);
+  }, [genderView]);
   const [pendingBulkStatusChange, setPendingBulkStatusChange] =
     useState<PendingBulkStatusChange | null>(null);
   const [isBulkSleepoverReasonOpen, setIsBulkSleepoverReasonOpen] =

@@ -4,72 +4,61 @@
   z-index: 1000;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: rgba(15, 15, 16, 0.46);
-  backdrop-filter: blur(4px);
+  padding: 20px;
+  background: rgba(15, 15, 16, 0.42);
+  backdrop-filter: blur(3px);
 }
 
 .student-edit-dialog {
   display: flex;
-  width: min(720px, 100%);
-  max-height: min(88vh, 800px);
+  width: min(520px, 100%);
+  max-height: min(82vh, 640px);
   flex-direction: column;
   overflow: hidden;
   border: 1px solid #e5e5e5;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #ffffff;
-  box-shadow: 0 20px 60px rgba(15, 15, 16, 0.2);
+  box-shadow: 0 18px 54px rgba(15, 15, 16, 0.2);
 }
 
 .student-edit-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
-  padding: 26px 28px 22px;
+  gap: 16px;
+  padding: 20px 22px 18px;
   border-bottom: 1px solid #f0f0f0;
 }
 
 .student-edit-kicker {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: #6d23ed;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
 
-.student-edit-title {
+.student-edit-header h2 {
   margin: 0;
   color: #0f0f10;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-}
-
-.student-edit-title strong {
+  font-size: 19px;
   font-weight: 800;
-}
-
-.student-edit-description {
-  margin: 8px 0 0;
-  color: #747678;
-  font-size: 14px;
-  font-weight: 500;
+  letter-spacing: -0.03em;
 }
 
 .student-edit-close-button {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   place-items: center;
   border: 1px solid #e4e4e7;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #ffffff;
   color: #747678;
   font: inherit;
-  font-size: 21px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
@@ -93,39 +82,59 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  gap: 14px;
-  padding: 22px 28px;
+  gap: 18px;
+  padding: 18px 22px 20px;
   overflow-y: auto;
 }
 
-.student-edit-section {
+.student-edit-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.student-edit-summary > div {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  background: #ffffff;
+  gap: 3px;
+  padding: 12px 14px;
 }
 
-.student-edit-section-heading h3 {
-  margin: 0;
-  color: #0f0f10;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+.student-edit-summary > div + div {
+  border-left: 1px solid #e5e5e5;
 }
 
-.student-edit-section-heading p {
-  margin: 5px 0 0;
+.student-edit-summary span {
   color: #747678;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.student-edit-summary strong {
+  color: #27272a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.student-edit-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-edit-group h3 {
+  margin: 0;
+  color: #3f3f46;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .student-edit-grid {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .student-edit-grid.two-columns {
@@ -140,27 +149,27 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .student-edit-field > label {
   color: #52525b;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .student-edit-input {
   box-sizing: border-box;
   width: 100%;
-  height: 48px;
-  padding: 0 13px;
+  height: 42px;
+  padding: 0 11px;
   border: 1px solid #d4d4d8;
-  border-radius: 10px;
+  border-radius: 9px;
   outline: none;
   background: #ffffff;
-  color: #0f0f10;
+  color: #18181b;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -170,34 +179,26 @@
   box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.12);
 }
 
-.student-edit-input.readonly:disabled {
-  border-color: #e4e4e7;
-  background: #fafafa;
-  color: #71717a;
-  cursor: default;
-}
-
 .student-edit-gender-switcher {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-  height: 48px;
-  padding: 4px;
+  gap: 3px;
+  height: 42px;
+  padding: 3px;
   border: 1px solid #d4d4d8;
-  border-radius: 10px;
+  border-radius: 9px;
   background: #fafafa;
 }
 
 .student-edit-gender-option {
   border: none;
-  border-radius: 7px;
+  border-radius: 6px;
   background: transparent;
   color: #71717a;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .student-edit-gender-option.active {
@@ -217,17 +218,17 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 16px 28px;
+  padding: 14px 22px;
   border-top: 1px solid #f0f0f0;
   background: #ffffff;
 }
 
 .student-edit-cancel-button,
 .student-edit-submit-button {
-  min-width: 104px;
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 9px;
+  min-width: 86px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
   font: inherit;
   font-size: 13px;
   font-weight: 700;
@@ -257,25 +258,20 @@
   background: #5919c7;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 520px) {
   .student-edit-backdrop {
     padding: 12px;
   }
 
   .student-edit-dialog {
     max-height: calc(100vh - 24px);
-    border-radius: 14px;
   }
 
   .student-edit-header,
   .student-edit-body,
   .student-edit-actions {
-    padding-right: 18px;
-    padding-left: 18px;
-  }
-
-  .student-edit-section {
-    padding: 16px;
+    padding-right: 16px;
+    padding-left: 16px;
   }
 
   .student-edit-grid.two-columns,

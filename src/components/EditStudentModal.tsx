@@ -77,12 +77,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
         <header className="student-edit-header">
           <div>
             <span className="student-edit-kicker">학생 관리</span>
-            <h2 id="student-edit-title" className="student-edit-title">
-              <strong>{formData.name}</strong> 학생 정보 수정
-            </h2>
-            <p className="student-edit-description">
-              출석 관리에 필요한 학생 정보를 수정합니다.
-            </p>
+            <h2 id="student-edit-title">학생 정보 수정</h2>
           </div>
           <button
             type="button"
@@ -96,40 +91,19 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
         <form onSubmit={handleSubmit} className="student-edit-form">
           <div className="student-edit-body">
-            <section className="student-edit-section">
-              <div className="student-edit-section-heading">
-                <h3>기본 정보</h3>
-                <p>변경되지 않는 학생 식별 정보입니다.</p>
+            <div className="student-edit-summary">
+              <div>
+                <span>이름</span>
+                <strong>{formData.name}</strong>
               </div>
-              <div className="student-edit-grid two-columns">
-                <div className="student-edit-field">
-                  <label htmlFor="edit-student-name">이름</label>
-                  <input
-                    id="edit-student-name"
-                    type="text"
-                    className="student-edit-input readonly"
-                    value={formData.name}
-                    disabled
-                  />
-                </div>
-                <div className="student-edit-field">
-                  <label htmlFor="edit-student-id">학번</label>
-                  <input
-                    id="edit-student-id"
-                    type="text"
-                    className="student-edit-input readonly"
-                    value={formData.studentId}
-                    disabled
-                  />
-                </div>
+              <div>
+                <span>학번</span>
+                <strong>{formData.studentId}</strong>
               </div>
-            </section>
+            </div>
 
-            <section className="student-edit-section">
-              <div className="student-edit-section-heading">
-                <h3>학적 및 생활 정보</h3>
-                <p>학년, 반, 번호와 생활 정보를 함께 관리합니다.</p>
-              </div>
+            <section className="student-edit-group">
+              <h3>학적 정보</h3>
               <div className="student-edit-grid three-columns">
                 <div className="student-edit-field">
                   <label htmlFor="edit-student-grade">학년</label>
@@ -180,6 +154,10 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
                   />
                 </div>
               </div>
+            </section>
+
+            <section className="student-edit-group">
+              <h3>생활 정보</h3>
               <div className="student-edit-grid two-columns">
                 <div className="student-edit-field">
                   <label htmlFor="edit-student-room">호실</label>
@@ -227,13 +205,10 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               </div>
             </section>
 
-            <section className="student-edit-section">
-              <div className="student-edit-section-heading">
-                <h3>연락처</h3>
-                <p>비상 연락 및 확인용 번호를 최신 상태로 유지합니다.</p>
-              </div>
+            <section className="student-edit-group">
+              <h3>연락처</h3>
               <div className="student-edit-field">
-                <label htmlFor="edit-student-phone">연락처</label>
+                <label htmlFor="edit-student-phone">전화번호</label>
                 <input
                   id="edit-student-phone"
                   type="text"
@@ -256,7 +231,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               취소
             </button>
             <button type="submit" className="student-edit-submit-button">
-              변경 저장
+              저장
             </button>
           </footer>
         </form>

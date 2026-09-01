@@ -120,12 +120,6 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="landing-qr-experience" aria-labelledby="qr-experience-title">
-          <Reveal><div className="landing-qr-copy"><p className="landing-eyebrow">ONE SIMPLE SCAN</p><h2 id="qr-experience-title">한 번의 스캔으로,<br />출석은 더 가볍게.</h2><p>복잡한 확인 절차 대신 Qvick의 QR 출석으로 필요한 순간을 빠르게 기록하세요.</p></div></Reveal>
-          <Reveal delayed><div className="landing-qr-stage" aria-label="Qvick QR 출석 기능 예시"><span className="landing-qr-ring ring-one" aria-hidden="true" /><span className="landing-qr-ring ring-two" aria-hidden="true" /><span className="landing-qr-scanline" aria-hidden="true" /><span className="landing-qr-chip chip-one">19:00 · 저녁 점호</span><span className="landing-qr-chip chip-two">출석 준비 완료</span><div className="landing-qr-orb"><img src="/images/qvick-qr-scan.png" alt="Qvick QR 출석 아이콘" /></div></div></Reveal>
-          <div className="landing-marquee" aria-hidden="true"><div><span>QR ATTENDANCE</span><i>✦</i><span>CHECK IN WITH QVICK</span><i>✦</i><span>QR ATTENDANCE</span><i>✦</i><span>CHECK IN WITH QVICK</span><i>✦</i></div></div>
-        </section>
-
         <section className="landing-flow" aria-labelledby="flow-title">
           <Reveal><p className="landing-eyebrow">MADE FOR EVERYDAY</p><h2 id="flow-title">하루의 시작부터 끝까지,<br className="landing-desktop-break" />필요한 정보는 가까이에.</h2></Reveal>
           <div className="landing-flow-grid">

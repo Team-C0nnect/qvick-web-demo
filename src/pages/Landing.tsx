@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import SplashCursor from '../components/SplashCursor';
 import '../styles/Landing.css';
 
 const STORE_LINKS = [
@@ -50,38 +51,22 @@ function StoreBadge({ name, url, badgeSrc, badgeAlt }: (typeof STORE_LINKS)[numb
 }
 
 export default function Landing() {
-  const pageRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const page = pageRef.current;
-    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (!page || !finePointer.matches || reducedMotion.matches) return;
-
-    let animationFrame: number | undefined;
-    let pointerPosition = { x: -400, y: -400 };
-
-    const updatePointerSpotlight = () => {
-      page.style.setProperty('--landing-pointer-x', `${pointerPosition.x}px`);
-      page.style.setProperty('--landing-pointer-y', `${pointerPosition.y}px`);
-      animationFrame = undefined;
-    };
-
-    const handlePointerMove = (event: PointerEvent) => {
-      pointerPosition = { x: event.clientX, y: event.clientY };
-      if (animationFrame !== undefined) return;
-      animationFrame = window.requestAnimationFrame(updatePointerSpotlight);
-    };
-
-    window.addEventListener('pointermove', handlePointerMove, { passive: true });
-    return () => {
-      if (animationFrame !== undefined) window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener('pointermove', handlePointerMove);
-    };
-  }, []);
-
   return (
-    <div ref={pageRef} className="landing-page">
+    <div className="landing-page">
+      <SplashCursor
+        className="landing-splash-cursor"
+        SIM_RESOLUTION={64}
+        DYE_RESOLUTION={512}
+        DENSITY_DISSIPATION={2.8}
+        VELOCITY_DISSIPATION={2.4}
+        PRESSURE_ITERATIONS={12}
+        CURL={4}
+        SPLAT_RADIUS={0.16}
+        SPLAT_FORCE={3000}
+        SHADING={false}
+        RAINBOW_MODE={false}
+        COLOR="#6d23ed"
+      />
       <header className="landing-header">
         <Link className="landing-brand" to="/" aria-label="Qvick 홈"><img src="/qvick.svg" alt="" /><span>Qvick</span></Link>
         <Link className="landing-login-link" to="/login">Qvick Teacher <span aria-hidden="true">↗</span></Link>

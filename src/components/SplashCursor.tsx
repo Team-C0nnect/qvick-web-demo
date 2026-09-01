@@ -1316,7 +1316,6 @@ export default function SplashCursor({
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
-      (gl.getExtension('WEBGL_lose_context') as { loseContext: () => void } | null)?.loseContext();
     };
   }, [
     SIM_RESOLUTION,

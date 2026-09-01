@@ -3,6 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SleepoverCreateModal from '../components/SleepoverCreateModal';
 import { SearchIcon } from '../components/Icons';
+import DonutChart from '../components/DonutChart';
+import { RollingNumber } from '../components/RollingNumber';
+import { TableRowSkeleton } from '../components/Skeleton';
 import { sleepoverService } from '../services/sleepover.service';
 import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
@@ -19,11 +22,17 @@ type DeleteTarget = {
 const getStudentNumber = (student: SleepoverResponse['student']) =>
   `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
 
+const toPercent = (value: number, total: number): string =>
+  total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0.0%';
+
 export default function Sleepover() {
   const queryClient = useQueryClient();
-  const { selectedDate: currentDate, setSelectedDate: setCurrentDate } =
-    useSelectedDate();
+  const { selectedDate: currentDate } = useSelectedDate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(
+    '전체',
+  );
+  const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [syncMessage, setSyncMessage] = useState('');
@@ -103,24 +112,45 @@ export default function Sleepover() {
         );
       })
       .filter((sleepover) => {
-        if (!query) return true;
+        if (query) {
+          const studentNumber = getStudentNumber(sleepover.student);
+          const isMatched =
+            matchesKoreanNameSearch(sleepover.student.name, searchQuery) ||
+            sleepover.student.room.toLowerCase().includes(query) ||
+            studentNumber.includes(query);
 
-        const studentNumber = getStudentNumber(sleepover.student);
-        return (
-          matchesKoreanNameSearch(sleepover.student.name, searchQuery) ||
-          sleepover.student.room.toLowerCase().includes(query) ||
-          studentNumber.includes(query)
-        );
+          if (!isMatched) return false;
+        }
+
+        const gender = sleepover.student.gender === 'MALE' ? '남' : '여';
+        if (genderFilter !== '전체' && gender !== genderFilter) return false;
+
+        if (gradeFilter !== '전체' && sleepover.student.grade !== gradeFilter) {
+          return false;
+        }
+
+        return true;
       });
-  }, [searchQuery, sleepovers]);
+  }, [genderFilter, gradeFilter, searchQuery, sleepovers]);
 
-  const stats = {
-    total: filteredSleepovers.length,
-    male: filteredSleepovers.filter((item) => item.student.gender === 'MALE')
-      .length,
-    female: filteredSleepovers.filter((item) => item.student.gender === 'FEMALE')
-      .length,
-  };
+  const genderStats = sleepovers.reduce(
+    (acc, sleepover) => {
+      if (sleepover.student.gender === 'MALE') acc.male += 1;
+      else acc.female += 1;
+      return acc;
+    },
+    { male: 0, female: 0 },
+  );
+  const gradeStats = sleepovers.reduce(
+    (acc, sleepover) => {
+      if (sleepover.student.grade === 1) acc.first += 1;
+      if (sleepover.student.grade === 2) acc.second += 1;
+      if (sleepover.student.grade === 3) acc.third += 1;
+      return acc;
+    },
+    { first: 0, second: 0, third: 0 },
+  );
+  const sleepoverTotal = sleepovers.length;
 
   const isActionPending =
     createMutation.isPending || syncMutation.isPending || deleteMutation.isPending;
@@ -130,55 +160,92 @@ export default function Sleepover() {
   return (
     <div className="check-page sleepover-page">
       <div className="controls-section">
-        <div className="controls-left">
-          <div className="date-picker">
-            <input
-              type="date"
-              value={currentDate}
-              onChange={(e) => {
-                setCurrentDate(e.target.value);
-                setSyncMessage('');
-              }}
-            />
+        <div className="donut-cards sleepover-donut-cards">
+          <div className="donut-card sleepover-donut-card">
+            <h3 className="donut-card-title">외박자 성별 구성</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${genderStats.male}-${genderStats.female}`}
+                className="donut-card-chart"
+                total={sleepoverTotal}
+                label="외박자 성별 인원 비율"
+                segments={[
+                  { key: 'male', color: '#3b82f6', value: genderStats.male },
+                  {
+                    key: 'female',
+                    color: '#ec4899',
+                    value: genderStats.female,
+                  },
+                ]}
+              >
+                <span>전체 외박</span>
+                <strong>
+                  <RollingNumber value={sleepoverTotal} />명
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                {[
+                  { label: '남학생', value: genderStats.male, tone: 'male' },
+                  { label: '여학생', value: genderStats.female, tone: 'female' },
+                ].map((item) => (
+                  <li key={item.tone}>
+                    <span className="legend-label">
+                      <i className={`legend-dot ${item.tone}`} />
+                      {item.label}
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={item.value} />명{' '}
+                      <em>({toPercent(item.value, sleepoverTotal)})</em>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="search-box">
-            <SearchIcon className="search-icon" />
-            <input
-              type="text"
-              placeholder="호실 / 이름 / 학번으로 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
 
-        <div className="stats-section">
-          <div className="stat-box">전체 : {stats.total}명</div>
-          <div className="stat-box attendance">
-            남 : <span className="positive">{stats.male}</span>명
+          <div className="donut-card sleepover-donut-card">
+            <h3 className="donut-card-title">학년별 외박 현황</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${gradeStats.first}-${gradeStats.second}-${gradeStats.third}`}
+                className="donut-card-chart"
+                total={sleepoverTotal}
+                label="외박자 학년별 인원 비율"
+                segments={[
+                  { key: 'first', color: '#6d23ed', value: gradeStats.first },
+                  {
+                    key: 'second',
+                    color: '#3b82f6',
+                    value: gradeStats.second,
+                  },
+                  { key: 'third', color: '#f59e0b', value: gradeStats.third },
+                ]}
+              >
+                <span>전체 외박</span>
+                <strong>
+                  <RollingNumber value={sleepoverTotal} />명
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                {[
+                  { label: '1학년', value: gradeStats.first, tone: 'first' },
+                  { label: '2학년', value: gradeStats.second, tone: 'second' },
+                  { label: '3학년', value: gradeStats.third, tone: 'third' },
+                ].map((item) => (
+                  <li key={item.tone}>
+                    <span className="legend-label">
+                      <i className={`legend-dot ${item.tone}`} />
+                      {item.label}
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={item.value} />명{' '}
+                      <em>({toPercent(item.value, sleepoverTotal)})</em>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="stat-box absence">
-            여 : <span className="negative">{stats.female}</span>명
-          </div>
-          <button
-            type="button"
-            className="sleepover-secondary-button"
-            onClick={() => syncMutation.mutate()}
-            disabled={isActionPending}
-          >
-            {syncMutation.isPending ? '동기화 중...' : '외부 동기화'}
-          </button>
-          <button
-            type="button"
-            className="sleepover-primary-button"
-            onClick={() => {
-              setSyncMessage('');
-              setIsCreateModalOpen(true);
-            }}
-            disabled={isActionPending}
-          >
-            외박자 추가
-          </button>
         </div>
       </div>
 
@@ -192,71 +259,143 @@ export default function Sleepover() {
         </div>
       )}
 
-      <div className="table-container">
-        <table className="student-table">
-          <thead>
-            <tr>
-              <th>호실</th>
-              <th>이름</th>
-              <th>성별</th>
-              <th>학번</th>
-              <th>외박 사유</th>
-              <th>날짜</th>
-              <th>삭제</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr className="sleepover-empty-row">
-                <td colSpan={7} className="sleepover-empty-cell">
-                  외박자 목록을 불러오는 중입니다.
-                </td>
-              </tr>
-            ) : filteredSleepovers.length > 0 ? (
-              filteredSleepovers.map((sleepover) => {
-                const student = sleepover.student;
+      <div className="table-panel">
+        <div className="table-toolbar">
+          <div className="search-box">
+            <SearchIcon className="search-icon" />
+            <input
+              type="text"
+              placeholder="호실 / 이름 / 학번으로 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
 
-                return (
-                  <tr key={`${sleepover.date}-${student.id}`}>
-                    <td className="room-cell" data-label="호실">
-                      {student.room}
-                    </td>
-                    <td data-label="이름">{student.name}</td>
-                    <td data-label="성별">
-                      {student.gender === 'MALE' ? '남' : '여'}
-                    </td>
-                    <td data-label="학번">{getStudentNumber(student)}</td>
-                    <td data-label="외박 사유" className="sleepover-reason-cell">
-                      {sleepover.sleepoverReason}
-                    </td>
-                    <td data-label="날짜">{sleepover.date}</td>
-                    <td data-label="삭제">
-                      <button
-                        type="button"
-                        className="sleepover-delete-button"
-                        onClick={() =>
-                          setDeleteTarget({
-                            studentId: student.id,
-                            studentName: student.name,
-                          })
-                        }
-                        disabled={isActionPending}
-                      >
-                        삭제
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr className="sleepover-empty-row">
-                <td colSpan={7} className="sleepover-empty-cell">
-                  외박자가 없습니다.
-                </td>
+        <div className="table-filters">
+          <div className="filter-group">
+            <label className="filter-label">성별:</label>
+            <div className="filter-buttons">
+              {(['전체', '남', '여'] as const).map((gender) => (
+                <button
+                  key={gender}
+                  type="button"
+                  className={`filter-btn ${genderFilter === gender ? 'active' : ''}`}
+                  onClick={() => setGenderFilter(gender)}
+                >
+                  {gender}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <label className="filter-label">학년:</label>
+            <div className="filter-buttons">
+              {(['전체', 1, 2, 3] as const).map((grade) => (
+                <button
+                  key={grade}
+                  type="button"
+                  className={`filter-btn ${gradeFilter === grade ? 'active' : ''}`}
+                  onClick={() => setGradeFilter(grade)}
+                >
+                  {grade === '전체' ? '전체' : `${grade}학년`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="sleepover-filter-actions">
+            <button
+              type="button"
+              className="sleepover-secondary-button"
+              onClick={() => syncMutation.mutate()}
+              disabled={isActionPending}
+            >
+              <span className="sleepover-sync-icon" aria-hidden="true">↻</span>
+              <span>{syncMutation.isPending ? '동기화 중...' : '외부 동기화'}</span>
+            </button>
+            <button
+              type="button"
+              className="sleepover-primary-button"
+              onClick={() => {
+                setSyncMessage('');
+                setIsCreateModalOpen(true);
+              }}
+              disabled={isActionPending}
+            >
+              외박자 추가
+            </button>
+          </div>
+        </div>
+
+        <div className="table-container">
+          <table className="student-table">
+            <thead>
+              <tr>
+                <th>호실</th>
+                <th>이름</th>
+                <th>성별</th>
+                <th>학번</th>
+                <th>외박 사유</th>
+                <th>날짜</th>
+                <th>삭제</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                Array.from({ length: 8 }).map((_, index) => (
+                  <TableRowSkeleton key={index} columns={7} />
+                ))
+              ) : filteredSleepovers.length > 0 ? (
+                filteredSleepovers.map((sleepover) => {
+                  const student = sleepover.student;
+
+                  return (
+                    <tr key={`${sleepover.date}-${student.id}`}>
+                      <td className="room-cell" data-label="호실">
+                        {student.room}
+                      </td>
+                      <td data-label="이름">{student.name}</td>
+                      <td data-label="성별">
+                        {student.gender === 'MALE' ? '남' : '여'}
+                      </td>
+                      <td data-label="학번">{getStudentNumber(student)}</td>
+                      <td
+                        data-label="외박 사유"
+                        className="sleepover-reason-cell"
+                      >
+                        {sleepover.sleepoverReason}
+                      </td>
+                      <td data-label="날짜">{sleepover.date}</td>
+                      <td data-label="삭제">
+                        <button
+                          type="button"
+                          className="sleepover-delete-button"
+                          onClick={() =>
+                            setDeleteTarget({
+                              studentId: student.id,
+                              studentName: student.name,
+                            })
+                          }
+                          disabled={isActionPending}
+                        >
+                          삭제
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr className="sleepover-empty-row">
+                  <td colSpan={7} className="sleepover-empty-cell">
+                    외박자가 없습니다.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {isCreateModalOpen && (

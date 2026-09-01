@@ -10,9 +10,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 8px;
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -36,9 +36,41 @@
 }
 
 .sleepover-page .sleepover-secondary-button {
+  gap: 7px;
   border: 1px solid #e4e4e7;
   background: #ffffff;
   color: #52525b;
+}
+
+.sleepover-page .sleepover-filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.sleepover-page .sleepover-sync-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sleepover-page .legend-dot.male {
+  background: #3b82f6;
+}
+
+.sleepover-page .legend-dot.female {
+  background: #ec4899;
+}
+
+.sleepover-page .legend-dot.first {
+  background: #6d23ed;
+}
+
+.sleepover-page .legend-dot.second {
+  background: #3b82f6;
+}
+
+.sleepover-page .legend-dot.third {
+  background: #f59e0b;
 }
 
 .sleepover-page .sleepover-secondary-button:hover:not(:disabled) {
@@ -123,14 +155,28 @@
 
 /* ===== 외박자 추가 모달 ===== */
 /* 반응형 */
-@media (max-width: 1200px) {
-  .sleepover-page .sleepover-primary-button,
-  .sleepover-page .sleepover-secondary-button {
-    flex: 1 1 160px;
+@media (max-width: 1400px) {
+  .sleepover-page .table-filters {
+    flex-direction: row;
+    align-items: center;
   }
 }
 
 @media (max-width: 768px) {
+  .sleepover-page .table-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sleepover-page .sleepover-filter-actions {
+    margin-left: 0;
+  }
+
+  .sleepover-page .sleepover-primary-button,
+  .sleepover-page .sleepover-secondary-button {
+    flex: 1;
+  }
+
   .sleepover-page .sleepover-reason-cell {
     max-width: none;
   }

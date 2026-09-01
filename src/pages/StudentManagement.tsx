@@ -207,11 +207,17 @@ export default function StudentManagement() {
   const getFilteredStudents = () => {
     return sortedStudents.filter((student) => {
       // Search query filter
-      if (
-        searchTerm.trim() &&
-        !matchesKoreanNameSearch(student.name, searchTerm)
-      ) {
-        return false;
+      const query = searchTerm.trim().toLowerCase();
+      if (query) {
+        const studentId = `${student.grade}${student.classroom}${String(
+          student.number,
+        ).padStart(2, '0')}`;
+        const isMatched =
+          matchesKoreanNameSearch(student.name, searchTerm) ||
+          studentId.includes(query) ||
+          student.room.toLowerCase().includes(query);
+
+        if (!isMatched) return false;
       }
 
       // Gender filter
@@ -461,7 +467,7 @@ export default function StudentManagement() {
             <SearchIcon className="search-icon" />
             <input
               type="text"
-              placeholder="학생명으로 검색..."
+              placeholder="학번 / 이름 / 호실로 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"

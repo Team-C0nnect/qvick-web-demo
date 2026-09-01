@@ -52,9 +52,12 @@ const isAttended = (status: AttendanceStatus) =>
 const getPeriodLabel = (period: AttendancePeriod) =>
   period === 'MORNING' ? '아침 퇴실' : '저녁 입실';
 
-const isWeekendMorning = (date: string, period: AttendancePeriod) => {
+const isClosedAttendancePeriod = (date: string, period: AttendancePeriod) => {
   const day = new Date(`${date}T00:00:00`).getDay();
-  return period === 'MORNING' && (day === 0 || day === 6);
+  const isWeekendMorning = period === 'MORNING' && (day === 0 || day === 6);
+  const isWeekendNight = period === 'NIGHT' && (day === 5 || day === 6);
+
+  return isWeekendMorning || isWeekendNight;
 };
 
 const getStatusLabel = (status: AttendanceStatus) => {
@@ -156,7 +159,7 @@ export default function CheckStudentDetail() {
       ];
 
       return records.filter(
-        (record) => !isWeekendMorning(record.date, record.period),
+        (record) => !isClosedAttendancePeriod(record.date, record.period),
       );
     });
   }, [attendanceHistory, historyDates, student]);

@@ -42,8 +42,8 @@
 .landing-qr-copy h2, .landing-moments h2 { margin: 0; color: var(--landing-ink); font-size: clamp(35px, 4vw, 53px); font-weight: 800; line-height: 1.22; letter-spacing: -3px; }
 .landing-qr-copy > p:last-child { max-width: 340px; margin: 25px 0 0; color: var(--landing-muted); font-size: 16px; line-height: 1.8; letter-spacing: -.35px; }
 .landing-qr-stage { position: relative; height: 456px; overflow: hidden; border-radius: 28px 28px 0 0; background: #f5f2fb; }
-.landing-qr-stage::before { position: absolute; inset: 0; opacity: .48; background-image: linear-gradient(#e5ddf6 1px, transparent 1px), linear-gradient(90deg, #e5ddf6 1px, transparent 1px); background-size: 36px 36px; content: ''; }
-.landing-qr-stage::after { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(245, 242, 251, .1), rgba(245, 242, 251, .6)); content: ''; }
+.landing-qr-stage::before { position: absolute; inset: 0; opacity: .7; background-image: radial-gradient(circle, #d9ccf4 1.3px, transparent 1.4px); background-size: 18px 18px; content: ''; }
+.landing-qr-stage::after { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .76), transparent 54%); content: ''; }
 .landing-qr-orb { position: absolute; z-index: 2; top: 50%; left: 50%; width: 174px; height: 174px; display: grid; place-items: center; border-radius: 50%; background: #fff; box-shadow: 0 24px 60px rgba(75, 37, 143, .2); transform: translate(-50%, -50%); animation: landing-qr-float 4.2s ease-in-out infinite; }
 .landing-qr-orb img { width: 98px; height: 98px; object-fit: contain; }
 .landing-qr-ring { position: absolute; z-index: 1; top: 50%; left: 50%; border: 1px solid rgba(109, 35, 237, .24); border-radius: 50%; transform: translate(-50%, -50%); }

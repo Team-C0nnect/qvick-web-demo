@@ -12,7 +12,7 @@ import {
   useQueryClient,
   useQuery,
 } from '@tanstack/react-query';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
 import { scheduleService } from '../services/schedule.service';
@@ -292,6 +292,7 @@ const hasAttendanceWindowEnded = (
 };
 
 export default function Check() {
+  const navigate = useNavigate();
   const { setHeaderActions } = useOutletContext<LayoutOutletContext>();
   const { selectedDate: currentDate, setSelectedDate: setCurrentDate } =
     useSelectedDate();
@@ -1690,7 +1691,20 @@ export default function Check() {
                     />
                   </td>
                   <td className="room-cell" data-label="호실">{student.room}</td>
-                  <td data-label="이름">{student.name}</td>
+                  <td data-label="이름">
+                    <button
+                      type="button"
+                      className="student-profile-link"
+                      onClick={() =>
+                        navigate(
+                          `/admin/account-management?studentId=${encodeURIComponent(student.studentId)}`,
+                        )
+                      }
+                      aria-label={`${student.name} 학생 정보로 이동`}
+                    >
+                      {student.name}
+                    </button>
+                  </td>
                   <td data-label={`${periodLabels.title} 상태`}>
                     <AttendanceStatusPicker
                       value={student.status}

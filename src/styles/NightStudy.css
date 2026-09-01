@@ -49,6 +49,14 @@
   background: #a1a1aa;
 }
 
+.check-page.night-study-page .legend-dot.male {
+  background: #3b82f6;
+}
+
+.check-page.night-study-page .legend-dot.female {
+  background: #ec4899;
+}
+
 .check-page.night-study-page .night-study-message {
   width: min(1180px, 100%);
   margin: 0 auto 24px;

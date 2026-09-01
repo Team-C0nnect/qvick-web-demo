@@ -8,6 +8,7 @@ import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { SearchIcon } from '../components/Icons';
 import DonutChart from '../components/DonutChart';
 import { RollingNumber } from '../components/RollingNumber';
+import { TableRowSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
 import '../styles/NightStudy.css';
 import type { AttendanceResponse } from '../types/api';
@@ -211,6 +212,15 @@ export default function NightStudy() {
     nightStudyTargetCount > 0
       ? Math.round((stats.present / nightStudyTargetCount) * 100)
       : 0;
+  const genderStats = nightStudyStudents.reduce(
+    (acc, student) => {
+      if (student.gender === '남') acc.male += 1;
+      else acc.female += 1;
+      return acc;
+    },
+    { male: 0, female: 0 },
+  );
+  const genderTotal = genderStats.male + genderStats.female;
 
   return (
     <div className="check-page night-study-page">
@@ -257,6 +267,48 @@ export default function NightStudy() {
                     <span className="legend-value">
                       <RollingNumber value={item.value} />명{' '}
                       <em>({toPercent(item.value, stats.total)})</em>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="donut-card night-study-donut-card">
+            <h3 className="donut-card-title">성별 인원 구성</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${genderStats.male}-${genderStats.female}`}
+                className="donut-card-chart"
+                total={genderTotal}
+                label="기숙사 성별 인원 비율"
+                segments={[
+                  { key: 'male', color: '#3b82f6', value: genderStats.male },
+                  {
+                    key: 'female',
+                    color: '#ec4899',
+                    value: genderStats.female,
+                  },
+                ]}
+              >
+                <span>전체 인원</span>
+                <strong>
+                  <RollingNumber value={genderTotal} />명
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                {[
+                  { label: '남학생', value: genderStats.male, tone: 'male' },
+                  { label: '여학생', value: genderStats.female, tone: 'female' },
+                ].map((item) => (
+                  <li key={item.tone}>
+                    <span className="legend-label">
+                      <i className={`legend-dot ${item.tone}`} />
+                      {item.label}
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={item.value} />명{' '}
+                      <em>({toPercent(item.value, genderTotal)})</em>
                     </span>
                   </li>
                 ))}
@@ -349,11 +401,9 @@ export default function NightStudy() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr className="night-study-empty-row">
-                  <td colSpan={6} className="night-study-empty-cell">
-                    심야자습 현황을 불러오는 중입니다.
-                  </td>
-                </tr>
+                Array.from({ length: 8 }).map((_, index) => (
+                  <TableRowSkeleton key={index} columns={6} />
+                ))
               ) : filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
                   <tr key={`${currentDate}-${student.studentId}`}>

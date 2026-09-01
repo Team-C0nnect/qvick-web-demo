@@ -65,7 +65,7 @@ export default function Landing() {
         SPLAT_FORCE={3000}
         SHADING={false}
         RAINBOW_MODE={false}
-        COLOR="#6d23ed"
+        COLOR="#f2ebff"
       />
       <header className="landing-header">
         <Link className="landing-brand" to="/" aria-label="Qvick 홈"><img src="/qvick.svg" alt="" /><span>Qvick</span></Link>

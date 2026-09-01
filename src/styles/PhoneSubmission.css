@@ -43,6 +43,18 @@
   text-align: center;
 }
 
+.phone-submission-page .legend-dot.male {
+  background: #3b82f6;
+}
+
+.phone-submission-page .legend-dot.female {
+  background: #ec4899;
+}
+
+.phone-submission-page .legend-dot.unknown {
+  background: #a1a1aa;
+}
+
 @media (max-width: 768px) {
   .phone-submission-page .student-table tbody .phone-submission-empty-row {
     padding: 0;

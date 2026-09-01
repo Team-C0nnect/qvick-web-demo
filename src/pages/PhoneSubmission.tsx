@@ -4,6 +4,9 @@ import { deviceSubmissionService } from '../services/device-submission.service';
 import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { SearchIcon } from '../components/Icons';
+import DonutChart from '../components/DonutChart';
+import { RollingNumber } from '../components/RollingNumber';
+import { TableRowSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
 import '../styles/PhoneSubmission.css';
 import type { DeviceSubmission, DeviceSubmissionStatus, Gender } from '../types/api';
@@ -89,10 +92,12 @@ const getDeviceSubmissionStatusClassName = (
   }
 };
 
+const toPercent = (value: number, total: number): string =>
+  total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0.0%';
+
 export default function PhoneSubmission() {
   const queryClient = useQueryClient();
-  const { selectedDate: currentDate, setSelectedDate: setCurrentDate } =
-    useSelectedDate();
+  const { selectedDate: currentDate } = useSelectedDate();
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>('남');
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
@@ -220,6 +225,23 @@ export default function PhoneSubmission() {
     { total: 0, submitted: 0, notSubmitted: 0, sleepover: 0 },
   );
 
+  const submissionTargetCount = stats.submitted + stats.notSubmitted;
+  const submissionRate =
+    submissionTargetCount > 0
+      ? Math.round((stats.submitted / submissionTargetCount) * 100)
+      : 0;
+  const genderStats = deviceSubmissionStudents.reduce(
+    (acc, student) => {
+      if (student.gender === '남') acc.male += 1;
+      else if (student.gender === '여') acc.female += 1;
+      else acc.unknown += 1;
+      return acc;
+    },
+    { male: 0, female: 0, unknown: 0 },
+  );
+  const genderTotal =
+    genderStats.male + genderStats.female + genderStats.unknown;
+
   const handleStatusChange = (
     student: DeviceSubmissionStudent,
     status: DeviceSubmissionStatus,
@@ -235,14 +257,117 @@ export default function PhoneSubmission() {
   return (
     <div className="check-page phone-submission-page">
       <div className="controls-section">
-        <div className="controls-left">
-          <div className="date-picker">
-            <input
-              type="date"
-              value={currentDate}
-              onChange={(e) => setCurrentDate(e.target.value)}
-            />
+        <div className="donut-cards phone-submission-donut-cards">
+          <div className="donut-card phone-submission-donut-card">
+            <h3 className="donut-card-title">휴대폰 제출 현황</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${stats.submitted}-${stats.notSubmitted}-${stats.sleepover}-${stats.total}`}
+                className="donut-card-chart"
+                total={stats.total}
+                label="휴대폰 제출 상태 비율"
+                segments={[
+                  { key: 'submitted', color: '#22c55e', value: stats.submitted },
+                  {
+                    key: 'not-submitted',
+                    color: '#ef4444',
+                    value: stats.notSubmitted,
+                  },
+                  { key: 'sleepover', color: '#8b5cf6', value: stats.sleepover },
+                ]}
+              >
+                <span>제출률</span>
+                <strong>
+                  <RollingNumber value={submissionRate} />%
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                {[
+                  { label: '제출', value: stats.submitted, tone: 'positive' },
+                  {
+                    label: '미제출',
+                    value: stats.notSubmitted,
+                    tone: 'negative',
+                  },
+                  { label: '외박', value: stats.sleepover, tone: 'sleepover' },
+                ].map((item) => (
+                  <li key={item.tone}>
+                    <span className="legend-label">
+                      <i className={`legend-dot ${item.tone}`} />
+                      {item.label}
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={item.value} />명{' '}
+                      <em>({toPercent(item.value, stats.total)})</em>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
+
+          <div className="donut-card phone-submission-donut-card">
+            <h3 className="donut-card-title">성별 인원 구성</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${genderStats.male}-${genderStats.female}-${genderStats.unknown}`}
+                className="donut-card-chart"
+                total={genderTotal}
+                label="휴대폰 제출 대상 성별 인원 비율"
+                segments={[
+                  { key: 'male', color: '#3b82f6', value: genderStats.male },
+                  {
+                    key: 'female',
+                    color: '#ec4899',
+                    value: genderStats.female,
+                  },
+                  {
+                    key: 'unknown',
+                    color: '#a1a1aa',
+                    value: genderStats.unknown,
+                  },
+                ]}
+              >
+                <span>전체 인원</span>
+                <strong>
+                  <RollingNumber value={genderTotal} />명
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                {[
+                  { label: '남학생', value: genderStats.male, tone: 'male' },
+                  { label: '여학생', value: genderStats.female, tone: 'female' },
+                  {
+                    label: '성별 미확인',
+                    value: genderStats.unknown,
+                    tone: 'unknown',
+                  },
+                ].map((item) => (
+                  <li key={item.tone}>
+                    <span className="legend-label">
+                      <i className={`legend-dot ${item.tone}`} />
+                      {item.label}
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={item.value} />명{' '}
+                      <em>({toPercent(item.value, genderTotal)})</em>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {updateMutation.isError && (
+        <div className="phone-submission-message error">
+          휴대폰 제출 상태 수정에 실패했습니다. 다시 시도해주세요.
+        </div>
+      )}
+
+      <div className="table-panel">
+        <div className="table-toolbar">
           <div className="search-box">
             <SearchIcon className="search-icon" />
             <input
@@ -254,64 +379,42 @@ export default function PhoneSubmission() {
           </div>
         </div>
 
-        <div className="stats-section">
-          <div className="stat-box">전체 : {stats.total}명</div>
-          <div className="stat-box attendance">
-            제출 : <span className="positive">{stats.submitted}</span>명
+        <div className="table-filters">
+          <div className="filter-group">
+            <label className="filter-label">성별:</label>
+            <div className="filter-buttons">
+              {(['전체', '남', '여'] as const).map((gender) => (
+                <button
+                  key={gender}
+                  type="button"
+                  className={`filter-btn ${genderFilter === gender ? 'active' : ''}`}
+                  onClick={() => setGenderFilter(gender)}
+                >
+                  {gender}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="stat-box phone-submission">
-            미제출 :{' '}
-            <span className="phone-submission-count">{stats.notSubmitted}</span>
-            명
-          </div>
-          <div className="stat-box sleepover">
-            외박 : <span className="sleepover-count">{stats.sleepover}</span>명
+
+          <div className="filter-group">
+            <label className="filter-label">학년:</label>
+            <div className="filter-buttons">
+              {(['전체', 1, 2, 3] as const).map((grade) => (
+                <button
+                  key={grade}
+                  type="button"
+                  className={`filter-btn ${gradeFilter === grade ? 'active' : ''}`}
+                  onClick={() => setGradeFilter(grade)}
+                >
+                  {grade === '전체' ? '전체' : `${grade}학년`}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="filter-section">
-        <div className="filter-group">
-          <label className="filter-label">성별:</label>
-          <div className="filter-buttons">
-            {(['전체', '남', '여'] as const).map((gender) => (
-              <button
-                key={gender}
-                type="button"
-                className={`filter-btn ${genderFilter === gender ? 'active' : ''}`}
-                onClick={() => setGenderFilter(gender)}
-              >
-                {gender}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="filter-group">
-          <label className="filter-label">학년:</label>
-          <div className="filter-buttons">
-            {(['전체', 1, 2, 3] as const).map((grade) => (
-              <button
-                key={grade}
-                type="button"
-                className={`filter-btn ${gradeFilter === grade ? 'active' : ''}`}
-                onClick={() => setGradeFilter(grade)}
-              >
-                {grade === '전체' ? '전체' : `${grade}학년`}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {updateMutation.isError && (
-        <div className="phone-submission-message error">
-          휴대폰 제출 상태 수정에 실패했습니다. 다시 시도해주세요.
-        </div>
-      )}
-
-      <div className="table-container">
-        <table className="student-table student-table-phone-submission">
+        <div className="table-container">
+          <table className="student-table student-table-phone-submission">
           <thead>
             <tr>
               <th>호실</th>
@@ -323,13 +426,11 @@ export default function PhoneSubmission() {
               <th>연락처</th>
             </tr>
           </thead>
-          <tbody>
-            {isLoading ? (
-              <tr className="phone-submission-empty-row">
-                <td colSpan={7} className="phone-submission-empty-cell">
-                  휴대폰 제출 현황을 불러오는 중입니다.
-                </td>
-              </tr>
+            <tbody>
+              {isLoading ? (
+                Array.from({ length: 8 }).map((_, index) => (
+                  <TableRowSkeleton key={index} columns={7} />
+                ))
             ) : filteredStudents.length > 0 ? (
               filteredStudents.map((student) => (
                 <tr key={`${currentDate}-${student.phoneBoxId}-${student.studentId}`}>
@@ -373,7 +474,8 @@ export default function PhoneSubmission() {
               </tr>
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

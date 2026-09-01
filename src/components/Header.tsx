@@ -14,6 +14,24 @@ interface HeaderProps {
   actions?: ReactNode;
 }
 
+function MaleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="9" cy="15" r="4" />
+      <path d="m12 12 8-8M15 4h5v5" />
+    </svg>
+  );
+}
+
+function FemaleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="9" r="4" />
+      <path d="M12 13v8M8.5 18h7" />
+    </svg>
+  );
+}
+
 function LogoutIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -121,6 +139,7 @@ export default function Header({ actions }: HeaderProps) {
                     }`}
                     onClick={() => setGenderView('남')}
                   >
+                    <MaleIcon />
                     남
                   </button>
                   <button
@@ -146,6 +165,7 @@ export default function Header({ actions }: HeaderProps) {
                     }`}
                     onClick={() => setGenderView('여')}
                   >
+                    <FemaleIcon />
                     여
                   </button>
                 </div>

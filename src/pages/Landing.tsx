@@ -136,10 +136,10 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="landing-team" aria-labelledby="team-title">
-          <Reveal><div className="landing-team-heading"><p className="landing-eyebrow">THE PEOPLE BEHIND QVICK</p><h2 id="team-title">Qvick을 만드는<br />우리 부원들.</h2><p>기수와 역할은 <code>src/data/landingTeam.ts</code>에서 편하게 수정할 수 있습니다.</p></div></Reveal>
+        {/* <section className="landing-team" aria-labelledby="team-title">
+          <Reveal><div className="landing-team-heading"><p className="landing-eyebrow">THE PEOPLE BEHIND QVICK</p><h2 id="team-title">Team. Connect</h2></div></Reveal>
           <Reveal delayed><div className="landing-team-directory" role="table" aria-label="Qvick 부원 소개"><div className="landing-team-directory-head" role="row"><span role="columnheader">구분</span><span role="columnheader">이름</span><span role="columnheader">역할</span></div>{TEAM_LEADER && <div className="landing-team-directory-row is-leader" role="row"><span role="cell">부장 · {TEAM_LEADER.generation}기</span><strong className="landing-team-leader-name" role="cell">{TEAM_LEADER.name}<img className="landing-team-crown" src="/images/qvick-crown.svg" alt="" aria-hidden="true" /></strong><span role="cell">{TEAM_LEADER.role}</span></div>}{TEAM_MEMBERS.map((member, index) => <div className="landing-team-directory-row" role="row" key={`${member.name}-${member.role}-${index}`}><span role="cell">{member.generation}기</span><strong role="cell">{member.name}</strong><span role="cell">{member.role}</span></div>)}</div></Reveal>
-        </section>
+        </section> */}
 
         <section className="landing-closing" aria-labelledby="closing-title">
           <Reveal><div><p className="landing-eyebrow">WITH QVICK</p><h2 id="closing-title">기숙사 생활을<br className="landing-desktop-break" />조금 더 가볍게.</h2></div></Reveal>

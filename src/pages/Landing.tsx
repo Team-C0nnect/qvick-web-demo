@@ -1,6 +1,7 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import SplashCursor from '../components/SplashCursor';
+import { LANDING_TEAM_MEMBERS } from '../data/landingTeam';
 import '../styles/Landing.css';
 
 const STORE_LINKS = [
@@ -20,6 +21,11 @@ const FAQS = [
   { question: '공지와 일정은 어디에서 확인하나요?', answer: '앱의 공지와 홈 화면에서 최신 안내 및 오늘의 일정을 확인할 수 있습니다. 중요한 변경 사항은 알림으로도 안내됩니다.' },
   { question: '문제가 생기면 어디에 문의하나요?', answer: '기숙사 운영진에게 문의해 주세요. 앱 이용과 관련된 문의는 운영진이 안내한 채널을 통해 접수할 수 있습니다.' },
 ] as const;
+
+const TEAM_LEADER = LANDING_TEAM_MEMBERS.find((member) => member.isLeader);
+const TEAM_MEMBERS = LANDING_TEAM_MEMBERS
+  .filter((member) => !member.isLeader)
+  .sort((left, right) => left.generation - right.generation);
 
 function Reveal({ children, delayed = false }: { children: ReactNode; delayed?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -52,6 +58,7 @@ function StoreBadge({ name, url, badgeSrc, badgeAlt }: (typeof STORE_LINKS)[numb
 
 export default function Landing() {
   const pageRef = useRef<HTMLDivElement>(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const page = pageRef.current;
@@ -129,13 +136,9 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="landing-moments" aria-labelledby="moments-title">
-          <Reveal><div className="landing-moments-heading"><p className="landing-eyebrow">DESIGNED FOR THE EVERYDAY</p><h2 id="moments-title">필요한 정보는<br />필요한 곳에.</h2></div></Reveal>
-          <div className="landing-moment-grid">
-            <Reveal><article className="landing-moment-card is-violet"><span>01</span><h3>지금 해야 할 일을<br />먼저 보여주고</h3><div className="landing-moment-pulse" aria-hidden="true"><i /><i /><i /></div></article></Reveal>
-            <Reveal delayed><article className="landing-moment-card is-light"><span>02</span><h3>변경된 일정은<br />바로 알려주고</h3><div className="landing-moment-lines" aria-hidden="true"><i /><i /><i /></div></article></Reveal>
-            <Reveal delayed><article className="landing-moment-card is-ink"><span>03</span><h3>중요한 안내는<br />놓치지 않게.</h3><div className="landing-moment-notice" aria-hidden="true"><i>NEW</i><b>기숙사 생활 안내</b><em>확인하기 →</em></div></article></Reveal>
-          </div>
+        <section className="landing-team" aria-labelledby="team-title">
+          <Reveal><div className="landing-team-heading"><p className="landing-eyebrow">THE PEOPLE BEHIND QVICK</p><h2 id="team-title">Qvick을 만드는<br />우리 부원들.</h2><p>기수와 역할은 <code>src/data/landingTeam.ts</code>에서 편하게 수정할 수 있습니다.</p></div></Reveal>
+          <Reveal delayed><div className="landing-team-directory" role="table" aria-label="Qvick 부원 소개"><div className="landing-team-directory-head" role="row"><span role="columnheader">구분</span><span role="columnheader">이름</span><span role="columnheader">역할</span></div>{TEAM_LEADER && <div className="landing-team-directory-row is-leader" role="row"><span role="cell"><i className="landing-team-crown" aria-hidden="true">♛</i>부장 · {TEAM_LEADER.generation}기</span><strong role="cell">{TEAM_LEADER.name}</strong><span role="cell">{TEAM_LEADER.role}</span></div>}{TEAM_MEMBERS.map((member, index) => <div className="landing-team-directory-row" role="row" key={`${member.name}-${member.role}-${index}`}><span role="cell">{member.generation}기</span><strong role="cell">{member.name}</strong><span role="cell">{member.role}</span></div>)}</div></Reveal>
         </section>
 
         <section className="landing-closing" aria-labelledby="closing-title">
@@ -145,7 +148,12 @@ export default function Landing() {
 
         <section className="landing-faq" aria-labelledby="faq-title">
           <Reveal><div className="landing-faq-heading"><p className="landing-eyebrow">FAQ</p><h2 id="faq-title">자주 묻는 질문</h2><p>Qvick 이용 전 알아두면 좋은 내용을 모았습니다.</p></div></Reveal>
-          <div className="landing-faq-list">{FAQS.map((faq, index) => <Reveal delayed={index > 0} key={faq.question}><details><summary><span>{faq.question}</span><b aria-hidden="true">+</b></summary><p>{faq.answer}</p></details></Reveal>)}</div>
+          <div className="landing-faq-list">{FAQS.map((faq, index) => {
+            const isOpen = openFaqIndex === index;
+            const answerId = `faq-answer-${index}`;
+
+            return <Reveal delayed={index > 0} key={faq.question}><div className="landing-faq-item"><button className={`landing-faq-button${isOpen ? ' is-open' : ''}`} type="button" aria-expanded={isOpen} aria-controls={answerId} onClick={() => setOpenFaqIndex(isOpen ? null : index)}><span>{faq.question}</span><b aria-hidden="true">+</b></button>{isOpen && <p id={answerId} className="landing-faq-answer">{faq.answer}</p>}</div></Reveal>;
+          })}</div>
         </section>
       </main>
 

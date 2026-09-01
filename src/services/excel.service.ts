@@ -113,6 +113,7 @@ export const exportMergedAttendanceToExcel = (
   exportMode: AttendanceExportMode = 'all',
   attendanceType: AttendanceType = 'NIGHT',
   attendanceDate = formatLocalDate(),
+  registeredRooms: string[] = [],
 ) => {
   const workbook = XLSX.utils.book_new();
 
@@ -138,7 +139,10 @@ export const exportMergedAttendanceToExcel = (
     // 전체인 경우 기존 레이아웃
     const floors =
       gender === '여' ? [2] : gender === '남' ? [3, 4, 5] : undefined;
-    const roomOrder = generateRoomOrder(floors);
+    const roomOrder = generateRoomOrder(floors, [
+      ...registeredRooms,
+      ...data.map(({ room }) => room),
+    ]);
     const roomMap = groupMembersByRoom(data, roomOrder);
     const pageGroups = definePageGroups(roomOrder, floors);
 
@@ -170,16 +174,24 @@ export const exportMergedAttendanceToExcel = (
 /**
  * 방 번호 순서 생성
  */
-function generateRoomOrder(floors?: number[]): string[] {
-  const roomOrder: string[] = [];
+function generateRoomOrder(floors?: number[], registeredRooms: string[] = []): string[] {
+  const roomOrder = new Set<string>();
   FLOOR_CONFIG.floors
     .filter((f) => !floors || floors.includes(f.floor))
     .forEach((floorInfo) => {
       for (let i = floorInfo.start; i <= floorInfo.end; i++) {
-        roomOrder.push(FLOOR_CONFIG.formatRoomNumber(floorInfo.floor, i));
+        roomOrder.add(FLOOR_CONFIG.formatRoomNumber(floorInfo.floor, i));
       }
     });
-  return roomOrder;
+
+  registeredRooms.forEach((room) => {
+    const floor = Number(room.charAt(0));
+    if (room && (!floors || floors.includes(floor))) roomOrder.add(room);
+  });
+
+  return [...roomOrder].sort((a, b) =>
+    a.localeCompare(b, 'ko-KR', { numeric: true }),
+  );
 }
 
 /**
@@ -209,6 +221,7 @@ function groupMembersByRoom(
  */
 function definePageGroups(roomOrder: string[], floors?: number[]): PageGroup[] {
   const pageGroups: PageGroup[] = [];
+  const includedRooms = new Set<string>();
 
   FLOOR_CONFIG.pageGroups
     .filter((fg) => !floors || floors.includes(fg.floor))
@@ -227,14 +240,34 @@ function definePageGroups(roomOrder: string[], floors?: number[]): PageGroup[] {
         const startRoomNum = Number(startRoom);
         const endRoomNum = Number(endRoom);
 
+        const isLastGroup =
+          group === floorGroup.groups[floorGroup.groups.length - 1];
         const rooms = roomOrder.filter((room) => {
           const roomNum = Number(room);
-          return roomNum >= startRoomNum && roomNum <= endRoomNum;
+          return (
+            room.charAt(0) === String(floorGroup.floor) &&
+            roomNum >= startRoomNum &&
+            (isLastGroup || roomNum <= endRoomNum)
+          );
         });
 
-        pageGroups.push({ name: groupName, rooms });
+        const dynamicGroupName =
+          isLastGroup && rooms.length > 0
+            ? `${rooms[0]}-${rooms[rooms.length - 1]}`
+            : groupName;
+        rooms.forEach((room) => includedRooms.add(room));
+        pageGroups.push({ name: dynamicGroupName, rooms });
       });
     });
+
+  // 기본 층 범위 밖에서 새로 만든 호실도 누락 없이 별도 시트로 추가한다.
+  const additionalRooms = roomOrder.filter((room) => !includedRooms.has(room));
+  for (let index = 0; index < additionalRooms.length; index += 9) {
+    const rooms = additionalRooms.slice(index, index + 9);
+    const name =
+      rooms.length === 1 ? rooms[0] : `${rooms[0]}-${rooms[rooms.length - 1]}`;
+    pageGroups.push({ name, rooms });
+  }
 
   return pageGroups;
 }

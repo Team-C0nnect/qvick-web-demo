@@ -72,16 +72,26 @@ export function SearchIcon({ className = '', style }: IconProps) {
 export function ExcelIcon({ className = '', style }: IconProps) {
   return (
     <svg
-      width="22"
-      height="22"
-      viewBox="0 0 22 22"
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`icon ${className}`}
       style={style}
     >
-      <rect width="22" height="22" rx="4" fill="#164e8d" />
-      <path d="M6 6H16V8H6V6ZM6 10H16V12H6V10ZM6 14H16V16H6V14Z" fill="white" />
+      <path
+        d="M4.75 1.75H12.4L15.75 5.1V17A1.25 1.25 0 0 1 14.5 18.25H4.75A1.25 1.25 0 0 1 3.5 17V3A1.25 1.25 0 0 1 4.75 1.75Z"
+        fill="currentColor"
+      />
+      <path d="M12.25 1.75V5.25H15.75" fill="#E7F5EC" />
+      <path
+        d="M6.2 8.05L8.15 10.6L6.1 13.3M11.35 8.05L9.4 10.6L11.45 13.3"
+        stroke="#FFFFFF"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

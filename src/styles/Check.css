@@ -149,12 +149,12 @@
 }
 
 .check-page .excel-button {
-  min-height: 34px;
-  padding: 0 12px;
-  border: 1px solid #6d23ed;
-  border-radius: 8px;
-  background: #6d23ed;
-  color: #ffffff;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid #b8dcc5;
+  border-radius: 10px;
+  background: #f2fbf5;
+  color: #176b3a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -166,12 +166,20 @@
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease,
+    box-shadow 0.15s ease,
     opacity 0.15s ease;
 }
 
 .check-page .excel-button:hover:not(:disabled) {
-  background: #5919c7;
-  border-color: #5919c7;
+  border-color: #73b98c;
+  background: #e4f6e9;
+  box-shadow: 0 3px 8px rgba(23, 107, 58, 0.12);
+}
+
+.check-page .excel-button:focus-visible {
+  outline: none;
+  border-color: #217346;
+  box-shadow: 0 0 0 3px rgba(33, 115, 70, 0.18);
 }
 
 .check-page .excel-button:disabled {
@@ -180,10 +188,10 @@
 }
 
 .check-page .excel-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
-  color: #ffffff;
+  color: #217346;
 }
 
 .check-page .excel-caret {
@@ -212,7 +220,7 @@
   gap: 12px;
   padding: 8px 10px 10px;
   border-bottom: 1px solid #ececef;
-  color: #6d23ed;
+  color: #176b3a;
   font-size: 12px;
   font-weight: 800;
 }
@@ -230,8 +238,8 @@
 }
 
 .check-page .excel-menu-header-action:hover {
-  color: #6d23ed;
-  background: rgba(109, 35, 237, 0.06);
+  color: #176b3a;
+  background: rgba(23, 107, 58, 0.08);
 }
 
 .check-page .excel-menu-item {
@@ -255,8 +263,8 @@
 }
 
 .check-page .excel-menu-item:hover {
-  border-color: rgba(109, 35, 237, 0.18);
-  background: rgba(109, 35, 237, 0.06);
+  border-color: rgba(23, 107, 58, 0.2);
+  background: rgba(23, 107, 58, 0.07);
 }
 
 .check-page .excel-menu-item + .excel-menu-item {

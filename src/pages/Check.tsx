@@ -16,6 +16,7 @@ import { useOutletContext } from 'react-router-dom';
 import { studentService } from '../services/student.service';
 import { attendanceService } from '../services/attendance.service';
 import { scheduleService } from '../services/schedule.service';
+import { roomService } from '../services/room.service';
 import type { LayoutOutletContext } from '../components/Layout';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import type {
@@ -358,6 +359,13 @@ export default function Check() {
   const { data: studentsData } = useQuery({
     queryKey: ['students-all'],
     queryFn: () => studentService.getStudents({ page: 0, size: 1000 }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 빈 호실도 출석부 양식에 표시할 수 있도록 방 관리 목록을 함께 사용한다.
+  const { data: roomsData = [] } = useQuery({
+    queryKey: ['rooms'],
+    queryFn: roomService.getRooms,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -731,6 +739,7 @@ export default function Check() {
           exportMode,
           attendanceType,
           currentDate,
+          roomsData.map(({ room }) => room),
         );
       } catch (error) {
         console.error('엑셀 내보내기 실패:', error);
@@ -739,7 +748,7 @@ export default function Check() {
         setIsExporting(false);
       }
     },
-    [attendanceType, currentDate, students],
+    [attendanceType, currentDate, roomsData, students],
   );
 
   // 출석 데이터의 각 날짜별 스케줄을 로드
@@ -1512,9 +1521,12 @@ export default function Check() {
         <div className="filter-actions">
           <div className="excel-dropdown" ref={excelMenuRef}>
             <button
+              type="button"
               className="excel-button"
               onClick={() => setShowExcelMenu(!showExcelMenu)}
               disabled={isExporting}
+              aria-expanded={showExcelMenu}
+              aria-haspopup="menu"
             >
               <ExcelIcon className="excel-icon" />
               {isExporting ? '다운로드 중...' : 'Excel'}

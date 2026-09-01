@@ -97,8 +97,7 @@ const renderNightStudyStatus = (status: NightStudyDisplayStatus) => {
 
 export default function NightStudy() {
   const queryClient = useQueryClient();
-  const { selectedDate: currentDate, setSelectedDate: setCurrentDate } =
-    useSelectedDate();
+  const { selectedDate: currentDate } = useSelectedDate();
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(
     '전체',
@@ -205,28 +204,6 @@ export default function NightStudy() {
   return (
     <div className="check-page night-study-page">
       <div className="controls-section">
-        <div className="controls-left">
-          <div className="date-picker">
-            <input
-              type="date"
-              value={currentDate}
-              onChange={(e) => {
-                setCurrentDate(e.target.value);
-                setSyncMessage('');
-              }}
-            />
-          </div>
-          <div className="search-box">
-            <SearchIcon className="search-icon" />
-            <input
-              type="text"
-              placeholder="호실 / 이름 / 학번으로 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
         <div className="stats-section">
           <div className="stat-box">전체 : {stats.total}명</div>
           <div className="stat-box attendance">
@@ -240,46 +217,13 @@ export default function NightStudy() {
           </div>
           <button
             type="button"
-            className="night-study-secondary-button"
+            className="night-study-sync-button"
             onClick={() => syncMutation.mutate()}
             disabled={syncMutation.isPending}
           >
-            {syncMutation.isPending ? '동기화 중...' : '외부 동기화'}
+            <span className="night-study-sync-icon" aria-hidden="true">↻</span>
+            <span>{syncMutation.isPending ? '동기화 중...' : '외부 동기화'}</span>
           </button>
-        </div>
-      </div>
-
-      <div className="filter-section">
-        <div className="filter-group">
-          <label className="filter-label">성별:</label>
-          <div className="filter-buttons">
-            {(['전체', '남', '여'] as const).map((gender) => (
-              <button
-                key={gender}
-                type="button"
-                className={`filter-btn ${genderFilter === gender ? 'active' : ''}`}
-                onClick={() => setGenderFilter(gender)}
-              >
-                {gender}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="filter-group">
-          <label className="filter-label">학년:</label>
-          <div className="filter-buttons">
-            {(['전체', 1, 2, 3] as const).map((grade) => (
-              <button
-                key={grade}
-                type="button"
-                className={`filter-btn ${gradeFilter === grade ? 'active' : ''}`}
-                onClick={() => setGradeFilter(grade)}
-              >
-                {grade === '전체' ? '전체' : `${grade}학년`}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -293,49 +237,97 @@ export default function NightStudy() {
         </div>
       )}
 
-      <div className="table-container">
-        <table className="student-table student-table-focused">
-          <thead>
-            <tr>
-              <th>호실</th>
-              <th>이름</th>
-              <th>성별</th>
-              <th>학번</th>
-              <th>심야자습 출석</th>
-              <th>연락처</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr className="night-study-empty-row">
-                <td colSpan={6} className="night-study-empty-cell">
-                  심야자습 현황을 불러오는 중입니다.
-                </td>
+      <div className="table-panel">
+        <div className="table-toolbar">
+          <div className="search-box">
+            <SearchIcon className="search-icon" />
+            <input
+              type="text"
+              placeholder="호실 / 이름 / 학번으로 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="table-filters">
+          <div className="filter-group">
+            <label className="filter-label">성별:</label>
+            <div className="filter-buttons">
+              {(['전체', '남', '여'] as const).map((gender) => (
+                <button
+                  key={gender}
+                  type="button"
+                  className={`filter-btn ${genderFilter === gender ? 'active' : ''}`}
+                  onClick={() => setGenderFilter(gender)}
+                >
+                  {gender}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <label className="filter-label">학년:</label>
+            <div className="filter-buttons">
+              {(['전체', 1, 2, 3] as const).map((grade) => (
+                <button
+                  key={grade}
+                  type="button"
+                  className={`filter-btn ${gradeFilter === grade ? 'active' : ''}`}
+                  onClick={() => setGradeFilter(grade)}
+                >
+                  {grade === '전체' ? '전체' : `${grade}학년`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="table-container">
+          <table className="student-table student-table-focused">
+            <thead>
+              <tr>
+                <th>호실</th>
+                <th>이름</th>
+                <th>성별</th>
+                <th>학번</th>
+                <th>심야자습 출석</th>
+                <th>연락처</th>
               </tr>
-            ) : filteredStudents.length > 0 ? (
-              filteredStudents.map((student) => (
-                <tr key={`${currentDate}-${student.studentId}`}>
-                  <td className="room-cell" data-label="호실">
-                    {student.room}
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr className="night-study-empty-row">
+                  <td colSpan={6} className="night-study-empty-cell">
+                    심야자습 현황을 불러오는 중입니다.
                   </td>
-                  <td data-label="이름">{student.name}</td>
-                  <td data-label="성별">{student.gender}</td>
-                  <td data-label="학번">{student.studentId}</td>
-                  <td data-label="심야자습 출석">
-                    {renderNightStudyStatus(student.nightStudyAttendance)}
-                  </td>
-                  <td data-label="연락처">{student.phone}</td>
                 </tr>
-              ))
-            ) : (
-              <tr className="night-study-empty-row">
-                <td colSpan={6} className="night-study-empty-cell">
-                  조건에 맞는 학생이 없습니다.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              ) : filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => (
+                  <tr key={`${currentDate}-${student.studentId}`}>
+                    <td className="room-cell" data-label="호실">
+                      {student.room}
+                    </td>
+                    <td data-label="이름">{student.name}</td>
+                    <td data-label="성별">{student.gender}</td>
+                    <td data-label="학번">{student.studentId}</td>
+                    <td data-label="심야자습 출석">
+                      {renderNightStudyStatus(student.nightStudyAttendance)}
+                    </td>
+                    <td data-label="연락처">{student.phone}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr className="night-study-empty-row">
+                  <td colSpan={6} className="night-study-empty-cell">
+                    조건에 맞는 학생이 없습니다.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

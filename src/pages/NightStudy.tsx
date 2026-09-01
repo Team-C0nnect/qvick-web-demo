@@ -218,7 +218,7 @@ export default function NightStudy() {
     nightStudyTargetCount > 0
       ? Math.round((stats.present / nightStudyTargetCount) * 100)
       : 0;
-  const genderStats = nightStudyStudents.reduce(
+  const genderStats = filteredStudents.reduce(
     (acc, student) => {
       if (student.gender === '남') acc.male += 1;
       else acc.female += 1;

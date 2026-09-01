@@ -224,7 +224,7 @@ export default function PhoneSubmission() {
     submissionTargetCount > 0
       ? Math.round((stats.submitted / submissionTargetCount) * 100)
       : 0;
-  const genderStats = deviceSubmissionStudents.reduce(
+  const genderStats = filteredStudents.reduce(
     (acc, student) => {
       if (student.gender === '남') acc.male += 1;
       else if (student.gender === '여') acc.female += 1;

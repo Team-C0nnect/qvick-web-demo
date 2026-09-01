@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
-import { useSearchParams } from 'react-router-dom';
 import { studentService } from '../services/student.service';
 import { roomService } from '../services/room.service';
 import { authService } from '../services/auth.service';
@@ -58,9 +57,7 @@ const getStudentUpdateErrorMessage = (error: unknown): string => {
 export default function StudentManagement() {
   const queryClient = useQueryClient();
   const { error: showError } = useToast();
-  const [searchParams] = useSearchParams();
-  const selectedStudentId = searchParams.get('studentId') ?? '';
-  const [searchTerm, setSearchTerm] = useState(selectedStudentId);
+  const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [genderFilter, setGenderFilter] = useState<'전체' | '남' | '여'>(
@@ -75,14 +72,6 @@ export default function StudentManagement() {
   });
   const [editModal, setEditModal] = useState<EditableStudent | null>(null);
   const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
-
-  useEffect(() => {
-    if (!selectedStudentId) return;
-
-    setSearchTerm(selectedStudentId);
-    setGenderFilter('전체');
-    setGradeFilter('전체');
-  }, [selectedStudentId]);
 
   // 학생 목록 조회
   const { data: studentsData, isLoading } = useQuery({

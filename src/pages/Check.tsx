@@ -314,6 +314,11 @@ export default function Check() {
   );
   const excelMenuRef = useRef<HTMLDivElement>(null);
 
+  const navigateToStudentDetail = (studentId: number | null) => {
+    if (studentId === null) return;
+    navigate(`/check/${studentId}`);
+  };
+
   // 바깥 클릭 시 메뉴 닫기
   useEffect(() => {
     if (!showExcelMenu) return;
@@ -1667,8 +1672,29 @@ export default function Check() {
               const phoneSubmission = student.phoneSubmission ?? '-';
 
               return (
-                <tr key={index}>
-                  <td className="selection-cell" data-label="선택">
+                <tr
+                  key={index}
+                  className={student.id === null ? '' : 'student-detail-row'}
+                  onClick={() => navigateToStudentDetail(student.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      navigateToStudentDetail(student.id);
+                    }
+                  }}
+                  tabIndex={student.id === null ? undefined : 0}
+                  aria-label={
+                    student.id === null
+                      ? undefined
+                      : `${student.name} 학생 정보 보기`
+                  }
+                >
+                  <td
+                    className="selection-cell"
+                    data-label="선택"
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
+                  >
                     <input
                       type="checkbox"
                       className="selection-checkbox"
@@ -1691,21 +1717,12 @@ export default function Check() {
                     />
                   </td>
                   <td className="room-cell" data-label="호실">{student.room}</td>
-                  <td data-label="이름">
-                    <button
-                      type="button"
-                      className="student-profile-link"
-                      onClick={() =>
-                        navigate(
-                          `/admin/account-management?studentId=${encodeURIComponent(student.studentId)}`,
-                        )
-                      }
-                      aria-label={`${student.name} 학생 정보로 이동`}
-                    >
-                      {student.name}
-                    </button>
-                  </td>
-                  <td data-label={`${periodLabels.title} 상태`}>
+                  <td data-label="이름">{student.name}</td>
+                  <td
+                    data-label={`${periodLabels.title} 상태`}
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
+                  >
                     <AttendanceStatusPicker
                       value={student.status}
                       completeLabel={periodLabels.complete}

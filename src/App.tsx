@@ -6,6 +6,7 @@ import './App.css';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Check = lazy(() => import('./pages/Check'));
+const CheckStudentDetail = lazy(() => import('./pages/CheckStudentDetail'));
 const NightStudy = lazy(() => import('./pages/NightStudy'));
 const PhoneSubmission = lazy(() => import('./pages/PhoneSubmission'));
 const Sleepover = lazy(() => import('./pages/Sleepover'));
@@ -53,6 +54,7 @@ function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="check" element={<Check />} />
+          <Route path="check/:userId" element={<CheckStudentDetail />} />
           <Route path="night-study" element={<NightStudy />} />
           <Route path="phone-submissions" element={<PhoneSubmission />} />
           <Route path="sleepovers" element={<Sleepover />} />

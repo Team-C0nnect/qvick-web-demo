@@ -780,27 +780,13 @@
   font-weight: 600;
 }
 
-.check-page .student-profile-link {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-weight: 600;
+.check-page .student-table tbody tr.student-detail-row {
   cursor: pointer;
-  transition: color 0.15s ease;
 }
 
-.check-page .student-profile-link:hover {
-  color: #6d23ed;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.check-page .student-profile-link:focus-visible {
+.check-page .student-table tbody tr.student-detail-row:focus-visible {
   outline: 2px solid #6d23ed;
-  outline-offset: 3px;
-  border-radius: 3px;
+  outline-offset: -2px;
 }
 
 /* 상태 텍스트 (출석/미출석/지연/외박) */

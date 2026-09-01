@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import { studentService } from '../services/student.service';
+import { roomService } from '../services/room.service';
 import { authService } from '../services/auth.service';
 import apiClient from '../lib/api-client';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { SearchIcon } from '../components/Icons';
 import DeleteStudentModal from '../components/DeleteStudentModal';
 import EditStudentModal from '../components/EditStudentModal';
+import { useToast } from '../hooks/useToast';
 import type { MyUserResponse, TeacherUpdateStudentRequest } from '../types/api';
 import type {
   Student,
@@ -33,8 +36,27 @@ interface EditableStudent {
   dormitory: string;
 }
 
+const getStudentUpdateErrorMessage = (error: unknown): string => {
+  if (!isAxiosError(error)) {
+    return '학생 정보 수정에 실패했습니다. 잠시 후 다시 시도해주세요.';
+  }
+
+  const responseData = error.response?.data;
+  if (
+    responseData &&
+    typeof responseData === 'object' &&
+    'message' in responseData &&
+    typeof responseData.message === 'string'
+  ) {
+    return responseData.message;
+  }
+
+  return '학생 정보 수정에 실패했습니다. 잠시 후 다시 시도해주세요.';
+};
+
 export default function StudentManagement() {
   const queryClient = useQueryClient();
+  const { error: showError } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -55,6 +77,11 @@ export default function StudentManagement() {
   const { data: studentsData, isLoading } = useQuery({
     queryKey: ['students-all'],
     queryFn: () => studentService.getStudents({ page: 0, size: 1000 }),
+  });
+
+  const { data: roomsData, isSuccess: isRoomsLoaded } = useQuery({
+    queryKey: ['rooms'],
+    queryFn: roomService.getRooms,
   });
 
   const { data: user } = useQuery<MyUserResponse>({
@@ -85,7 +112,7 @@ export default function StudentManagement() {
     },
     onError: (error: Error) => {
       console.error('Update student error:', error);
-      alert('학생 정보 수정에 실패했습니다.');
+      showError(getStudentUpdateErrorMessage(error));
     },
   });
 
@@ -250,7 +277,20 @@ export default function StudentManagement() {
 
   const handleSaveStudent = (student: EditableStudent) => {
     if (!student.id) {
-      alert('학생 ID를 찾을 수 없습니다.');
+      showError('학생 정보를 찾을 수 없습니다. 목록을 새로고침한 뒤 다시 시도해주세요.');
+      return;
+    }
+
+    const room = student.room.trim();
+    if (!room) {
+      showError('호실을 입력해주세요.');
+      return;
+    }
+
+    if (isRoomsLoaded && !roomsData?.some((item) => item.room === room)) {
+      showError(
+        `${room}호실은 등록되어 있지 않습니다. 호실 관리에서 먼저 추가해주세요.`,
+      );
       return;
     }
 
@@ -260,7 +300,7 @@ export default function StudentManagement() {
         grade: student.grade,
         classroom: student.classroom,
         number: student.number,
-        room: student.room,
+        room,
         phoneNumber: student.phone,
         gender: student.gender === '남' ? 'MALE' : 'FEMALE',
       },

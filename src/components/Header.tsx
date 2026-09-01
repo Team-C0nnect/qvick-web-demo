@@ -25,7 +25,7 @@ function MaleIcon() {
 
 function FemaleIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="12" cy="9" r="4" />
       <path d="M12 13v8M8.5 18h7" />
     </svg>
@@ -165,8 +165,8 @@ export default function Header({ actions }: HeaderProps) {
                     }`}
                     onClick={() => setGenderView('여')}
                   >
-                    <FemaleIcon />
                     여
+                    <FemaleIcon />
                   </button>
                 </div>
 

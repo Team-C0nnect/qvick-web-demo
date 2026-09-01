@@ -223,6 +223,7 @@
 }
 
 .view-label svg {
+  flex: 0 0 14px;
   width: 14px;
   height: 14px;
 }

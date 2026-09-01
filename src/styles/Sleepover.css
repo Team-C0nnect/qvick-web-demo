@@ -113,23 +113,23 @@
 }
 
 .sleepover-page .sleepover-column-room {
-  width: 8%;
+  width: 12%;
 }
 
 .sleepover-page .sleepover-column-name {
-  width: 13%;
+  width: 18%;
 }
 
 .sleepover-page .sleepover-column-gender {
-  width: 7%;
-}
-
-.sleepover-page .sleepover-column-student-id {
   width: 10%;
 }
 
+.sleepover-page .sleepover-column-student-id {
+  width: 15%;
+}
+
 .sleepover-page .sleepover-column-reason {
-  width: 36%;
+  width: 23%;
 }
 
 .sleepover-page .sleepover-column-date {
@@ -137,7 +137,7 @@
 }
 
 .sleepover-page .sleepover-column-actions {
-  width: 12%;
+  width: 8%;
 }
 
 .sleepover-page .sleepover-reason-cell {

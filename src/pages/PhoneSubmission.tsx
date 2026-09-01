@@ -7,6 +7,7 @@ import { SearchIcon } from '../components/Icons';
 import DonutChart from '../components/DonutChart';
 import { RollingNumber } from '../components/RollingNumber';
 import { TableRowSkeleton } from '../components/Skeleton';
+import AttendanceStatusPicker from '../components/AttendanceStatusPicker';
 import '../styles/Check.css';
 import '../styles/PhoneSubmission.css';
 import type { DeviceSubmission, DeviceSubmissionStatus, Gender } from '../types/api';
@@ -76,19 +77,6 @@ const getDeviceSubmissionDisplayStatus = (
       return '미제출';
     case 'SLEEPOVER':
       return '외박';
-  }
-};
-
-const getDeviceSubmissionStatusClassName = (
-  status: DeviceSubmissionDisplayStatus,
-): string => {
-  switch (status) {
-    case '제출':
-      return 'status-present';
-    case '미제출':
-      return 'status-absent';
-    case '외박':
-      return 'status-sleepover';
   }
 };
 
@@ -444,22 +432,25 @@ export default function PhoneSubmission() {
                     {student.status === 'SLEEPOVER' ? (
                       <span className="status-sleepover">외박</span>
                     ) : (
-                      <select
-                        value={student.status}
-                        onChange={(e) =>
+                      <AttendanceStatusPicker
+                        value={
+                          student.status === 'SUBMITTED' ? '출석' : '미출석'
+                        }
+                        completeLabel="제출"
+                        lateLabel=""
+                        absentLabel="미제출"
+                        studentName={student.name}
+                        showLateOption={false}
+                        showSleepoverOption={false}
+                        menuTitle="휴대폰 제출 상태 변경"
+                        onChange={(status) =>
                           handleStatusChange(
                             student,
-                            e.target.value as DeviceSubmissionStatus,
+                            status === '출석' ? 'SUBMITTED' : 'NOT_SUBMITTED',
                           )
                         }
                         disabled={updateMutation.isPending}
-                        className={`phone-submission-select ${getDeviceSubmissionStatusClassName(
-                          student.displayStatus,
-                        )}`}
-                      >
-                        <option value="SUBMITTED">제출</option>
-                        <option value="NOT_SUBMITTED">미제출</option>
-                      </select>
+                      />
                     )}
                   </td>
                   <td data-label="제출 시간">{student.checkedAt}</td>

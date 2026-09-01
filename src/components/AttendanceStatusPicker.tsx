@@ -22,6 +22,9 @@ interface AttendanceStatusPickerProps {
   absentLabel: string;
   studentName: string;
   disabled?: boolean;
+  showLateOption?: boolean;
+  showSleepoverOption?: boolean;
+  menuTitle?: string;
   onChange: (
     status: AttendanceDisplayStatus,
     sleepoverReason?: string,
@@ -48,6 +51,9 @@ export default function AttendanceStatusPicker({
   absentLabel,
   studentName,
   disabled = false,
+  showLateOption = true,
+  showSleepoverOption = true,
+  menuTitle = '출결 상태 변경',
   onChange,
 }: AttendanceStatusPickerProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -65,9 +71,9 @@ export default function AttendanceStatusPicker({
     label: string;
   }> = [
     { value: '출석', label: completeLabel },
-    { value: '지연출석', label: lateLabel },
+    ...(showLateOption ? [{ value: '지연출석' as const, label: lateLabel }] : []),
     { value: '미출석', label: absentLabel },
-    { value: '외박', label: '외박' },
+    ...(showSleepoverOption ? [{ value: '외박' as const, label: '외박' }] : []),
   ];
 
   const updateMenuPosition = useCallback(() => {
@@ -77,7 +83,7 @@ export default function AttendanceStatusPicker({
     const rect = trigger.getBoundingClientRect();
     const viewportPadding = 12;
     const menuWidth = 208;
-    const menuHeight = 208;
+    const menuHeight = 40 + statusOptions.length * 38;
     const openUpward =
       window.innerHeight - rect.bottom < menuHeight && rect.top > menuHeight;
     const left = Math.min(
@@ -90,7 +96,7 @@ export default function AttendanceStatusPicker({
       left,
       openUpward,
     });
-  }, []);
+  }, [statusOptions.length]);
 
   useLayoutEffect(() => {
     if (!isMenuOpen) {
@@ -141,7 +147,7 @@ export default function AttendanceStatusPicker({
   const handleStatusSelect = (status: AttendanceDisplayStatus) => {
     setIsMenuOpen(false);
 
-    if (status === '외박') {
+    if (status === '외박' && showSleepoverOption) {
       setIsSleepoverReasonOpen(true);
       return;
     }
@@ -157,13 +163,13 @@ export default function AttendanceStatusPicker({
           menuPosition.openUpward ? 'open-upward' : ''
         }`}
         role="menu"
-        aria-label="출결 상태 선택"
+        aria-label={menuTitle}
         style={{
           top: menuPosition.top,
           left: menuPosition.left,
         }}
       >
-        <p className="attendance-status-menu-title">출결 상태 변경</p>
+        <p className="attendance-status-menu-title">{menuTitle}</p>
         {statusOptions.map((option) => {
           const isSelected = option.value === value;
           return (

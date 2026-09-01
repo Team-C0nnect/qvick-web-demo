@@ -4,9 +4,8 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 42px;
-  margin-left: auto;
-  padding: 0 16px;
+  min-height: 38px;
+  padding: 0 13px;
   border: 1px solid #6d23ed;
   border-radius: 10px;
   background: #6d23ed;
@@ -39,6 +38,15 @@
 .check-page.night-study-page .night-study-sync-icon {
   font-size: 18px;
   line-height: 1;
+}
+
+.check-page.night-study-page .night-study-filter-action {
+  display: flex;
+  margin-left: auto;
+}
+
+.check-page.night-study-page .legend-dot.not-applied {
+  background: #a1a1aa;
 }
 
 .check-page.night-study-page .night-study-message {
@@ -74,16 +82,25 @@
   background: #ffffff;
 }
 
-@media (max-width: 1200px) {
-  .check-page.night-study-page .night-study-sync-button {
-    flex: 0 0 auto;
+@media (max-width: 1400px) {
+  .check-page.night-study-page .table-filters {
+    flex-direction: row;
+    align-items: center;
   }
 }
 
 @media (max-width: 768px) {
-  .check-page.night-study-page .night-study-sync-button {
-    grid-column: 1 / -1;
+  .check-page.night-study-page .table-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .check-page.night-study-page .night-study-filter-action {
     margin-left: 0;
+  }
+
+  .check-page.night-study-page .night-study-sync-button {
+    width: 100%;
   }
 
   .check-page.night-study-page .student-table tbody tr.night-study-empty-row {

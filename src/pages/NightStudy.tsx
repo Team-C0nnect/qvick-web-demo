@@ -6,6 +6,8 @@ import { nightStudyService } from '../services/night-study.service';
 import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { SearchIcon } from '../components/Icons';
+import DonutChart from '../components/DonutChart';
+import { RollingNumber } from '../components/RollingNumber';
 import '../styles/Check.css';
 import '../styles/NightStudy.css';
 import type { AttendanceResponse } from '../types/api';
@@ -84,6 +86,9 @@ const getNightStudyDisplayStatus = (
   if (status === false) return '미출석';
   return '-';
 };
+
+const toPercent = (value: number, total: number): string =>
+  total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0.0%';
 
 const renderNightStudyStatus = (status: NightStudyDisplayStatus) => {
   if (status === '출석') {
@@ -201,29 +206,63 @@ export default function NightStudy() {
     { total: 0, present: 0, absent: 0, notApplied: 0 },
   );
 
+  const nightStudyTargetCount = stats.present + stats.absent;
+  const attendanceRate =
+    nightStudyTargetCount > 0
+      ? Math.round((stats.present / nightStudyTargetCount) * 100)
+      : 0;
+
   return (
     <div className="check-page night-study-page">
       <div className="controls-section">
-        <div className="stats-section">
-          <div className="stat-box">전체 : {stats.total}명</div>
-          <div className="stat-box attendance">
-            심자 출석 : <span className="positive">{stats.present}</span>명
+        <div className="donut-cards night-study-donut-cards">
+          <div className="donut-card night-study-donut-card">
+            <h3 className="donut-card-title">심야자습 현황</h3>
+            <div className="donut-card-body">
+              <DonutChart
+                key={`${stats.present}-${stats.absent}-${stats.notApplied}-${stats.total}`}
+                className="donut-card-chart"
+                total={stats.total}
+                label="심야자습 상태 비율"
+                segments={[
+                  { key: 'present', color: '#22c55e', value: stats.present },
+                  { key: 'absent', color: '#ef4444', value: stats.absent },
+                  {
+                    key: 'not-applied',
+                    color: '#a1a1aa',
+                    value: stats.notApplied,
+                  },
+                ]}
+              >
+                <span>출석률</span>
+                <strong>
+                  <RollingNumber value={attendanceRate} />%
+                </strong>
+              </DonutChart>
+              <ul className="donut-legend">
+                {[
+                  { label: '심자 출석', value: stats.present, tone: 'positive' },
+                  { label: '심자 미출석', value: stats.absent, tone: 'negative' },
+                  {
+                    label: '심자 미신청',
+                    value: stats.notApplied,
+                    tone: 'not-applied',
+                  },
+                ].map((item) => (
+                  <li key={item.tone}>
+                    <span className="legend-label">
+                      <i className={`legend-dot ${item.tone}`} />
+                      {item.label}
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={item.value} />명{' '}
+                      <em>({toPercent(item.value, stats.total)})</em>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="stat-box absence">
-            심자 미출석 : <span className="negative">{stats.absent}</span>명
-          </div>
-          <div className="stat-box">
-            심자 미신청 : <span>{stats.notApplied}</span>명
-          </div>
-          <button
-            type="button"
-            className="night-study-sync-button"
-            onClick={() => syncMutation.mutate()}
-            disabled={syncMutation.isPending}
-          >
-            <span className="night-study-sync-icon" aria-hidden="true">↻</span>
-            <span>{syncMutation.isPending ? '동기화 중...' : '외부 동기화'}</span>
-          </button>
         </div>
       </div>
 
@@ -281,6 +320,18 @@ export default function NightStudy() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="night-study-filter-action">
+            <button
+              type="button"
+              className="night-study-sync-button"
+              onClick={() => syncMutation.mutate()}
+              disabled={syncMutation.isPending}
+            >
+              <span className="night-study-sync-icon" aria-hidden="true">↻</span>
+              <span>{syncMutation.isPending ? '동기화 중...' : '외부 동기화'}</span>
+            </button>
           </div>
         </div>
 

@@ -301,7 +301,7 @@ export default function StudentManagement() {
         classroom: student.classroom,
         number: student.number,
         room,
-        phoneNumber: student.phone,
+        phoneNumber: student.phone.replace(/\D/g, ''),
         gender: student.gender === '남' ? 'MALE' : 'FEMALE',
       },
     });

@@ -42,6 +42,13 @@ const EMPTY_STUDENT: Student = {
   dormitory: '',
 };
 
+const formatPhoneNumber = (value: string): string => {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+};
+
 const EditStudentModal: React.FC<EditStudentModalProps> = ({
   isOpen,
   onClose,
@@ -51,7 +58,9 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
   const [formData, setFormData] = useState<Student>(EMPTY_STUDENT);
 
   useEffect(() => {
-    if (student) setFormData(student);
+    if (student) {
+      setFormData({ ...student, phone: formatPhoneNumber(student.phone) });
+    }
   }, [student]);
 
   if (!isOpen || !student) return null;
@@ -214,8 +223,14 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
                   type="text"
                   className="student-edit-input"
                   value={formData.phone}
+                  inputMode="numeric"
+                  maxLength={13}
+                  placeholder="010-1234-1234"
                   onChange={(event) =>
-                    setFormData({ ...formData, phone: event.target.value })
+                    setFormData({
+                      ...formData,
+                      phone: formatPhoneNumber(event.target.value),
+                    })
                   }
                 />
               </div>

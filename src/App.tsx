@@ -27,12 +27,14 @@ const InquiryAdmin = lazy(() => import('./pages/InquiryAdmin'));
 const Council = lazy(() => import('./pages/Council'));
 const TemporaryLogin = lazy(() => import('./pages/TemporaryLogin'));
 const TemporaryScan = lazy(() => import('./pages/TemporaryScan'));
+const Landing = lazy(() => import('./pages/Landing'));
 
 function App() {
   return (
     <Router>
       <Suspense fallback={null}>
         <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
@@ -45,14 +47,13 @@ function App() {
         <Route path="/temporary/login" element={<TemporaryLogin />} />
         <Route path="/temporary/scan" element={<TemporaryScan />} />
         <Route
-          path="/"
           element={
             <ProtectedRoute>
               <Layout />
             </ProtectedRoute>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="check" element={<Check />} />
           <Route path="check/:userId" element={<CheckStudentDetail />} />
           <Route path="night-study" element={<NightStudy />} />

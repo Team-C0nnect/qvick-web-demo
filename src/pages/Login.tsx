@@ -62,7 +62,7 @@ export default function Login() {
       toast.success('로그인 완료');
       
       // Navigate to dashboard
-      navigate('/');
+      navigate('/dashboard');
     },
     onError: (error: Error) => {
       console.error('Login error:', error);

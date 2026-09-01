@@ -58,7 +58,7 @@ export default function PatchNoteAdmin() {
   useEffect(() => {
     if (user && !isAdmin) {
       alert('접근 권한이 없습니다.');
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, isAdmin, navigate]);
 

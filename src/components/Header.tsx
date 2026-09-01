@@ -99,7 +99,7 @@ export default function Header({ actions }: HeaderProps) {
 
   return (
     <header className="header">
-      <Link to="/" className="logo-container">
+      <Link to="/dashboard" className="logo-container">
         <div className="logo-icon">
           <QvickLogoIcon />
         </div>

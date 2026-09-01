@@ -69,7 +69,7 @@ export default function Sidebar() {
   const isAdmin = user?.roles?.includes('ADMIN');
 
   const menuItems = [
-    { path: '/', label: '대시 보드', icon: 'dashboard' },
+    { path: '/dashboard', label: '대시 보드', icon: 'dashboard' },
     { path: '/check', label: '인원 확인', icon: 'check' },
     { path: '/night-study', label: '심야자습 확인', icon: 'book' },
     { path: '/phone-submissions', label: '휴대폰 제출 확인', icon: 'phone' },

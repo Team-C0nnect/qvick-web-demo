@@ -86,7 +86,7 @@ export default function InquiryAdminPage() {
   // 관리자가 아니면 리다이렉트
   useEffect(() => {
     if (!userLoading && !isAdmin) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [userLoading, isAdmin, navigate]);
 

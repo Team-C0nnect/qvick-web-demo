@@ -112,38 +112,31 @@
   table-layout: fixed;
 }
 
-.sleepover-page .student-table th:nth-child(1),
-.sleepover-page .student-table td:nth-child(1) {
+.sleepover-page .sleepover-column-room {
   width: 8%;
 }
 
-.sleepover-page .student-table th:nth-child(2),
-.sleepover-page .student-table td:nth-child(2) {
+.sleepover-page .sleepover-column-name {
   width: 13%;
 }
 
-.sleepover-page .student-table th:nth-child(3),
-.sleepover-page .student-table td:nth-child(3) {
+.sleepover-page .sleepover-column-gender {
   width: 7%;
 }
 
-.sleepover-page .student-table th:nth-child(4),
-.sleepover-page .student-table td:nth-child(4) {
+.sleepover-page .sleepover-column-student-id {
   width: 10%;
 }
 
-.sleepover-page .student-table th:nth-child(5),
-.sleepover-page .student-table td:nth-child(5) {
+.sleepover-page .sleepover-column-reason {
   width: 36%;
 }
 
-.sleepover-page .student-table th:nth-child(6),
-.sleepover-page .student-table td:nth-child(6) {
+.sleepover-page .sleepover-column-date {
   width: 14%;
 }
 
-.sleepover-page .student-table th:nth-child(7),
-.sleepover-page .student-table td:nth-child(7) {
+.sleepover-page .sleepover-column-actions {
   width: 12%;
 }
 

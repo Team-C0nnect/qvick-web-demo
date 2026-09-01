@@ -331,6 +331,15 @@ export default function Sleepover() {
 
         <div className="table-container">
           <table className="student-table">
+            <colgroup>
+              <col className="sleepover-column-room" />
+              <col className="sleepover-column-name" />
+              <col className="sleepover-column-gender" />
+              <col className="sleepover-column-student-id" />
+              <col className="sleepover-column-reason" />
+              <col className="sleepover-column-date" />
+              <col className="sleepover-column-actions" />
+            </colgroup>
             <thead>
               <tr>
                 <th>호실</th>

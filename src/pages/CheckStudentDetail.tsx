@@ -7,7 +7,6 @@ import { scheduleService } from '../services/schedule.service';
 import { studentService } from '../services/student.service';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { getAdjacentDate, formatLocalDate } from '../utils/date';
-import { getKoreanHolidayName } from '../constants/koreanHolidays';
 import type {
   AttendanceResponse,
   AttendanceScheduleResponse,
@@ -56,17 +55,13 @@ const isAttended = (status: AttendanceStatus) =>
 const getPeriodLabel = (period: AttendancePeriod) =>
   period === 'MORNING' ? '아침 퇴실' : '저녁 입실';
 
-const isNonOperatingAttendancePeriod = (
-  date: string,
+const isConfiguredAttendancePeriod = (
+  schedule: AttendanceScheduleResponse | undefined,
   period: AttendancePeriod,
-) => {
-  if (getKoreanHolidayName(date)) return true;
-
-  const day = new Date(`${date}T00:00:00`).getDay();
-  return period === 'MORNING'
-    ? day === 0 || day === 6
-    : day === 5 || day === 6;
-};
+) =>
+  period === 'MORNING'
+    ? Boolean(schedule?.morningStartTime && schedule?.morningEndTime)
+    : Boolean(schedule?.nightStartTime && schedule?.nightEndTime);
 
 const getPeriodEndTime = (
   schedule: AttendanceScheduleResponse | undefined,
@@ -228,15 +223,17 @@ export default function CheckStudentDetail() {
         const hasCheckedRecord = Boolean(record.checkedAt);
         const hasRecordedStatus = record.status !== 'ABSENT';
 
-        // 주말·공휴일에는 기본 생성된 미출석 행을 숨기고 실제 체크 기록만 남긴다.
-        if (isNonOperatingAttendancePeriod(record.date, record.period)) {
+        const schedule = attendanceScheduleMap.get(record.date);
+
+        // 일정에 없는 점호의 기본 미출석 행은 숨기고 실제 체크 기록만 남긴다.
+        if (!isConfiguredAttendancePeriod(schedule, record.period)) {
           return hasCheckedRecord ? [record] : [];
         }
 
         if (hasCheckedRecord || hasRecordedStatus) return [record];
 
         const endTime = getPeriodEndTime(
-          attendanceScheduleMap.get(record.date),
+          schedule,
           record.period,
         );
         if (!hasAttendancePeriodEnded(record.date, endTime, now)) return [];

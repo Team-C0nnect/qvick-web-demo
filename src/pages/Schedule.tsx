@@ -616,27 +616,18 @@ export default function Schedule() {
     const tasks = genders.flatMap((gender) =>
       selectedDates.map((date) => async () => {
         const existingSchedule = getSchedule(date, gender);
-        const calendarDay = calendarDays.find(
-          (day) => day.fullDate === date,
-        );
-        const isWeekend =
-          calendarDay?.dayOfWeek === 0 || calendarDay?.dayOfWeek === 6;
-        const scheduleTime = isWeekend
-          ? {
-              nightStartTime: completeTime.nightStartTime,
-              nightEndTime: completeTime.nightEndTime,
-            }
-          : completeTime;
-
         try {
           if (existingSchedule) {
-            await scheduleService.updateSchedule(date, gender, scheduleTime);
+            await scheduleService.updateSchedule(date, gender, {
+              ...completeTime,
+              clearMorning: false,
+            });
             updatedCount++;
           } else {
             await scheduleService.createSchedule({
               date,
               gender,
-              ...scheduleTime,
+              ...completeTime,
             });
             createdCount++;
           }
@@ -864,11 +855,6 @@ export default function Schedule() {
       : selectedDates.length === 1
         ? `등록된 기숙사 일정 ${selectedScheduleCount}개`
         : '선택한 날짜에 일정을 일괄 적용합니다.';
-  const hasSelectedWeekday = selectedDates.some((date) => {
-    const day = calendarDays.find((calendarDay) => calendarDay.fullDate === date);
-    return !!day && day.dayOfWeek >= 1 && day.dayOfWeek <= 5;
-  });
-
   const renderSelectedScheduleCard = (gender: Gender) => {
     const isMale = gender === 'MALE';
     const schedule = isMale
@@ -1029,25 +1015,17 @@ export default function Schedule() {
         </div>
 
         <div className="combined-period-list">
-          <section
-            className={`combined-period-card morning ${
-              hasSelectedWeekday ? '' : 'disabled'
-            }`}
-          >
+          <section className="combined-period-card morning">
             <div className="combined-period-heading">
               <span className="selected-period-icon">
                 <SunIcon />
               </span>
               <div>
                 <strong>아침 퇴실</strong>
-                <small>
-                  {hasSelectedWeekday
-                    ? '평일에 적용됩니다.'
-                    : '주말에는 적용되지 않습니다.'}
-                </small>
+                <small>선택한 모든 날짜에 적용됩니다.</small>
               </div>
             </div>
-            {renderTimeRange(morningDraft, !hasSelectedWeekday)}
+            {renderTimeRange(morningDraft)}
           </section>
 
           <section className="combined-period-card night">

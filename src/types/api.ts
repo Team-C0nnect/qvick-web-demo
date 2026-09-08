@@ -234,6 +234,7 @@ export interface TeacherUpdateAttendanceScheduleRequest {
   morningEndTime?: string;
   nightStartTime?: string;
   nightEndTime?: string;
+  clearMorning: boolean;
 }
 
 export interface DefaultAttendanceSchedule {

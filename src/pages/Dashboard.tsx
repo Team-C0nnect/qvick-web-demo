@@ -57,19 +57,34 @@ const getMinutesFromTime = (time?: string) => {
 };
 
 const getTimeBasedAttendanceType = (
-  nightStartTimes: Array<string | undefined>,
+  schedules: Array<{
+    morningStartTime?: string;
+    morningEndTime?: string;
+    nightStartTime?: string;
+  } | undefined>,
   now = new Date(),
 ): AttendanceType => {
-  const startMinutes = nightStartTimes
-    .map(getMinutesFromTime)
+  const nightStartMinutes = schedules
+    .map((schedule) => getMinutesFromTime(schedule?.nightStartTime))
     .filter((minutes): minutes is number => minutes !== null);
 
-  if (startMinutes.length === 0) {
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  if (
+    nightStartMinutes.length > 0 &&
+    currentMinutes >= Math.min(...nightStartMinutes)
+  ) {
+    return 'NIGHT';
+  }
+
+  if (!schedules.some(Boolean)) {
     return now.getHours() < 12 ? 'MORNING' : 'NIGHT';
   }
 
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  return currentMinutes >= Math.min(...startMinutes) ? 'NIGHT' : 'MORNING';
+  return schedules.some(
+    (schedule) => schedule?.morningStartTime && schedule.morningEndTime,
+  )
+    ? 'MORNING'
+    : 'NIGHT';
 };
 
 const PERIOD_CONFIG: Record<
@@ -101,16 +116,18 @@ const PERIOD_CONFIG: Record<
   },
 };
 
-const CLOSED_PERIODS_BY_DAY: Record<number, AttendanceType[]> = {
-  0: ['MORNING'],
-  5: ['NIGHT'],
-  6: ['MORNING', 'NIGHT'],
-};
-
-const isClosedPeriod = (dateStr: string, type: AttendanceType) =>
-  (
-    CLOSED_PERIODS_BY_DAY[new Date(`${dateStr}T00:00:00`).getDay()] ?? []
-  ).includes(type);
+const isConfiguredPeriod = (
+  schedule: {
+    morningStartTime?: string;
+    morningEndTime?: string;
+    nightStartTime?: string;
+    nightEndTime?: string;
+  } | undefined,
+  type: AttendanceType,
+) =>
+  type === 'MORNING'
+    ? Boolean(schedule?.morningStartTime && schedule?.morningEndTime)
+    : Boolean(schedule?.nightStartTime && schedule?.nightEndTime);
 
 const getAttendanceStatus = (
   attendance: AttendanceResponse,
@@ -271,13 +288,13 @@ export default function Dashboard() {
     queryFn: () => announcementService.getAnnouncements({ page: 0, size: 6 }),
   });
 
-  const { data: maleSchedule } = useQuery({
+  const { data: maleSchedule, isLoading: maleScheduleLoading } = useQuery({
     queryKey: ['schedule', today, 'MALE'],
     queryFn: () => scheduleService.getScheduleByDate(today, 'MALE'),
     retry: false,
   });
 
-  const { data: femaleSchedule } = useQuery({
+  const { data: femaleSchedule, isLoading: femaleScheduleLoading } = useQuery({
     queryKey: ['schedule', today, 'FEMALE'],
     queryFn: () => scheduleService.getScheduleByDate(today, 'FEMALE'),
     retry: false,
@@ -289,8 +306,8 @@ export default function Dashboard() {
     const updateAttendanceType = () => {
       syncAttendanceView(
         getTimeBasedAttendanceType([
-          maleSchedule?.nightStartTime,
-          femaleSchedule?.nightStartTime,
+          maleSchedule,
+          femaleSchedule,
         ]),
       );
     };
@@ -303,13 +320,18 @@ export default function Dashboard() {
 
     return () => window.clearInterval(interval);
   }, [
-    femaleSchedule?.nightStartTime,
+    femaleSchedule,
     isManual,
-    maleSchedule?.nightStartTime,
+    maleSchedule,
     syncAttendanceView,
   ]);
 
-  const isLoading = attendancesLoading || announcementsLoading;
+  const isLoading =
+    attendancesLoading ||
+    announcementsLoading ||
+    maleScheduleLoading ||
+    femaleScheduleLoading;
+  const selectedSchedule = genderView === '남' ? maleSchedule : femaleSchedule;
   const attendances = (attendancesData ?? []).filter(
     (attendance) =>
       attendance.student.gender === (genderView === '남' ? 'MALE' : 'FEMALE'),
@@ -390,7 +412,7 @@ export default function Dashboard() {
             {ATTENDANCE_TYPES.map((type) => {
               const summary = summaries[type];
               const config = PERIOD_CONFIG[type];
-              const closed = isClosedPeriod(today, type);
+              const closed = !isConfiguredPeriod(selectedSchedule, type);
 
               return (
                 <article

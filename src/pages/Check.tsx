@@ -72,6 +72,7 @@ type PendingBulkStatusChange = {
 type NightAttendanceDisplayStatus = '출석' | '미출석' | '-';
 type PhoneSubmissionDisplayStatus = '제출' | '미제출' | '외박' | '-';
 type AttendanceScheduleTime = {
+  morningStartTime?: string;
   morningEndTime?: string;
   nightStartTime?: string;
   nightEndTime?: string;
@@ -145,12 +146,23 @@ const getTimeBasedAttendanceType = (
     .map((schedule) => getMinutesFromTime(schedule?.nightStartTime))
     .filter((minutes): minutes is number => minutes !== null);
 
-  if (nightStartMinutes.length === 0) {
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  if (
+    nightStartMinutes.length > 0 &&
+    currentMinutes >= Math.min(...nightStartMinutes)
+  ) {
+    return 'NIGHT';
+  }
+
+  if (!schedules.some(Boolean)) {
     return now.getHours() < 12 ? 'MORNING' : 'NIGHT';
   }
 
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  return currentMinutes >= Math.min(...nightStartMinutes) ? 'NIGHT' : 'MORNING';
+  return schedules.some(
+    (schedule) => schedule?.morningStartTime && schedule.morningEndTime,
+  )
+    ? 'MORNING'
+    : 'NIGHT';
 };
 
 const STATUS_MAP: Record<DisplayAttendanceStatus, AttendanceStatus> = {

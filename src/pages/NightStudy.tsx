@@ -85,6 +85,17 @@ const getNightStudyRoomName = (
   period: NightStudyPeriodResponse,
 ): string => period.room?.name?.trim() || '-';
 
+// 심야자습 응답에는 성별이 없고, 현재 개발 API의 학생·출석 목록에는
+// 여학생 계정이 포함되지 않아 매칭되지 않는 신청자가 발생한다.
+// 학생 목록 API가 정상화되거나 심야자습 응답에 gender가 추가되면 이 fallback을 제거한다.
+const getNightStudyGender = (
+  gender: StudentResponse['gender'] | undefined,
+): NightStudyGender => {
+  if (gender === 'MALE') return '남';
+  if (gender === 'FEMALE') return '여';
+  return '여';
+};
+
 const getFloorFromRoom = (room: string): number | null => {
   const roomDigits = room.replace(/\D/g, '');
   if (roomDigits.length < 3) return null;
@@ -308,12 +319,7 @@ export default function NightStudy() {
         id: studentInfo?.id ?? null,
         room: studentInfo?.room ?? '-',
         name: applicant.name,
-        gender:
-          studentInfo?.gender === 'MALE'
-            ? '남'
-            : studentInfo?.gender === 'FEMALE'
-              ? '여'
-              : '-',
+        gender: getNightStudyGender(studentInfo?.gender),
         studentId,
         grade: applicant.grade,
         phone: formatPhoneNumber(studentInfo?.phoneNumber),

@@ -84,7 +84,15 @@ const getNightStudyDisplayStatus = (
 
 const getNightStudyRoomName = (
   period: NightStudyPeriodResponse,
-): string => period.room?.name?.trim() || '-';
+): string => {
+  const roomName = period.room?.name?.trim();
+  if (!roomName) return '-';
+
+  const classRoomMatch = roomName.match(/^CLASS_(\d+)_(\d+)$/i);
+  return classRoomMatch
+    ? `${classRoomMatch[1]}-${classRoomMatch[2]} 교실`
+    : roomName;
+};
 
 const getNightStudyFloor = (
   period1: NightStudyPeriodResponse,

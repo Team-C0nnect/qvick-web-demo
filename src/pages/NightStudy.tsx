@@ -234,7 +234,9 @@ export default function NightStudy() {
   } = useQuery({
     queryKey: ['night-study-applicants', currentDate],
     queryFn: () => nightStudyService.getNightStudyApplicants(currentDate),
-    staleTime: 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   const { data: studentsData } = useQuery({

@@ -90,6 +90,68 @@
   font-weight: 500;
 }
 
+.check-page.night-study-page .night-study-floor-list {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.check-page.night-study-page .night-study-floor-card-body {
+  align-items: flex-start;
+}
+
+.check-page.night-study-page .night-study-floor-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f4f4f5;
+}
+
+.check-page.night-study-page .night-study-floor-row:last-child {
+  border-bottom: none;
+}
+
+.check-page.night-study-page .night-study-floor-label {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 6px;
+  color: #17181a;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.check-page.night-study-page .night-study-floor-count {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: #52525b;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.check-page.night-study-page .night-study-floor-count b {
+  margin-left: auto;
+  color: #17181a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.check-page.night-study-page .night-study-floor-empty {
+  margin: 12px 0 4px;
+  color: #747678;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
 .check-page.night-study-page .status-not-applied {
   color: #71717a;
   font-weight: 600;
@@ -168,6 +230,10 @@
 
   .check-page.night-study-page .night-study-period-cell {
     align-items: flex-end;
+  }
+
+  .check-page.night-study-page .night-study-floor-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .check-page.night-study-page .student-table tbody tr.night-study-empty-row {

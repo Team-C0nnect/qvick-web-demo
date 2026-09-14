@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useAttendances } from '../hooks/useApi';
 import { nightStudyService } from '../services/night-study.service';
 import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
@@ -42,6 +43,14 @@ interface NightStudyStats {
   notApplied: number;
 }
 
+interface NightStudyFloorStats {
+  floor: number;
+  male: number;
+  female: number;
+}
+
+const FLOOR_CHART_COLORS = ['#6d23ed', '#3b82f6', '#14b8a6', '#f59e0b'];
+
 const getStudentNumber = (
   student: Pick<StudentResponse, 'grade' | 'classroom' | 'number'>,
 ) => `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
@@ -71,7 +80,41 @@ const getNightStudyRoomName = (
   period: NightStudyPeriodResponse,
 ): string => period.room?.name?.trim() || '-';
 
-const renderNightStudyStatus = (status: NightStudyDisplayStatus, room: string) => {
+const getFloorFromRoom = (room: string): number | null => {
+  const roomDigits = room.replace(/\D/g, '');
+  if (roomDigits.length < 3) return null;
+
+  const floor = Number(roomDigits.slice(0, -2));
+  return Number.isInteger(floor) && floor > 0 ? floor : null;
+};
+
+const buildFloorStats = (
+  students: NightStudyStudent[],
+): NightStudyFloorStats[] => {
+  const floorStats = new Map<number, Omit<NightStudyFloorStats, 'floor'>>();
+
+  students.forEach((student) => {
+    const floor = getFloorFromRoom(student.room);
+    if (floor === null) return;
+
+    const stats = floorStats.get(floor) ?? { male: 0, female: 0 };
+    if (student.gender === '남') stats.male += 1;
+    if (student.gender === '여') stats.female += 1;
+    floorStats.set(floor, stats);
+  });
+
+  return [...floorStats.entries()]
+    .sort(([floorA], [floorB]) => floorA - floorB)
+    .map(([floor, stats]) => ({ floor, ...stats }));
+};
+
+const getFloorChartColor = (index: number): string =>
+  FLOOR_CHART_COLORS[index % FLOOR_CHART_COLORS.length];
+
+const renderNightStudyStatus = (
+  status: NightStudyDisplayStatus,
+  room: string,
+) => {
   const statusClassName =
     status === '출석'
       ? 'status-present'
@@ -199,16 +242,36 @@ export default function NightStudy() {
     queryFn: () => studentService.getStudents({ page: 0, size: 1000 }),
     staleTime: 5 * 60 * 1000,
   });
+  const { data: attendancesData } = useAttendances(currentDate);
 
   const nightStudyStudents = useMemo<NightStudyStudent[]>(() => {
+    type StudentInfo = {
+      id: number | null;
+      room: string;
+      gender: StudentResponse['gender'];
+      phoneNumber?: string;
+    };
+
     const studentInfoMap = new Map<
       string,
-      Pick<StudentResponse, 'id' | 'room' | 'gender' | 'phoneNumber'>
+      StudentInfo
     >();
 
     studentsData?.content.forEach((student) => {
       studentInfoMap.set(getStudentNumber(student), {
         id: student.id,
+        room: student.room,
+        gender: student.gender,
+        phoneNumber: student.phoneNumber,
+      });
+    });
+
+    attendancesData?.forEach(({ student }) => {
+      const studentId = getStudentNumber(student);
+      if (studentInfoMap.has(studentId)) return;
+
+      studentInfoMap.set(studentId, {
+        id: student.id ?? null,
         room: student.room,
         gender: student.gender,
         phoneNumber: student.phoneNumber,
@@ -238,9 +301,9 @@ export default function NightStudy() {
         period2Room: getNightStudyRoomName(applicant.period2),
       };
     });
-  }, [applicantsData, studentsData]);
+  }, [applicantsData, attendancesData, studentsData]);
 
-  const filteredStudents = useMemo(() => {
+  const matchingStudents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
     return [...nightStudyStudents]
@@ -263,29 +326,35 @@ export default function NightStudy() {
           if (!isMatched) return false;
         }
 
-        if (genderFilter !== '전체' && student.gender !== genderFilter) {
-          return false;
-        }
-
         if (gradeFilter !== '전체' && student.grade !== gradeFilter) {
           return false;
         }
 
         return true;
       });
-  }, [genderFilter, gradeFilter, nightStudyStudents, searchQuery]);
+  }, [gradeFilter, nightStudyStudents, searchQuery]);
+
+  const filteredStudents = useMemo(
+    () =>
+      matchingStudents.filter(
+        (student) =>
+          genderFilter === '전체' || student.gender === genderFilter,
+      ),
+    [genderFilter, matchingStudents],
+  );
 
   const period1Stats = buildNightStudyStats(filteredStudents, 'period1Status');
   const period2Stats = buildNightStudyStats(filteredStudents, 'period2Status');
-  const genderStats = filteredStudents.reduce(
-    (stats, student) => {
-      if (student.gender === '남') stats.male += 1;
-      if (student.gender === '여') stats.female += 1;
-      return stats;
-    },
-    { male: 0, female: 0 },
+  const floorStats = buildFloorStats(matchingStudents);
+  const floorTotal = floorStats.reduce(
+    (total, stats) => total + stats.male + stats.female,
+    0,
   );
-  const genderTotal = genderStats.male + genderStats.female;
+  const floorChartSegments = floorStats.map((stats, index) => ({
+    key: `floor-${stats.floor}`,
+    color: getFloorChartColor(index),
+    value: stats.male + stats.female,
+  }));
 
   return (
     <div className="check-page night-study-page">
@@ -294,45 +363,46 @@ export default function NightStudy() {
           <NightStudyStatsCard title="심야자습 1 현황" stats={period1Stats} />
           <NightStudyStatsCard title="심야자습 2 현황" stats={period2Stats} />
 
-          <div className="donut-card night-study-donut-card">
-            <h3 className="donut-card-title">성별 인원 구성</h3>
-            <div className="donut-card-body">
+          <div className="donut-card night-study-donut-card night-study-floor-card">
+            <h3 className="donut-card-title">층별 인원 구성</h3>
+            <div className="donut-card-body night-study-floor-card-body">
               <DonutChart
-                key={`${genderStats.male}-${genderStats.female}`}
+                key={`${floorTotal}-${floorChartSegments.map((segment) => segment.value).join('-')}`}
                 className="donut-card-chart"
-                total={genderTotal}
-                label="기숙사 성별 인원 비율"
-                segments={[
-                  { key: 'male', color: '#3b82f6', value: genderStats.male },
-                  {
-                    key: 'female',
-                    color: '#ec4899',
-                    value: genderStats.female,
-                  },
-                ]}
+                total={floorTotal}
+                label="층별 인원 비율"
+                segments={floorChartSegments}
               >
                 <span>전체 인원</span>
                 <strong>
-                  <RollingNumber value={genderTotal} />명
+                  <RollingNumber value={floorTotal} />명
                 </strong>
               </DonutChart>
-              <ul className="donut-legend">
-                {[
-                  { label: '남학생', value: genderStats.male, tone: 'male' },
-                  { label: '여학생', value: genderStats.female, tone: 'female' },
-                ].map((item) => (
-                  <li key={item.tone}>
-                    <span className="legend-label">
-                      <i className={`legend-dot ${item.tone}`} />
-                      {item.label}
-                    </span>
-                    <span className="legend-value">
-                      <RollingNumber value={item.value} />명{' '}
-                      <em>({toPercent(item.value, genderTotal)})</em>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <div className="night-study-floor-list">
+                {floorStats.length > 0 ? (
+                  floorStats.map((stats, index) => (
+                    <div className="night-study-floor-row" key={stats.floor}>
+                      <strong className="night-study-floor-label">
+                        <i
+                          className="legend-dot floor"
+                          style={{ backgroundColor: getFloorChartColor(index) }}
+                        />
+                        {stats.floor}층
+                      </strong>
+                      <span className="night-study-floor-count male">
+                        <i className="legend-dot male" />
+                        남학생 <b><RollingNumber value={stats.male} />명</b>
+                      </span>
+                      <span className="night-study-floor-count female">
+                        <i className="legend-dot female" />
+                        여학생 <b><RollingNumber value={stats.female} />명</b>
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="night-study-floor-empty">층별 인원 정보가 없습니다.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

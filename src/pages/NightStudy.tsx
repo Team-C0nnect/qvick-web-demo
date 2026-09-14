@@ -25,7 +25,7 @@ type NightStudyPeriodKey = 'period1Status' | 'period2Status';
 interface NightStudyStudent {
   id: number | null;
   room: string;
-  floor: number | null;
+  studyRoomFloor: number | null;
   name: string;
   gender: NightStudyGender;
   studentId: string;
@@ -57,9 +57,6 @@ interface NightStudyFloorGenderItem {
   value: number;
 }
 
-// 학생 메타데이터에 매칭되지 않는 여학생은 기존 기숙사 층 설정에 따라 2층으로 집계한다.
-const FEMALE_DORM_FLOOR = 2;
-
 const getStudentNumber = (
   student: Pick<StudentResponse, 'grade' | 'classroom' | 'number'>,
 ) => `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
@@ -89,6 +86,18 @@ const getNightStudyRoomName = (
   period: NightStudyPeriodResponse,
 ): string => period.room?.name?.trim() || '-';
 
+const getNightStudyFloor = (
+  period1: NightStudyPeriodResponse,
+  period2: NightStudyPeriodResponse,
+): number | null => {
+  const floor = period1.room?.floor ?? period2.room?.floor;
+  if (typeof floor !== 'number' || !Number.isInteger(floor) || floor <= 0) {
+    return null;
+  }
+
+  return floor;
+};
+
 // 심야자습 응답에는 성별이 없고, 현재 개발 API의 학생·출석 목록에는
 // 여학생 계정이 포함되지 않아 매칭되지 않는 신청자가 발생한다.
 // 학생 목록 API가 정상화되거나 심야자습 응답에 gender가 추가되면 이 fallback을 제거한다.
@@ -101,21 +110,13 @@ const getNightStudyGender = (
   return hasMetadata ? '여' : '-';
 };
 
-const getFloorFromRoom = (room: string): number | null => {
-  const roomDigits = room.replace(/\D/g, '');
-  if (roomDigits.length < 3) return null;
-
-  const floor = Number(roomDigits.slice(0, -2));
-  return Number.isInteger(floor) && floor > 0 ? floor : null;
-};
-
 const buildFloorStats = (
   students: NightStudyStudent[],
 ): NightStudyFloorStats[] => {
   const floorStats = new Map<number, Omit<NightStudyFloorStats, 'floor'>>();
 
   students.forEach((student) => {
-    const floor = student.floor;
+    const floor = student.studyRoomFloor;
     if (floor === null) return;
 
     const stats = floorStats.get(floor) ?? { male: 0, female: 0 };
@@ -331,9 +332,10 @@ export default function NightStudy() {
       return {
         id: studentInfo?.id ?? null,
         room,
-        floor:
-          getFloorFromRoom(room) ??
-          (gender === '여' && !studentInfo ? FEMALE_DORM_FLOOR : null),
+        studyRoomFloor: getNightStudyFloor(
+          applicant.period1,
+          applicant.period2,
+        ),
         name: applicant.name,
         gender,
         studentId,

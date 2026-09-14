@@ -67,6 +67,7 @@ export default function Sidebar() {
   });
 
   const isAdmin = user?.roles?.includes('ADMIN');
+  const canAccessAccountManagement = user?.roles?.includes('TEACHER');
 
   const menuItems = [
     { path: '/dashboard', label: '대시 보드', icon: 'dashboard' },
@@ -87,6 +88,12 @@ export default function Sidebar() {
     { path: '/admin/inquiry', label: '문의 관리', icon: 'inquiry' },
     { path: '/admin/account-management', label: '계정 관리', icon: 'account' },
   ];
+
+  const visibleAdminMenuItems = adminMenuItems.filter(
+    (item) =>
+      isAdmin ||
+      (canAccessAccountManagement && item.path === '/admin/account-management'),
+  );
 
   const getIcon = (iconType: string) => {
     const Icon = MENU_ICONS[iconType];
@@ -152,14 +159,14 @@ export default function Sidebar() {
         ))}
       </div>
 
-      {/* 관리자 권한일 때만 관리자 메뉴 표시 */}
-      {isAdmin && (
+      {/* 관리자 또는 사감선생님 권한에 따라 관리자 메뉴 표시 */}
+      {visibleAdminMenuItems.length > 0 && (
         <>
           <div className="sidebar-divider"></div>
 
           <div className="sidebar-section">
             <div className="sidebar-section-title">관리자</div>
-            {adminMenuItems.map((item) => (
+            {visibleAdminMenuItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}

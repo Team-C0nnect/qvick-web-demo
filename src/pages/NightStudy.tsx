@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAttendances } from '../hooks/useApi';
-import { attendanceService } from '../services/attendance.service';
+import { useQuery } from '@tanstack/react-query';
 import { nightStudyService } from '../services/night-study.service';
 import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
@@ -11,25 +9,41 @@ import { RollingNumber } from '../components/RollingNumber';
 import { TableRowSkeleton } from '../components/Skeleton';
 import '../styles/Check.css';
 import '../styles/NightStudy.css';
-import type { AttendanceResponse } from '../types/api';
+import type {
+  NightStudyPeriodResponse,
+  NightStudyStatus,
+  StudentResponse,
+} from '../types/api';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useGenderView } from '../context/GenderViewContext';
 
-type NightStudyDisplayStatus = '출석' | '미출석' | '-';
+type NightStudyDisplayStatus = '출석' | '미출석' | '미신청';
+type NightStudyGender = '남' | '여' | '-';
+type NightStudyPeriodKey = 'period1Status' | 'period2Status';
 
 interface NightStudyStudent {
   id: number | null;
   room: string;
   name: string;
-  gender: '남' | '여';
+  gender: NightStudyGender;
   studentId: string;
   grade: number;
   phone: string;
-  nightStudyAttendance: NightStudyDisplayStatus;
+  period1Status: NightStudyDisplayStatus;
+  period1Room: string;
+  period2Status: NightStudyDisplayStatus;
+  period2Room: string;
+}
+
+interface NightStudyStats {
+  total: number;
+  present: number;
+  absent: number;
+  notApplied: number;
 }
 
 const getStudentNumber = (
-  student: Pick<AttendanceResponse['student'], 'grade' | 'classroom' | 'number'>,
+  student: Pick<StudentResponse, 'grade' | 'classroom' | 'number'>,
 ) => `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
 
 const formatPhoneNumber = (phone?: string): string => {
@@ -45,65 +59,117 @@ const formatPhoneNumber = (phone?: string): string => {
   return phone;
 };
 
-const formatFetchedAt = (value: string): string => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${month}.${day} ${hours}:${minutes}`;
+const getNightStudyDisplayStatus = (
+  status: NightStudyStatus | null | undefined,
+): NightStudyDisplayStatus => {
+  if (status === 'ATTENDANCE') return '출석';
+  if (status === 'ABSENT') return '미출석';
+  return '미신청';
 };
 
-const buildSyncMessage = (
-  result: Awaited<ReturnType<typeof nightStudyService.syncNightStudies>>,
-  attendances: AttendanceResponse[],
-): string => {
-  const summary = attendances.reduce(
-    (acc, attendance) => {
-      acc.total += 1;
+const getNightStudyRoomName = (
+  period: NightStudyPeriodResponse,
+): string => period.room?.name?.trim() || '-';
 
-      if (attendance.nightStudyAttendance === true) {
-        acc.present += 1;
-      } else if (attendance.nightStudyAttendance === false) {
-        acc.absent += 1;
-      } else {
-        acc.notApplied += 1;
-      }
+const renderNightStudyStatus = (status: NightStudyDisplayStatus, room: string) => {
+  const statusClassName =
+    status === '출석'
+      ? 'status-present'
+      : status === '미출석'
+        ? 'status-absent'
+        : 'status-not-applied';
 
-      return acc;
+  return (
+    <div className="night-study-period-cell">
+      <span className={statusClassName}>{status}</span>
+      {room !== '-' && <span className="night-study-period-room">{room}</span>}
+    </div>
+  );
+};
+
+const buildNightStudyStats = (
+  students: NightStudyStudent[],
+  periodKey: NightStudyPeriodKey,
+): NightStudyStats =>
+  students.reduce(
+    (stats, student) => {
+      stats.total += 1;
+
+      if (student[periodKey] === '출석') stats.present += 1;
+      if (student[periodKey] === '미출석') stats.absent += 1;
+      if (student[periodKey] === '미신청') stats.notApplied += 1;
+
+      return stats;
     },
     { total: 0, present: 0, absent: 0, notApplied: 0 },
   );
-  const targetCount = summary.present + summary.absent;
-
-  return `외부 동기화 완료: 심자 총 인원 ${targetCount}명, 출석 ${summary.present}명, 미출석 ${summary.absent}명, 심야자습 미신청 ${summary.notApplied}명 (${formatFetchedAt(result.fetchedAt)})`;
-};
-
-const getNightStudyDisplayStatus = (
-  status: boolean | null | undefined,
-): NightStudyDisplayStatus => {
-  if (status === true) return '출석';
-  if (status === false) return '미출석';
-  return '-';
-};
 
 const toPercent = (value: number, total: number): string =>
   total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '0.0%';
 
-const renderNightStudyStatus = (status: NightStudyDisplayStatus) => {
-  if (status === '출석') {
-    return <span className="status-present">{status}</span>;
-  }
-  if (status === '미출석') {
-    return <span className="status-absent">{status}</span>;
-  }
-  return status;
-};
+function NightStudyStatsCard({
+  title,
+  stats,
+}: {
+  title: string;
+  stats: NightStudyStats;
+}) {
+  const targetCount = stats.present + stats.absent;
+  const attendanceRate =
+    targetCount > 0 ? Math.round((stats.present / targetCount) * 100) : 0;
+
+  return (
+    <div className="donut-card night-study-donut-card">
+      <h3 className="donut-card-title">{title}</h3>
+      <div className="donut-card-body">
+        <DonutChart
+          key={`${title}-${stats.present}-${stats.absent}-${stats.notApplied}-${stats.total}`}
+          className="donut-card-chart"
+          total={stats.total}
+          label={`${title} 상태 비율`}
+          segments={[
+            { key: 'present', color: '#22c55e', value: stats.present },
+            { key: 'absent', color: '#ef4444', value: stats.absent },
+            {
+              key: 'not-applied',
+              color: '#a1a1aa',
+              value: stats.notApplied,
+            },
+          ]}
+        >
+          <span>출석률</span>
+          <strong>
+            <RollingNumber value={attendanceRate} />%
+          </strong>
+        </DonutChart>
+        <ul className="donut-legend">
+          {[
+            { label: '출석', value: stats.present, tone: 'positive' },
+            { label: '미출석', value: stats.absent, tone: 'negative' },
+            {
+              label: '미신청',
+              value: stats.notApplied,
+              tone: 'not-applied',
+            },
+          ].map((item) => (
+            <li key={item.tone}>
+              <span className="legend-label">
+                <i className={`legend-dot ${item.tone}`} />
+                {item.label}
+              </span>
+              <span className="legend-value">
+                <RollingNumber value={item.value} />명{' '}
+                <em>({toPercent(item.value, stats.total)})</em>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
 
 export default function NightStudy() {
-  const queryClient = useQueryClient();
   const { selectedDate: currentDate } = useSelectedDate();
   const { genderView } = useGenderView();
   const [searchQuery, setSearchQuery] = useState('');
@@ -111,13 +177,22 @@ export default function NightStudy() {
     genderView,
   );
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
-  const [syncMessage, setSyncMessage] = useState('');
 
   useEffect(() => {
     setGenderFilter(genderView);
   }, [genderView]);
 
-  const { data: attendancesData, isLoading } = useAttendances(currentDate);
+  const {
+    data: applicantsData = [],
+    isLoading,
+    isError,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ['night-study-applicants', currentDate],
+    queryFn: () => nightStudyService.getNightStudyApplicants(currentDate),
+    staleTime: 60 * 1000,
+  });
 
   const { data: studentsData } = useQuery({
     queryKey: ['students-all'],
@@ -125,47 +200,45 @@ export default function NightStudy() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const syncMutation = useMutation({
-    mutationFn: () => nightStudyService.syncNightStudies(currentDate),
-    onSuccess: async (result) => {
-      const refreshedAttendances = await queryClient.fetchQuery({
-        queryKey: ['attendances', currentDate],
-        queryFn: () => attendanceService.getAttendances(currentDate),
-        staleTime: 0,
-      });
-      setSyncMessage(buildSyncMessage(result, refreshedAttendances));
-    },
-  });
-
   const nightStudyStudents = useMemo<NightStudyStudent[]>(() => {
-    const studentInfoMap = new Map<string, { id: number; phoneNumber?: string }>();
+    const studentInfoMap = new Map<
+      string,
+      Pick<StudentResponse, 'id' | 'room' | 'gender' | 'phoneNumber'>
+    >();
 
     studentsData?.content.forEach((student) => {
       studentInfoMap.set(getStudentNumber(student), {
         id: student.id,
+        room: student.room,
+        gender: student.gender,
         phoneNumber: student.phoneNumber,
       });
     });
 
-    return (attendancesData ?? []).map((attendance) => {
-      const student = attendance.student;
-      const studentId = getStudentNumber(student);
+    return applicantsData.map((applicant) => {
+      const studentId = getStudentNumber(applicant);
       const studentInfo = studentInfoMap.get(studentId);
 
       return {
-        id: studentInfo?.id ?? student.id ?? null,
-        room: student.room,
-        name: student.name,
-        gender: student.gender === 'MALE' ? '남' : '여',
+        id: studentInfo?.id ?? null,
+        room: studentInfo?.room ?? '-',
+        name: applicant.name,
+        gender:
+          studentInfo?.gender === 'MALE'
+            ? '남'
+            : studentInfo?.gender === 'FEMALE'
+              ? '여'
+              : '-',
         studentId,
-        grade: student.grade,
-        phone: formatPhoneNumber(studentInfo?.phoneNumber ?? student.phoneNumber),
-        nightStudyAttendance: getNightStudyDisplayStatus(
-          attendance.nightStudyAttendance,
-        ),
+        grade: applicant.grade,
+        phone: formatPhoneNumber(studentInfo?.phoneNumber),
+        period1Status: getNightStudyDisplayStatus(applicant.period1.status),
+        period1Room: getNightStudyRoomName(applicant.period1),
+        period2Status: getNightStudyDisplayStatus(applicant.period2.status),
+        period2Room: getNightStudyRoomName(applicant.period2),
       };
     });
-  }, [attendancesData, studentsData]);
+  }, [applicantsData, studentsData]);
 
   const filteredStudents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -202,27 +275,13 @@ export default function NightStudy() {
       });
   }, [genderFilter, gradeFilter, nightStudyStudents, searchQuery]);
 
-  const stats = filteredStudents.reduce(
-    (acc, student) => {
-      acc.total += 1;
-      if (student.nightStudyAttendance === '출석') acc.present += 1;
-      if (student.nightStudyAttendance === '미출석') acc.absent += 1;
-      if (student.nightStudyAttendance === '-') acc.notApplied += 1;
-      return acc;
-    },
-    { total: 0, present: 0, absent: 0, notApplied: 0 },
-  );
-
-  const nightStudyTargetCount = stats.present + stats.absent;
-  const attendanceRate =
-    nightStudyTargetCount > 0
-      ? Math.round((stats.present / nightStudyTargetCount) * 100)
-      : 0;
+  const period1Stats = buildNightStudyStats(filteredStudents, 'period1Status');
+  const period2Stats = buildNightStudyStats(filteredStudents, 'period2Status');
   const genderStats = filteredStudents.reduce(
-    (acc, student) => {
-      if (student.gender === '남') acc.male += 1;
-      else acc.female += 1;
-      return acc;
+    (stats, student) => {
+      if (student.gender === '남') stats.male += 1;
+      if (student.gender === '여') stats.female += 1;
+      return stats;
     },
     { male: 0, female: 0 },
   );
@@ -232,53 +291,8 @@ export default function NightStudy() {
     <div className="check-page night-study-page">
       <div className="controls-section">
         <div className="donut-cards night-study-donut-cards">
-          <div className="donut-card night-study-donut-card">
-            <h3 className="donut-card-title">심야자습 현황</h3>
-            <div className="donut-card-body">
-              <DonutChart
-                key={`${stats.present}-${stats.absent}-${stats.notApplied}-${stats.total}`}
-                className="donut-card-chart"
-                total={stats.total}
-                label="심야자습 상태 비율"
-                segments={[
-                  { key: 'present', color: '#22c55e', value: stats.present },
-                  { key: 'absent', color: '#ef4444', value: stats.absent },
-                  {
-                    key: 'not-applied',
-                    color: '#a1a1aa',
-                    value: stats.notApplied,
-                  },
-                ]}
-              >
-                <span>출석률</span>
-                <strong>
-                  <RollingNumber value={attendanceRate} />%
-                </strong>
-              </DonutChart>
-              <ul className="donut-legend">
-                {[
-                  { label: '심자 출석', value: stats.present, tone: 'positive' },
-                  { label: '심자 미출석', value: stats.absent, tone: 'negative' },
-                  {
-                    label: '심자 미신청',
-                    value: stats.notApplied,
-                    tone: 'not-applied',
-                  },
-                ].map((item) => (
-                  <li key={item.tone}>
-                    <span className="legend-label">
-                      <i className={`legend-dot ${item.tone}`} />
-                      {item.label}
-                    </span>
-                    <span className="legend-value">
-                      <RollingNumber value={item.value} />명{' '}
-                      <em>({toPercent(item.value, stats.total)})</em>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          <NightStudyStatsCard title="심야자습 1 현황" stats={period1Stats} />
+          <NightStudyStatsCard title="심야자습 2 현황" stats={period2Stats} />
 
           <div className="donut-card night-study-donut-card">
             <h3 className="donut-card-title">성별 인원 구성</h3>
@@ -324,13 +338,9 @@ export default function NightStudy() {
         </div>
       </div>
 
-      {(syncMessage || syncMutation.isError) && (
-        <div
-          className={`night-study-message ${syncMutation.isError ? 'error' : ''}`}
-        >
-          {syncMutation.isError
-            ? '심야자습 동기화에 실패했습니다. 다시 시도해주세요.'
-            : syncMessage}
+      {isError && (
+        <div className="night-study-message error" role="alert">
+          날짜별 심야자습 현황을 불러오지 못했습니다. 다시 시도해주세요.
         </div>
       )}
 
@@ -384,31 +394,32 @@ export default function NightStudy() {
             <button
               type="button"
               className="night-study-sync-button"
-              onClick={() => syncMutation.mutate()}
-              disabled={syncMutation.isPending}
+              onClick={() => void refetch()}
+              disabled={isFetching}
             >
               <span className="night-study-sync-icon" aria-hidden="true">↻</span>
-              <span>{syncMutation.isPending ? '동기화 중...' : '외부 동기화'}</span>
+              <span>{isFetching ? '조회 중...' : '새로고침'}</span>
             </button>
           </div>
         </div>
 
         <div className="table-container">
-          <table className="student-table student-table-focused">
+          <table className="student-table student-table-night-study">
             <thead>
               <tr>
                 <th>호실</th>
                 <th>이름</th>
                 <th>성별</th>
                 <th>학번</th>
-                <th>심야자습 출석</th>
+                <th>심야자습 1</th>
+                <th>심야자습 2</th>
                 <th>연락처</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 Array.from({ length: 8 }).map((_, index) => (
-                  <TableRowSkeleton key={index} columns={6} />
+                  <TableRowSkeleton key={index} columns={7} />
                 ))
               ) : filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
@@ -419,15 +430,24 @@ export default function NightStudy() {
                     <td data-label="이름">{student.name}</td>
                     <td data-label="성별">{student.gender}</td>
                     <td data-label="학번">{student.studentId}</td>
-                    <td data-label="심야자습 출석">
-                      {renderNightStudyStatus(student.nightStudyAttendance)}
+                    <td data-label="심야자습 1">
+                      {renderNightStudyStatus(
+                        student.period1Status,
+                        student.period1Room,
+                      )}
+                    </td>
+                    <td data-label="심야자습 2">
+                      {renderNightStudyStatus(
+                        student.period2Status,
+                        student.period2Room,
+                      )}
                     </td>
                     <td data-label="연락처">{student.phone}</td>
                   </tr>
                 ))
               ) : (
                 <tr className="night-study-empty-row">
-                  <td colSpan={6} className="night-study-empty-cell">
+                  <td colSpan={7} className="night-study-empty-cell">
                     조건에 맞는 학생이 없습니다.
                   </td>
                 </tr>

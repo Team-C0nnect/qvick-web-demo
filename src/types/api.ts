@@ -135,13 +135,25 @@ export interface SyncSleepoversResponse {
   skippedAlreadyAttendedCount: number;
 }
 
-export interface NightStudySyncResponse {
-  date: string; // format: date
-  fetchedAt: string; // format: date-time
-  attendedCaptured: boolean;
-  targetCount: number;
-  attendedCount: number;
-  skippedNotFoundCount: number;
+export type NightStudyStatus = 'ATTENDANCE' | 'ABSENT' | 'NOT_APPLIED';
+
+export interface NightStudyRoomResponse {
+  name: string;
+  floor: number;
+}
+
+export interface NightStudyPeriodResponse {
+  status: NightStudyStatus;
+  room?: NightStudyRoomResponse | null;
+}
+
+export interface NightStudyApplicantResponse {
+  name: string;
+  grade: number;
+  classroom: number;
+  number: number;
+  period1: NightStudyPeriodResponse;
+  period2: NightStudyPeriodResponse;
 }
 
 // Attendance Types

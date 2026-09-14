@@ -45,6 +45,56 @@
   margin-left: auto;
 }
 
+.check-page.night-study-page .student-table-night-study th:nth-child(1),
+.check-page.night-study-page .student-table-night-study td:nth-child(1) {
+  width: 10%;
+}
+
+.check-page.night-study-page .student-table-night-study th:nth-child(2),
+.check-page.night-study-page .student-table-night-study td:nth-child(2) {
+  width: 14%;
+}
+
+.check-page.night-study-page .student-table-night-study th:nth-child(3),
+.check-page.night-study-page .student-table-night-study td:nth-child(3) {
+  width: 8%;
+}
+
+.check-page.night-study-page .student-table-night-study th:nth-child(4),
+.check-page.night-study-page .student-table-night-study td:nth-child(4) {
+  width: 12%;
+}
+
+.check-page.night-study-page .student-table-night-study th:nth-child(5),
+.check-page.night-study-page .student-table-night-study td:nth-child(5),
+.check-page.night-study-page .student-table-night-study th:nth-child(6),
+.check-page.night-study-page .student-table-night-study td:nth-child(6) {
+  width: 18%;
+}
+
+.check-page.night-study-page .student-table-night-study th:nth-child(7),
+.check-page.night-study-page .student-table-night-study td:nth-child(7) {
+  width: 20%;
+}
+
+.check-page.night-study-page .night-study-period-cell {
+  display: inline-flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.check-page.night-study-page .night-study-period-room {
+  color: #747678;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.check-page.night-study-page .status-not-applied {
+  color: #71717a;
+  font-weight: 600;
+}
+
 .check-page.night-study-page .legend-dot.not-applied {
   background: #a1a1aa;
 }
@@ -109,6 +159,15 @@
 
   .check-page.night-study-page .night-study-sync-button {
     width: 100%;
+  }
+
+  .check-page.night-study-page .student-table-night-study td:nth-child(5),
+  .check-page.night-study-page .student-table-night-study td:nth-child(6) {
+    align-items: flex-start;
+  }
+
+  .check-page.night-study-page .night-study-period-cell {
+    align-items: flex-end;
   }
 
   .check-page.night-study-page .student-table tbody tr.night-study-empty-row {

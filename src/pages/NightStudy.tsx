@@ -25,6 +25,7 @@ type NightStudyPeriodKey = 'period1Status' | 'period2Status';
 interface NightStudyStudent {
   id: number | null;
   room: string;
+  floor: number | null;
   name: string;
   gender: NightStudyGender;
   studentId: string;
@@ -55,6 +56,9 @@ interface NightStudyFloorGenderItem {
   tone: 'male' | 'female';
   value: number;
 }
+
+// 학생 메타데이터에 매칭되지 않는 여학생은 기존 기숙사 층 설정에 따라 2층으로 집계한다.
+const FEMALE_DORM_FLOOR = 2;
 
 const getStudentNumber = (
   student: Pick<StudentResponse, 'grade' | 'classroom' | 'number'>,
@@ -90,10 +94,11 @@ const getNightStudyRoomName = (
 // 학생 목록 API가 정상화되거나 심야자습 응답에 gender가 추가되면 이 fallback을 제거한다.
 const getNightStudyGender = (
   gender: StudentResponse['gender'] | undefined,
+  hasMetadata: boolean,
 ): NightStudyGender => {
   if (gender === 'MALE') return '남';
   if (gender === 'FEMALE') return '여';
-  return '여';
+  return hasMetadata ? '여' : '-';
 };
 
 const getFloorFromRoom = (room: string): number | null => {
@@ -110,7 +115,7 @@ const buildFloorStats = (
   const floorStats = new Map<number, Omit<NightStudyFloorStats, 'floor'>>();
 
   students.forEach((student) => {
-    const floor = getFloorFromRoom(student.room);
+    const floor = student.floor;
     if (floor === null) return;
 
     const stats = floorStats.get(floor) ?? { male: 0, female: 0 };
@@ -270,12 +275,15 @@ export default function NightStudy() {
     refetchOnWindowFocus: true,
   });
 
-  const { data: studentsData } = useQuery({
+  const { data: studentsData, isSuccess: isStudentsLoaded } = useQuery({
     queryKey: ['students-all'],
     queryFn: () => studentService.getStudents({ page: 0, size: 1000 }),
     staleTime: 5 * 60 * 1000,
   });
-  const { data: attendancesData } = useAttendances(currentDate);
+  const {
+    data: attendancesData,
+    isSuccess: isAttendancesLoaded,
+  } = useAttendances(currentDate);
 
   const nightStudyStudents = useMemo<NightStudyStudent[]>(() => {
     type StudentInfo = {
@@ -314,12 +322,20 @@ export default function NightStudy() {
     return applicantsData.map((applicant) => {
       const studentId = getStudentNumber(applicant);
       const studentInfo = studentInfoMap.get(studentId);
+      const gender = getNightStudyGender(
+        studentInfo?.gender,
+        isStudentsLoaded || isAttendancesLoaded,
+      );
+      const room = studentInfo?.room ?? '-';
 
       return {
         id: studentInfo?.id ?? null,
-        room: studentInfo?.room ?? '-',
+        room,
+        floor:
+          getFloorFromRoom(room) ??
+          (gender === '여' && !studentInfo ? FEMALE_DORM_FLOOR : null),
         name: applicant.name,
-        gender: getNightStudyGender(studentInfo?.gender),
+        gender,
         studentId,
         grade: applicant.grade,
         phone: formatPhoneNumber(studentInfo?.phoneNumber),
@@ -329,7 +345,13 @@ export default function NightStudy() {
         period2Room: getNightStudyRoomName(applicant.period2),
       };
     });
-  }, [applicantsData, attendancesData, studentsData]);
+  }, [
+    applicantsData,
+    attendancesData,
+    isAttendancesLoaded,
+    isStudentsLoaded,
+    studentsData,
+  ]);
 
   const matchingStudents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -371,8 +393,8 @@ export default function NightStudy() {
     [genderFilter, matchingStudents],
   );
 
-  const period1Stats = buildNightStudyStats(filteredStudents, 'period1Status');
-  const period2Stats = buildNightStudyStats(filteredStudents, 'period2Status');
+  const period1Stats = buildNightStudyStats(matchingStudents, 'period1Status');
+  const period2Stats = buildNightStudyStats(matchingStudents, 'period2Status');
   const floorStats = buildFloorStats(matchingStudents);
   const genderStats = floorStats.reduce(
     (stats, floor) => ({

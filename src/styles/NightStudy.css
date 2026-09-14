@@ -95,52 +95,42 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .check-page.night-study-page .night-study-floor-card-body {
-  align-items: flex-start;
-}
-
-.check-page.night-study-page .night-study-floor-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-  border-bottom: 1px solid #f4f4f5;
-}
-
-.check-page.night-study-page .night-study-floor-row:last-child {
-  border-bottom: none;
-}
-
-.check-page.night-study-page .night-study-floor-label {
-  display: flex;
-  grid-column: 1 / -1;
-  align-items: center;
-  gap: 6px;
-  color: #17181a;
-  font-size: 13px;
-  font-weight: 800;
-  white-space: nowrap;
 }
 
 .check-page.night-study-page .night-study-floor-count {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 5px;
   min-width: 0;
+  padding: 4px 0;
+  border-bottom: 1px solid #f4f4f5;
   color: #52525b;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
 }
 
+.check-page.night-study-page .night-study-floor-count:last-child {
+  border-bottom: none;
+}
+
+.check-page.night-study-page .night-study-floor-count-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
 .check-page.night-study-page .night-study-floor-count b {
-  margin-left: auto;
+  flex-shrink: 0;
   color: #17181a;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
 }
 
@@ -232,8 +222,8 @@
     align-items: flex-end;
   }
 
-  .check-page.night-study-page .night-study-floor-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  .check-page.night-study-page .night-study-floor-card-body {
+    align-items: stretch;
   }
 
   .check-page.night-study-page .student-table tbody tr.night-study-empty-row {

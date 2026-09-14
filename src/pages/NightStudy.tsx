@@ -49,7 +49,12 @@ interface NightStudyFloorStats {
   female: number;
 }
 
-const FLOOR_CHART_COLORS = ['#6d23ed', '#3b82f6', '#14b8a6', '#f59e0b'];
+interface NightStudyFloorGenderItem {
+  key: string;
+  label: string;
+  tone: 'male' | 'female';
+  value: number;
+}
 
 const getStudentNumber = (
   student: Pick<StudentResponse, 'grade' | 'classroom' | 'number'>,
@@ -108,8 +113,23 @@ const buildFloorStats = (
     .map(([floor, stats]) => ({ floor, ...stats }));
 };
 
-const getFloorChartColor = (index: number): string =>
-  FLOOR_CHART_COLORS[index % FLOOR_CHART_COLORS.length];
+const buildFloorGenderItems = (
+  floorStats: NightStudyFloorStats[],
+): NightStudyFloorGenderItem[] =>
+  floorStats.flatMap((stats) => [
+    {
+      key: `${stats.floor}-male`,
+      label: `${stats.floor}층 남학생`,
+      tone: 'male' as const,
+      value: stats.male,
+    },
+    {
+      key: `${stats.floor}-female`,
+      label: `${stats.floor}층 여학생`,
+      tone: 'female' as const,
+      value: stats.female,
+    },
+  ]);
 
 const renderNightStudyStatus = (
   status: NightStudyDisplayStatus,
@@ -348,15 +368,15 @@ export default function NightStudy() {
   const period1Stats = buildNightStudyStats(filteredStudents, 'period1Status');
   const period2Stats = buildNightStudyStats(filteredStudents, 'period2Status');
   const floorStats = buildFloorStats(matchingStudents);
-  const floorTotal = floorStats.reduce(
-    (total, stats) => total + stats.male + stats.female,
-    0,
+  const genderStats = floorStats.reduce(
+    (stats, floor) => ({
+      male: stats.male + floor.male,
+      female: stats.female + floor.female,
+    }),
+    { male: 0, female: 0 },
   );
-  const floorChartSegments = floorStats.map((stats, index) => ({
-    key: `floor-${stats.floor}`,
-    color: getFloorChartColor(index),
-    value: stats.male + stats.female,
-  }));
+  const genderTotal = genderStats.male + genderStats.female;
+  const floorGenderItems = buildFloorGenderItems(floorStats);
 
   return (
     <div className="check-page night-study-page">
@@ -369,36 +389,36 @@ export default function NightStudy() {
             <h3 className="donut-card-title">층별 인원 구성</h3>
             <div className="donut-card-body night-study-floor-card-body">
               <DonutChart
-                key={`${floorTotal}-${floorChartSegments.map((segment) => segment.value).join('-')}`}
+                key={`${genderTotal}-${genderStats.male}-${genderStats.female}`}
                 className="donut-card-chart"
-                total={floorTotal}
-                label="층별 인원 비율"
-                segments={floorChartSegments}
+                total={genderTotal}
+                label="성별 인원 비율"
+                segments={[
+                  { key: 'male', color: '#3b82f6', value: genderStats.male },
+                  {
+                    key: 'female',
+                    color: '#ec4899',
+                    value: genderStats.female,
+                  },
+                ]}
               >
                 <span>전체 인원</span>
                 <strong>
-                  <RollingNumber value={floorTotal} />명
+                  <RollingNumber value={genderTotal} />명
                 </strong>
               </DonutChart>
               <div className="night-study-floor-list">
-                {floorStats.length > 0 ? (
-                  floorStats.map((stats, index) => (
-                    <div className="night-study-floor-row" key={stats.floor}>
-                      <strong className="night-study-floor-label">
-                        <i
-                          className="legend-dot floor"
-                          style={{ backgroundColor: getFloorChartColor(index) }}
-                        />
-                        {stats.floor}층
-                      </strong>
-                      <span className="night-study-floor-count male">
-                        <i className="legend-dot male" />
-                        남학생 <b><RollingNumber value={stats.male} />명</b>
+                {floorGenderItems.length > 0 ? (
+                  floorGenderItems.map((item) => (
+                    <div
+                      className={`night-study-floor-count ${item.tone}`}
+                      key={item.key}
+                    >
+                      <span className="night-study-floor-count-label">
+                        <i className={`legend-dot ${item.tone}`} />
+                        {item.label}
                       </span>
-                      <span className="night-study-floor-count female">
-                        <i className="legend-dot female" />
-                        여학생 <b><RollingNumber value={stats.female} />명</b>
-                      </span>
+                      <b><RollingNumber value={item.value} />명</b>
                     </div>
                   ))
                 ) : (

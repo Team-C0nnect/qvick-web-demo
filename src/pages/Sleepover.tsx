@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SleepoverCreateModal from '../components/SleepoverCreateModal';
+import SleepoverPinPanel from '../components/SleepoverPinPanel';
 import { SearchIcon } from '../components/Icons';
 import DonutChart from '../components/DonutChart';
 import { RollingNumber } from '../components/RollingNumber';
@@ -14,6 +15,8 @@ import '../styles/Sleepover.css';
 import type { SleepoverResponse } from '../types/api';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useGenderView } from '../context/GenderViewContext';
+
+type SleepoverView = 'daily' | 'pinned';
 
 type DeleteTarget = {
   studentId: number;
@@ -38,6 +41,7 @@ export default function Sleepover() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [syncMessage, setSyncMessage] = useState('');
+  const [view, setView] = useState<SleepoverView>('daily');
 
   useEffect(() => {
     setGenderFilter(genderView);
@@ -48,7 +52,7 @@ export default function Sleepover() {
     queryFn: () => sleepoverService.getAllSleepovers(currentDate),
   });
 
-  const { data: studentsData } = useQuery({
+  const { data: studentsData, isLoading: isStudentsLoading } = useQuery({
     queryKey: ['students-all'],
     queryFn: () => studentService.getStudents({ page: 0, size: 1000 }),
     staleTime: 5 * 60 * 1000,
@@ -255,163 +259,193 @@ export default function Sleepover() {
         </div>
       </div>
 
-      {(syncMessage || hasRequestError) && (
-        <div
-          className={`sleepover-message ${hasRequestError ? 'error' : ''}`}
-        >
-          {hasRequestError
-            ? '요청 처리에 실패했습니다. 다시 시도해주세요.'
-            : syncMessage}
-        </div>
-      )}
+      <div className="sleepover-view-tabs" role="tablist" aria-label="외박 보기">
+        {(
+          [
+            { key: 'daily', label: '일자별 외박' },
+            { key: 'pinned', label: '고정 외박' },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            role="tab"
+            aria-selected={view === tab.key}
+            className={view === tab.key ? 'active' : ''}
+            onClick={() => setView(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-      <div className="table-panel">
-        <div className="table-toolbar">
-          <div className="search-box">
-            <SearchIcon className="search-icon" />
-            <input
-              type="text"
-              placeholder="호실 / 이름 / 학번으로 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="table-filters">
-          <div className="filter-group">
-            <label className="filter-label">성별:</label>
-            <div className="filter-buttons">
-              {(['전체', '남', '여'] as const).map((gender) => (
-                <button
-                  key={gender}
-                  type="button"
-                  className={`filter-btn ${genderFilter === gender ? 'active' : ''}`}
-                  onClick={() => setGenderFilter(gender)}
-                >
-                  {gender}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="filter-group">
-            <label className="filter-label">학년:</label>
-            <div className="filter-buttons">
-              {(['전체', 1, 2, 3] as const).map((grade) => (
-                <button
-                  key={grade}
-                  type="button"
-                  className={`filter-btn ${gradeFilter === grade ? 'active' : ''}`}
-                  onClick={() => setGradeFilter(grade)}
-                >
-                  {grade === '전체' ? '전체' : `${grade}학년`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="sleepover-filter-actions">
-            <button
-              type="button"
-              className="sleepover-secondary-button"
-              onClick={() => syncMutation.mutate()}
-              disabled={isActionPending}
+      {view === 'pinned' ? (
+        <SleepoverPinPanel
+          students={studentsData?.content ?? []}
+          isStudentsLoading={isStudentsLoading}
+          defaultStartDate={currentDate}
+        />
+      ) : (
+        <>
+          {(syncMessage || hasRequestError) && (
+            <div
+              className={`sleepover-message ${hasRequestError ? 'error' : ''}`}
             >
-              <span className="sleepover-sync-icon" aria-hidden="true">↻</span>
-              <span>{syncMutation.isPending ? '동기화 중...' : '외부 동기화'}</span>
-            </button>
-            <button
-              type="button"
-              className="sleepover-primary-button"
-              onClick={() => {
-                setSyncMessage('');
-                setIsCreateModalOpen(true);
-              }}
-              disabled={isActionPending}
-            >
-              외박자 추가
-            </button>
-          </div>
-        </div>
+              {hasRequestError
+                ? '요청 처리에 실패했습니다. 다시 시도해주세요.'
+                : syncMessage}
+            </div>
+          )}
 
-        <div className="table-container">
-          <table className="student-table">
-            <colgroup>
-              <col className="sleepover-column-room" />
-              <col className="sleepover-column-name" />
-              <col className="sleepover-column-gender" />
-              <col className="sleepover-column-student-id" />
-              <col className="sleepover-column-reason" />
-              <col className="sleepover-column-date" />
-              <col className="sleepover-column-actions" />
-            </colgroup>
-            <thead>
-              <tr>
-                <th>호실</th>
-                <th>이름</th>
-                <th>성별</th>
-                <th>학번</th>
-                <th>외박 사유</th>
-                <th>날짜</th>
-                <th>삭제</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                Array.from({ length: 8 }).map((_, index) => (
-                  <TableRowSkeleton key={index} columns={7} />
-                ))
-              ) : filteredSleepovers.length > 0 ? (
-                filteredSleepovers.map((sleepover) => {
-                  const student = sleepover.student;
+          <div className="table-panel">
+            <div className="table-toolbar">
+              <div className="search-box">
+                <SearchIcon className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="호실 / 이름 / 학번으로 검색..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
 
-                  return (
-                    <tr key={`${sleepover.date}-${student.id}`}>
-                      <td className="room-cell" data-label="호실">
-                        {student.room}
-                      </td>
-                      <td data-label="이름">{student.name}</td>
-                      <td data-label="성별">
-                        {student.gender === 'MALE' ? '남' : '여'}
-                      </td>
-                      <td data-label="학번">{getStudentNumber(student)}</td>
-                      <td
-                        data-label="외박 사유"
-                        className="sleepover-reason-cell"
-                      >
-                        {sleepover.sleepoverReason}
-                      </td>
-                      <td data-label="날짜">{sleepover.date}</td>
-                      <td data-label="삭제">
-                        <button
-                          type="button"
-                          className="sleepover-delete-button"
-                          onClick={() =>
-                            setDeleteTarget({
-                              studentId: student.id,
-                              studentName: student.name,
-                            })
-                          }
-                          disabled={isActionPending}
-                        >
-                          삭제
-                        </button>
+            <div className="table-filters">
+              <div className="filter-group">
+                <label className="filter-label">성별:</label>
+                <div className="filter-buttons">
+                  {(['전체', '남', '여'] as const).map((gender) => (
+                    <button
+                      key={gender}
+                      type="button"
+                      className={`filter-btn ${genderFilter === gender ? 'active' : ''}`}
+                      onClick={() => setGenderFilter(gender)}
+                    >
+                      {gender}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="filter-group">
+                <label className="filter-label">학년:</label>
+                <div className="filter-buttons">
+                  {(['전체', 1, 2, 3] as const).map((grade) => (
+                    <button
+                      key={grade}
+                      type="button"
+                      className={`filter-btn ${gradeFilter === grade ? 'active' : ''}`}
+                      onClick={() => setGradeFilter(grade)}
+                    >
+                      {grade === '전체' ? '전체' : `${grade}학년`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="sleepover-filter-actions">
+                <button
+                  type="button"
+                  className="sleepover-secondary-button"
+                  onClick={() => syncMutation.mutate()}
+                  disabled={isActionPending}
+                >
+                  <span className="sleepover-sync-icon" aria-hidden="true">↻</span>
+                  <span>{syncMutation.isPending ? '동기화 중...' : '외부 동기화'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="sleepover-primary-button"
+                  onClick={() => {
+                    setSyncMessage('');
+                    setIsCreateModalOpen(true);
+                  }}
+                  disabled={isActionPending}
+                >
+                  외박자 추가
+                </button>
+              </div>
+            </div>
+
+            <div className="table-container">
+              <table className="student-table">
+                <colgroup>
+                  <col className="sleepover-column-room" />
+                  <col className="sleepover-column-name" />
+                  <col className="sleepover-column-gender" />
+                  <col className="sleepover-column-student-id" />
+                  <col className="sleepover-column-reason" />
+                  <col className="sleepover-column-date" />
+                  <col className="sleepover-column-actions" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>호실</th>
+                    <th>이름</th>
+                    <th>성별</th>
+                    <th>학번</th>
+                    <th>외박 사유</th>
+                    <th>날짜</th>
+                    <th>삭제</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    Array.from({ length: 8 }).map((_, index) => (
+                      <TableRowSkeleton key={index} columns={7} />
+                    ))
+                  ) : filteredSleepovers.length > 0 ? (
+                    filteredSleepovers.map((sleepover) => {
+                      const student = sleepover.student;
+
+                      return (
+                        <tr key={`${sleepover.date}-${student.id}`}>
+                          <td className="room-cell" data-label="호실">
+                            {student.room}
+                          </td>
+                          <td data-label="이름">{student.name}</td>
+                          <td data-label="성별">
+                            {student.gender === 'MALE' ? '남' : '여'}
+                          </td>
+                          <td data-label="학번">{getStudentNumber(student)}</td>
+                          <td
+                            data-label="외박 사유"
+                            className="sleepover-reason-cell"
+                          >
+                            {sleepover.sleepoverReason}
+                          </td>
+                          <td data-label="날짜">{sleepover.date}</td>
+                          <td data-label="삭제">
+                            <button
+                              type="button"
+                              className="sleepover-delete-button"
+                              onClick={() =>
+                                setDeleteTarget({
+                                  studentId: student.id,
+                                  studentName: student.name,
+                                })
+                              }
+                              disabled={isActionPending}
+                            >
+                              삭제
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr className="sleepover-empty-row">
+                      <td colSpan={7} className="sleepover-empty-cell">
+                        외박자가 없습니다.
                       </td>
                     </tr>
-                  );
-                })
-              ) : (
-                <tr className="sleepover-empty-row">
-                  <td colSpan={7} className="sleepover-empty-cell">
-                    외박자가 없습니다.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
 
       {isCreateModalOpen && (
         <SleepoverCreateModal

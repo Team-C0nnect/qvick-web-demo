@@ -85,6 +85,14 @@
   cursor: not-allowed;
 }
 
+/* ===== 콘텐츠 폭 정렬 =====
+   테이블 패널은 폭 제한이 없으므로 상단 도넛 카드·배너·표도 같은 폭으로 맞춥니다. */
+.check-page.sleepover-page .controls-section,
+.check-page.sleepover-page .table-container,
+.check-page.sleepover-page .sleepover-message {
+  width: 100%;
+}
+
 /* ===== 동기화 결과 / 에러 배너 ===== */
 .check-page .sleepover-message {
   width: min(1180px, 100%);
@@ -185,7 +193,205 @@
   cursor: not-allowed;
 }
 
-/* ===== 외박자 추가 모달 ===== */
+/* ===== 일자별 / 고정 외박 보기 탭 ===== */
+.sleepover-page .sleepover-view-tabs {
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  margin-bottom: 12px;
+  padding: 4px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.sleepover-page .sleepover-view-tabs button {
+  min-height: 34px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #52525b;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.sleepover-page .sleepover-view-tabs button:hover:not(.active) {
+  background: #f4f4f5;
+  color: #3f3f46;
+}
+
+.sleepover-page .sleepover-view-tabs button.active {
+  background: #6d23ed;
+  color: #ffffff;
+}
+
+/* ===== 고정 외박 목록 테이블 ===== */
+.sleepover-page .sleepover-pin-column-room {
+  width: 8%;
+}
+
+.sleepover-page .sleepover-pin-column-name {
+  width: 11%;
+}
+
+.sleepover-page .sleepover-pin-column-gender {
+  width: 6%;
+}
+
+.sleepover-page .sleepover-pin-column-student-id {
+  width: 9%;
+}
+
+.sleepover-page .sleepover-pin-column-period {
+  width: 25%;
+}
+
+.sleepover-page .sleepover-pin-column-reason {
+  width: 21%;
+}
+
+.sleepover-page .sleepover-pin-column-status {
+  width: 11%;
+}
+
+.sleepover-page .sleepover-pin-column-actions {
+  width: 9%;
+}
+
+.sleepover-page .sleepover-pin-period {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sleepover-page .sleepover-pin-empty-reason {
+  color: #a1a1aa;
+}
+
+.sleepover-page .sleepover-pin-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sleepover-page .sleepover-pin-status.active {
+  background: #ede9fe;
+  color: #5919c7;
+}
+
+.sleepover-page .sleepover-pin-status.upcoming {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.sleepover-page .sleepover-pin-status.ended {
+  background: #f4f4f5;
+  color: #71717a;
+}
+
+/* 일괄 수정 모드 */
+.sleepover-page .sleepover-pin-edit-hint {
+  margin: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid #ececef;
+  background: #faf7ff;
+  color: #5919c7;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.sleepover-page .sleepover-pin-period-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #a1a1aa;
+}
+
+.sleepover-page .sleepover-pin-input {
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f0f10;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.sleepover-page .sleepover-pin-period-inputs .sleepover-pin-input {
+  flex: 1;
+}
+
+.sleepover-page .sleepover-pin-reason-input {
+  width: 100%;
+}
+
+.sleepover-page .sleepover-pin-reason-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sleepover-page select.sleepover-pin-reason-input {
+  cursor: pointer;
+}
+
+/* 기타 사유를 비워 둔 행 표시 */
+.sleepover-page
+  .sleepover-pin-row-reason-invalid
+  input.sleepover-pin-reason-input {
+  border-color: #ef4444;
+}
+
+.sleepover-page select.sleepover-pin-reason-input:disabled {
+  cursor: not-allowed;
+}
+
+.sleepover-page .sleepover-pin-input:focus {
+  border-color: #6d23ed;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(109, 35, 237, 0.12);
+}
+
+.sleepover-page .sleepover-pin-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sleepover-page .student-table tbody tr.sleepover-pin-row-changed td {
+  background: #faf7ff;
+}
+
+.sleepover-page .sleepover-pin-row-invalid .sleepover-pin-period-inputs .sleepover-pin-input {
+  border-color: #ef4444;
+}
+
+/* ===== 고정 외박 등록 모달 ===== */
+.room-modal-backdrop .sleepover-pin-date-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.room-modal-backdrop .sleepover-pin-date-fields .room-form-input {
+  font-family: inherit;
+}
+
 /* 반응형 */
 @media (max-width: 1400px) {
   .sleepover-page .table-filters {
@@ -195,7 +401,8 @@
 }
 
 @media (max-width: 768px) {
-  .sleepover-page .student-table td:nth-child(n) {
+  /* Check.css의 td:nth-child 컬럼 폭보다 우선하도록 명시도를 높임 (CSS 로드 순서와 무관) */
+  .check-page.sleepover-page .student-table td:nth-child(n) {
     width: 100%;
   }
 
@@ -215,5 +422,28 @@
 
   .sleepover-page .sleepover-reason-cell {
     max-width: none;
+  }
+
+  .sleepover-page .sleepover-view-tabs {
+    width: 100%;
+  }
+
+  .sleepover-page .sleepover-view-tabs button {
+    flex: 1;
+  }
+
+  .sleepover-page .sleepover-pin-edit-hint {
+    border-bottom: none;
+    border-radius: 10px;
+    margin: 0 14px 12px;
+  }
+
+  .sleepover-page .sleepover-pin-period-inputs,
+  .sleepover-page .sleepover-pin-reason-input {
+    max-width: 260px;
+  }
+
+  .room-modal-backdrop .sleepover-pin-date-fields {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -128,6 +128,51 @@ export interface CreateSleepoverRequest {
   sleepoverReason: string;
 }
 
+// Sleepover Pin Types (기간 단위 고정 외박)
+export interface SleepoverPinResponse {
+  pinId: number;
+  studentId: number;
+  startDate: string; // format: date
+  endDate: string; // format: date
+  reason: string | null;
+}
+
+export interface PageSleepoverPinResponse {
+  totalElements: number;
+  totalPages: number;
+  pageable: PageableObject;
+  numberOfElements: number;
+  size: number;
+  content: SleepoverPinResponse[];
+  number: number;
+  sort: SortObject;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export interface CreateSleepoverPinRequest {
+  studentId: number;
+  startDate: string; // format: date
+  endDate: string; // format: date
+  reason?: string | null;
+}
+
+export interface CreateSleepoverPinResponse {
+  pinId: number;
+}
+
+export interface UpdateSleepoverPinItem {
+  pinId: number;
+  startDate?: string; // format: date
+  endDate?: string; // format: date
+  reason?: string | null; // null이면 사유 삭제
+}
+
+export interface BulkUpdateSleepoverPinsRequest {
+  pins: UpdateSleepoverPinItem[];
+}
+
 export interface SyncSleepoversResponse {
   createdCount: number;
   updatedCount: number;

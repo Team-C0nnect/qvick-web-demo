@@ -3,6 +3,26 @@ import type { SleepoverPinResponse } from '../types/api';
 
 export type SleepoverPinStatus = 'ACTIVE' | 'UPCOMING' | 'ENDED';
 
+/**
+ * 고정 외박 사유 선택지.
+ * 서버는 자유 문자열을 받지만(api.json: reason 선택, enum 없음) 화면에서는 이 목록으로만 고르게 합니다.
+ * 문구를 바꾸려면 이 배열만 수정하면 됩니다.
+ */
+export const SLEEPOVER_PIN_REASON_OPTIONS = [
+  '일반 외박',
+  '연수',
+  '현장실습',
+  '실리콘밸리',
+  '병가',
+] as const;
+
+/** 목록에 없는 사유를 직접 입력하는 선택지 */
+export const SLEEPOVER_PIN_REASON_ETC = '기타';
+
+/** 선택지에 있는 사유인지 (빈 값·직접 입력 값은 false) */
+export const isPresetSleepoverPinReason = (reason: string) =>
+  (SLEEPOVER_PIN_REASON_OPTIONS as readonly string[]).includes(reason);
+
 export const SLEEPOVER_PIN_STATUS_LABEL: Record<SleepoverPinStatus, string> = {
   ACTIVE: '진행 중',
   UPCOMING: '예정',
@@ -23,6 +43,10 @@ export const getSleepoverPinStatus = (
 export const isValidSleepoverPinRange = (startDate: string, endDate: string) =>
   Boolean(startDate && endDate) && startDate < endDate;
 
+/** 서버는 오늘 이후 날짜만 고정할 수 있습니다. (SLEEPOVER_PIN_PAST_DATE_NOT_ALLOWED) */
+export const isPastSleepoverPinDate = (date: string, today: string) =>
+  Boolean(date) && date < today;
+
 /** 2026-07-23 -> 26.07.23 */
 export const formatPinDate = (date: string) => date.slice(2).replace(/-/g, '.');
 
@@ -31,6 +55,7 @@ const SLEEPOVER_PIN_ERROR_MESSAGE: Record<string, string> = {
   SLEEPOVER_PIN_NOT_FOUND:
     '이미 삭제되었거나 존재하지 않는 고정 외박입니다. 목록을 새로고침했어요.',
   INVALID_DATE_RANGE: '종료일은 시작일 이후여야 합니다.',
+  SLEEPOVER_PIN_PAST_DATE_NOT_ALLOWED: '오늘 이후 날짜만 고정할 수 있습니다.',
   SLEEPOVER_PIN_OVERLAP: '해당 학생의 기존 고정 외박과 기간이 겹칩니다.',
   SLEEPOVER_PIN_ATTENDANCE_CONFLICT:
     '기간 중 이미 출석(정상·지각) 처리된 날이 있어 외박으로 고정할 수 없습니다.',

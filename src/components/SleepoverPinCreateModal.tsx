@@ -2,7 +2,13 @@ import { useMemo, useRef, useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { getStudentNumber, sortStudents } from '../utils/phone-box';
-import { isValidSleepoverPinRange } from '../utils/sleepover-pin';
+import { formatLocalDate } from '../utils/date';
+import {
+  SLEEPOVER_PIN_REASON_ETC,
+  SLEEPOVER_PIN_REASON_OPTIONS,
+  isPastSleepoverPinDate,
+  isValidSleepoverPinRange,
+} from '../utils/sleepover-pin';
 import '../styles/RoomModal.css';
 import '../styles/Sleepover.css';
 import type { CreateSleepoverPinRequest, StudentResponse } from '../types/api';
@@ -26,14 +32,22 @@ export default function SleepoverPinCreateModal({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] =
     useState<StudentResponse | null>(null);
-  const [startDate, setStartDate] = useState(defaultStartDate);
+  // 서버가 과거 날짜를 거부하므로 기본값은 오늘 이후로 맞춥니다.
+  const today = formatLocalDate();
+  const [startDate, setStartDate] = useState(
+    defaultStartDate < today ? today : defaultStartDate,
+  );
   const [endDate, setEndDate] = useState('');
+  // reason: 선택지 값 또는 '기타', etcReason: '기타'일 때 직접 입력한 사유
   const [reason, setReason] = useState('');
+  const [etcReason, setEtcReason] = useState('');
   const [error, setError] = useState('');
   const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
 
+  const isEtcReason = reason === SLEEPOVER_PIN_REASON_ETC;
+
   const hasDraft = Boolean(
-    selectedStudent || searchTerm.trim() || endDate || reason.trim(),
+    selectedStudent || searchTerm.trim() || endDate || reason || etcReason.trim(),
   );
 
   const filteredStudents = useMemo(() => {
@@ -84,8 +98,21 @@ export default function SleepoverPinCreateModal({
       return;
     }
 
+    if (
+      isPastSleepoverPinDate(startDate, today) ||
+      isPastSleepoverPinDate(endDate, today)
+    ) {
+      setError('오늘 이후 날짜만 고정할 수 있습니다.');
+      return;
+    }
+
     if (!isValidSleepoverPinRange(startDate, endDate)) {
       setError('종료일은 시작일 이후여야 합니다.');
+      return;
+    }
+
+    if (isEtcReason && !etcReason.trim()) {
+      setError('기타 사유를 입력해주세요.');
       return;
     }
 
@@ -94,7 +121,7 @@ export default function SleepoverPinCreateModal({
       studentId: selectedStudent.id,
       startDate,
       endDate,
-      reason: reason.trim() || null,
+      reason: (isEtcReason ? etcReason.trim() : reason) || null,
     });
   };
 
@@ -205,6 +232,7 @@ export default function SleepoverPinCreateModal({
                   type="date"
                   className="room-form-input"
                   value={startDate}
+                  min={today}
                   max={endDate || undefined}
                   onChange={(e) => {
                     setStartDate(e.target.value);
@@ -226,7 +254,7 @@ export default function SleepoverPinCreateModal({
                   type="date"
                   className="room-form-input"
                   value={endDate}
-                  min={startDate || undefined}
+                  min={startDate > today ? startDate : today}
                   onChange={(e) => {
                     setEndDate(e.target.value);
                     clearError();
@@ -241,18 +269,41 @@ export default function SleepoverPinCreateModal({
               <label className="room-form-label" htmlFor="sleepover-pin-reason">
                 외박 사유
               </label>
-              <textarea
+              <select
                 id="sleepover-pin-reason"
-                className="room-form-input sleepover-reason-input"
-                placeholder="예: 취업, 장기 병가"
+                className="room-form-input sleepover-reason-select"
                 value={reason}
                 onChange={(e) => {
                   setReason(e.target.value);
                   clearError();
                 }}
-                maxLength={100}
                 disabled={isPending}
-              />
+              >
+                <option value="">사유 없음</option>
+                {SLEEPOVER_PIN_REASON_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+                <option value={SLEEPOVER_PIN_REASON_ETC}>
+                  {SLEEPOVER_PIN_REASON_ETC} (직접 입력)
+                </option>
+              </select>
+              {isEtcReason && (
+                <input
+                  type="text"
+                  className="room-form-input"
+                  aria-label="기타 외박 사유"
+                  placeholder="사유를 입력해주세요"
+                  value={etcReason}
+                  maxLength={100}
+                  onChange={(e) => {
+                    setEtcReason(e.target.value);
+                    clearError();
+                  }}
+                  disabled={isPending}
+                />
+              )}
               <div className="input-footer">
                 {error ? (
                   <span className="error-text">{error}</span>
@@ -261,7 +312,6 @@ export default function SleepoverPinCreateModal({
                     기간 동안 휴대폰 제출·인원 확인에서 외박으로 자동 처리
                   </span>
                 )}
-                <span className="char-count">{reason.length}/100</span>
               </div>
             </div>
 

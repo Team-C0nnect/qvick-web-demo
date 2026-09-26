@@ -24,6 +24,7 @@
 
 .room-modal-backdrop .room-modal-header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -83,11 +84,16 @@
 }
 
 /* Form */
+/* 내용이 모달 최대 높이를 넘으면 폼만 스크롤되도록 해 하단 버튼이 잘리지 않게 합니다. */
 .room-modal-backdrop .room-modal-form {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 20px;
-  padding: 24px;
+  min-height: 0;
+  /* 하단 여백은 sticky 액션 영역이 대신 갖습니다. */
+  padding: 24px 24px 0;
+  overflow-y: auto;
 }
 
 .room-modal-backdrop .room-form-group {
@@ -169,11 +175,17 @@
 }
 
 /* Actions */
+/* 폼이 스크롤돼도 항상 모달 하단에 고정되어 보이도록 sticky 처리 */
 .room-modal-backdrop .room-modal-actions {
+  position: sticky;
+  bottom: 0;
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-end;
   gap: 10px;
   padding-top: 4px;
+  padding-bottom: 24px;
+  background: #ffffff;
 }
 
 .room-modal-backdrop .room-cancel-button,
@@ -251,7 +263,8 @@
 }
 
 .room-modal-backdrop .sleepover-student-list {
-  max-height: 260px;
+  /* 화면이 낮을 때는 목록을 줄여 폼 전체가 과도하게 길어지지 않게 합니다. */
+  max-height: min(260px, 30vh);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -322,6 +335,18 @@
   font-size: 13px;
   font-weight: 600;
   text-align: center;
+}
+
+/* 고정 외박 사유 선택 (정해진 목록) */
+.room-modal-backdrop .sleepover-reason-select {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.room-modal-backdrop .sleepover-reason-select:disabled {
+  background: #f4f4f5;
+  color: #a1a1aa;
+  cursor: not-allowed;
 }
 
 .room-modal-backdrop .sleepover-reason-input {

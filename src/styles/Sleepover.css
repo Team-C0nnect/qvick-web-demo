@@ -85,6 +85,14 @@
   cursor: not-allowed;
 }
 
+/* ===== 콘텐츠 폭 정렬 =====
+   테이블 패널은 폭 제한이 없으므로 상단 도넛 카드·배너·표도 같은 폭으로 맞춥니다. */
+.check-page.sleepover-page .controls-section,
+.check-page.sleepover-page .table-container,
+.check-page.sleepover-page .sleepover-message {
+  width: 100%;
+}
+
 /* ===== 동기화 결과 / 에러 배너 ===== */
 .check-page .sleepover-message {
   width: min(1180px, 100%);
@@ -331,6 +339,27 @@
 
 .sleepover-page .sleepover-pin-reason-input {
   width: 100%;
+}
+
+.sleepover-page .sleepover-pin-reason-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sleepover-page select.sleepover-pin-reason-input {
+  cursor: pointer;
+}
+
+/* 기타 사유를 비워 둔 행 표시 */
+.sleepover-page
+  .sleepover-pin-row-reason-invalid
+  input.sleepover-pin-reason-input {
+  border-color: #ef4444;
+}
+
+.sleepover-page select.sleepover-pin-reason-input:disabled {
+  cursor: not-allowed;
 }
 
 .sleepover-page .sleepover-pin-input:focus {

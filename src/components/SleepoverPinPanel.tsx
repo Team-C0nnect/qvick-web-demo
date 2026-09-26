@@ -11,10 +11,14 @@ import { formatLocalDate } from '../utils/date';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { getStudentNumber, sortStudents } from '../utils/phone-box';
 import {
+  SLEEPOVER_PIN_REASON_ETC,
+  SLEEPOVER_PIN_REASON_OPTIONS,
   SLEEPOVER_PIN_STATUS_LABEL,
   formatPinDate,
+  isPastSleepoverPinDate,
   getSleepoverPinErrorMessage,
   getSleepoverPinStatus,
+  isPresetSleepoverPinReason,
   isStaleSleepoverPinError,
   isValidSleepoverPinRange,
   type SleepoverPinStatus,
@@ -34,6 +38,8 @@ interface SleepoverPinPanelProps {
 
 type PinDraft = Pick<SleepoverPinResponse, 'startDate' | 'endDate'> & {
   reason: string;
+  /** '기타'를 골라 사유를 직접 입력하는 중인지 (reason이 비어 있어도 구분되어야 함) */
+  isEtc: boolean;
 };
 
 type PinRow = SleepoverPinResponse & {
@@ -55,10 +61,18 @@ const STATUS_ORDER: Record<SleepoverPinStatus, number> = {
 
 const STATUS_FILTERS = ['전체', 'ACTIVE', 'UPCOMING', 'ENDED'] as const;
 
+/** 과거 날짜로 저장된 항목은 그대로 유지할 수 있게 원래 값까지 허용합니다. */
+const minPinDate = (originalDate: string) => {
+  const today = formatLocalDate();
+  return originalDate < today ? originalDate : today;
+};
+
 const toDraft = (pin: SleepoverPinResponse): PinDraft => ({
   startDate: pin.startDate,
   endDate: pin.endDate,
   reason: pin.reason ?? '',
+  // 선택지에 없는 기존 사유는 '기타'(직접 입력)로 열어 둡니다.
+  isEtc: Boolean(pin.reason) && !isPresetSleepoverPinReason(pin.reason ?? ''),
 });
 
 /** 원본과 비교해 바뀐 필드만 담은 수정 항목을 만듭니다. 변경이 없으면 null */
@@ -233,11 +247,38 @@ export default function SleepoverPinPanel({
   const invalidPinIds = useMemo(() => {
     if (!drafts) return new Set<number>();
 
+    const today = formatLocalDate();
+
+    return new Set(
+      pins
+        .filter((pin) => {
+          const draft = drafts[pin.pinId];
+          if (!draft) return false;
+
+          if (!isValidSleepoverPinRange(draft.startDate, draft.endDate)) {
+            return true;
+          }
+
+          // 서버는 오늘 이후만 수정할 수 있으므로, 과거로 "바꾼" 날짜만 오류로 봅니다.
+          // (원래 과거 날짜였던 항목을 그대로 두는 것은 전송되지 않으므로 허용)
+          return (
+            (draft.startDate !== pin.startDate &&
+              isPastSleepoverPinDate(draft.startDate, today)) ||
+            (draft.endDate !== pin.endDate &&
+              isPastSleepoverPinDate(draft.endDate, today))
+          );
+        })
+        .map((pin) => pin.pinId),
+    );
+  }, [drafts, pins]);
+
+  /** '기타'를 골라 놓고 사유를 비워 둔 행 */
+  const emptyEtcPinIds = useMemo(() => {
+    if (!drafts) return new Set<number>();
+
     return new Set(
       Object.entries(drafts)
-        .filter(
-          ([, draft]) => !isValidSleepoverPinRange(draft.startDate, draft.endDate),
-        )
+        .filter(([, draft]) => draft.isEtc && !draft.reason.trim())
         .map(([pinId]) => Number(pinId)),
     );
   }, [drafts]);
@@ -275,7 +316,14 @@ export default function SleepoverPinPanel({
     }
 
     if (pendingUpdates.some((item) => invalidPinIds.has(item.pinId))) {
-      showError('종료일은 시작일 이후여야 합니다. 표시된 항목을 확인해주세요.');
+      showError(
+        '기간을 확인해주세요. 종료일은 시작일 이후, 오늘 이후 날짜만 수정할 수 있습니다.',
+      );
+      return;
+    }
+
+    if (emptyEtcPinIds.size > 0) {
+      showError('기타 사유를 입력해주세요. 표시된 항목을 확인해주세요.');
       return;
     }
 
@@ -432,6 +480,7 @@ export default function SleepoverPinPanel({
                   const { student } = row;
                   const draft = drafts?.[row.pinId] ?? toDraft(row);
                   const isInvalid = invalidPinIds.has(row.pinId);
+                  const isEmptyEtc = emptyEtcPinIds.has(row.pinId);
                   const isChanged = pendingUpdates.some(
                     (item) => item.pinId === row.pinId,
                   );
@@ -442,7 +491,7 @@ export default function SleepoverPinPanel({
                       key={row.pinId}
                       className={`${isChanged ? 'sleepover-pin-row-changed' : ''} ${
                         isInvalid ? 'sleepover-pin-row-invalid' : ''
-                      }`}
+                      } ${isEmptyEtc ? 'sleepover-pin-row-reason-invalid' : ''}`}
                     >
                       <td className="room-cell" data-label="호실">
                         {student?.room ?? '-'}
@@ -462,6 +511,7 @@ export default function SleepoverPinPanel({
                               className="sleepover-pin-input"
                               aria-label={`${studentName} 고정 외박 시작일`}
                               value={draft.startDate}
+                              min={minPinDate(row.startDate)}
                               max={draft.endDate || undefined}
                               onChange={(e) =>
                                 updateDraft(row, { startDate: e.target.value })
@@ -474,7 +524,7 @@ export default function SleepoverPinPanel({
                               className="sleepover-pin-input"
                               aria-label={`${studentName} 고정 외박 종료일`}
                               value={draft.endDate}
-                              min={draft.startDate || undefined}
+                              min={draft.startDate || minPinDate(row.endDate)}
                               onChange={(e) =>
                                 updateDraft(row, { endDate: e.target.value })
                               }
@@ -493,18 +543,56 @@ export default function SleepoverPinPanel({
                         className="sleepover-reason-cell"
                       >
                         {isEditing ? (
-                          <input
-                            type="text"
-                            className="sleepover-pin-input sleepover-pin-reason-input"
-                            aria-label={`${studentName} 고정 외박 사유`}
-                            placeholder="사유 없음"
-                            value={draft.reason}
-                            maxLength={100}
-                            onChange={(e) =>
-                              updateDraft(row, { reason: e.target.value })
-                            }
-                            disabled={bulkUpdateMutation.isPending}
-                          />
+                          <div className="sleepover-pin-reason-fields">
+                            <select
+                              className="sleepover-pin-input sleepover-pin-reason-input"
+                              aria-label={`${studentName} 고정 외박 사유`}
+                              value={
+                                draft.isEtc
+                                  ? SLEEPOVER_PIN_REASON_ETC
+                                  : draft.reason
+                              }
+                              onChange={(e) => {
+                                const { value } = e.target;
+                                const isEtc = value === SLEEPOVER_PIN_REASON_ETC;
+
+                                updateDraft(row, {
+                                  isEtc,
+                                  // '기타'로 바꿀 때 직접 입력했던 사유는 살려 둡니다.
+                                  reason: isEtc
+                                    ? isPresetSleepoverPinReason(draft.reason)
+                                      ? ''
+                                      : draft.reason
+                                    : value,
+                                });
+                              }}
+                              disabled={bulkUpdateMutation.isPending}
+                            >
+                              <option value="">사유 없음</option>
+                              {SLEEPOVER_PIN_REASON_OPTIONS.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                              <option value={SLEEPOVER_PIN_REASON_ETC}>
+                                {SLEEPOVER_PIN_REASON_ETC} (직접 입력)
+                              </option>
+                            </select>
+                            {draft.isEtc && (
+                              <input
+                                type="text"
+                                className="sleepover-pin-input sleepover-pin-reason-input"
+                                aria-label={`${studentName} 기타 외박 사유`}
+                                placeholder="사유를 입력해주세요"
+                                value={draft.reason}
+                                maxLength={100}
+                                onChange={(e) =>
+                                  updateDraft(row, { reason: e.target.value })
+                                }
+                                disabled={bulkUpdateMutation.isPending}
+                              />
+                            )}
+                          </div>
                         ) : (
                           row.reason || (
                             <span className="sleepover-pin-empty-reason">

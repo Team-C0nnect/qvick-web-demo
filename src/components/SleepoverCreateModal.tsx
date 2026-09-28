@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from 'react';
-import ConfirmationModal from './ConfirmationModal';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import {
   SLEEPOVER_PIN_REASON_ETC,
@@ -36,16 +35,8 @@ export default function SleepoverCreateModal({
   const [reason, setReason] = useState('');
   const [etcReason, setEtcReason] = useState('');
   const [error, setError] = useState('');
-  const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
 
   const isEtcReason = reason === SLEEPOVER_PIN_REASON_ETC;
-
-  const hasDraft = Boolean(
-    selectedStudents.length ||
-      searchTerm.trim() ||
-      reason ||
-      etcReason.trim(),
-  );
 
   const filteredStudents = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -75,10 +66,6 @@ export default function SleepoverCreateModal({
 
   const requestClose = () => {
     if (isPending) return;
-    if (hasDraft) {
-      setIsDiscardConfirmOpen(true);
-      return;
-    }
     onClose();
   };
 
@@ -382,20 +369,6 @@ export default function SleepoverCreateModal({
         </div>
       </div>
 
-      <ConfirmationModal
-        isOpen={isDiscardConfirmOpen}
-        eyebrow="Discard changes"
-        title="작성 내용을 버릴까요?"
-        message="입력 중인 외박 정보가 사라집니다."
-        confirmText="버리기"
-        cancelText="계속 작성"
-        confirmVariant="danger"
-        onConfirm={() => {
-          setIsDiscardConfirmOpen(false);
-          onClose();
-        }}
-        onCancel={() => setIsDiscardConfirmOpen(false)}
-      />
     </>
   );
 }

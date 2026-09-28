@@ -252,6 +252,16 @@ export default function SleepoverPinCreateModal({
                         disabled={isPending}
                         aria-pressed={isSelected}
                       >
+                        <span
+                          className="sleepover-student-check"
+                          aria-hidden="true"
+                        >
+                          {isSelected && (
+                            <svg viewBox="0 0 16 16" focusable="false">
+                              <path d="m3.5 8 3 3 6-6" />
+                            </svg>
+                          )}
+                        </span>
                         <span className="sleepover-student-main">
                           {student.room}호 {student.name}
                         </span>
@@ -259,12 +269,6 @@ export default function SleepoverPinCreateModal({
                           <span className="sleepover-student-meta">
                             {getStudentNumber(student)} ·{' '}
                             {student.gender === 'MALE' ? '남' : '여'}
-                          </span>
-                          <span
-                            className="sleepover-student-check"
-                            aria-hidden="true"
-                          >
-                            {isSelected ? '✓' : ''}
                           </span>
                         </span>
                       </button>
@@ -276,7 +280,12 @@ export default function SleepoverPinCreateModal({
                   </div>
                 )}
               </div>
-              {selectedStudents.length > 0 && (
+              <div
+                className={`sleepover-selected-transition ${
+                  selectedStudents.length > 0 ? 'expanded' : ''
+                }`}
+                aria-hidden={selectedStudents.length === 0}
+              >
                 <section
                   className="sleepover-selected-panel"
                   aria-label="선택한 학생"
@@ -298,7 +307,7 @@ export default function SleepoverPinCreateModal({
                     ))}
                   </ul>
                 </section>
-              )}
+              </div>
             </div>
 
             <div className="sleepover-pin-date-fields">

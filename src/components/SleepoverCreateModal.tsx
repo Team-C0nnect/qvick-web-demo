@@ -208,6 +208,16 @@ export default function SleepoverCreateModal({
                         disabled={isPending}
                         aria-pressed={isSelected}
                       >
+                        <span
+                          className="sleepover-student-check"
+                          aria-hidden="true"
+                        >
+                          {isSelected && (
+                            <svg viewBox="0 0 16 16" focusable="false">
+                              <path d="m3.5 8 3 3 6-6" />
+                            </svg>
+                          )}
+                        </span>
                         <span className="sleepover-student-main">
                           {student.room}호 {student.name}
                         </span>
@@ -215,12 +225,6 @@ export default function SleepoverCreateModal({
                           <span className="sleepover-student-meta">
                             {studentNumber} ·{' '}
                             {student.gender === 'MALE' ? '남' : '여'}
-                          </span>
-                          <span
-                            className="sleepover-student-check"
-                            aria-hidden="true"
-                          >
-                            {isSelected ? '✓' : ''}
                           </span>
                         </span>
                       </button>
@@ -232,7 +236,12 @@ export default function SleepoverCreateModal({
                   </div>
                 )}
               </div>
-              {selectedStudents.length > 0 && (
+              <div
+                className={`sleepover-selected-transition ${
+                  selectedStudents.length > 0 ? 'expanded' : ''
+                }`}
+                aria-hidden={selectedStudents.length === 0}
+              >
                 <section
                   className="sleepover-selected-panel"
                   aria-label="선택한 학생"
@@ -254,7 +263,7 @@ export default function SleepoverCreateModal({
                     ))}
                   </ul>
                 </section>
-              )}
+              </div>
             </div>
 
             <div className="room-form-group">

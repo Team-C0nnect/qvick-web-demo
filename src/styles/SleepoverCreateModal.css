@@ -165,6 +165,7 @@
 .room-modal-backdrop
   .sleepover-create-modal
   .sleepover-student-main {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   color: #202123;
@@ -194,13 +195,47 @@
 .room-modal-backdrop
   .sleepover-create-modal
   .sleepover-student-check {
-  width: 20px;
+  display: grid;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
-  color: #202123;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1;
-  text-align: center;
+  place-items: center;
+  border: 1px solid #d7d7db;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #4d4d52;
+  transition:
+    border-color 0.14s ease,
+    background-color 0.14s ease,
+    color 0.14s ease;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-option.selected
+  .sleepover-student-check {
+  border-color: #c9c9ce;
+  background: #f1f1f2;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-check
+  svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-check
+  path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .room-modal-backdrop
@@ -218,14 +253,54 @@
 
 .room-modal-backdrop
   .sleepover-create-modal
+  .sleepover-selected-transition {
+  display: grid;
+  grid-template-rows: 0fr;
+  min-height: 0;
+  margin-top: -7px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition:
+    grid-template-rows 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin-top 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 180ms ease,
+    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-selected-transition.expanded {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
   .sleepover-selected-panel {
   display: grid;
   gap: 7px;
-  padding: 10px 11px;
-  border: 1px solid #ededee;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 11px;
+  border: 0 solid transparent;
   border-radius: 12px;
   background: #fafafa;
-  animation: sleepover-selection-enter 180ms ease-out both;
+  transition:
+    padding 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-width 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 260ms ease;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-selected-transition.expanded
+  .sleepover-selected-panel {
+  padding: 10px 11px;
+  border-width: 1px;
+  border-color: #ededee;
 }
 
 .room-modal-backdrop
@@ -328,6 +403,7 @@
 
   .room-modal-backdrop
     .sleepover-create-modal
+    .sleepover-selected-transition.expanded
     .sleepover-selected-panel {
     padding: 9px 10px;
   }
@@ -348,18 +424,6 @@
   }
 }
 
-@keyframes sleepover-selection-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes sleepover-chip-enter {
   from {
     opacity: 0;
@@ -375,11 +439,15 @@
 @media (prefers-reduced-motion: reduce) {
   .room-modal-backdrop
     .sleepover-create-modal
+    .sleepover-selected-transition,
+  .room-modal-backdrop
+    .sleepover-create-modal
     .sleepover-selected-panel,
   .room-modal-backdrop
     .sleepover-create-modal
     .sleepover-selected-students
     li {
     animation: none;
+    transition: none;
   }
 }

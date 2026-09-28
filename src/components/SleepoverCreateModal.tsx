@@ -1,6 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
+import {
+  SLEEPOVER_PIN_REASON_ETC,
+  SLEEPOVER_PIN_REASON_OPTIONS,
+} from '../utils/sleepover-pin';
 import '../styles/RoomModal.css';
 import '../styles/Sleepover.css';
 import '../styles/SleepoverCreateModal.css';
@@ -23,16 +27,24 @@ export default function SleepoverCreateModal({
   onSubmit,
 }: SleepoverCreateModalProps) {
   const backdropMouseDownRef = useRef(false);
+  const reasonSelectRef = useRef<HTMLSelectElement>(null);
+  const etcReasonInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudents, setSelectedStudents] = useState<StudentResponse[]>(
     [],
   );
   const [reason, setReason] = useState('');
+  const [etcReason, setEtcReason] = useState('');
   const [error, setError] = useState('');
   const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
 
+  const isEtcReason = reason === SLEEPOVER_PIN_REASON_ETC;
+
   const hasDraft = Boolean(
-    selectedStudents.length || searchTerm.trim() || reason.trim(),
+    selectedStudents.length ||
+      searchTerm.trim() ||
+      reason ||
+      etcReason.trim(),
   );
 
   const filteredStudents = useMemo(() => {
@@ -78,15 +90,25 @@ export default function SleepoverCreateModal({
       return;
     }
 
-    if (!reason.trim()) {
-      setError('외박 사유를 입력해주세요.');
+    if (!reason) {
+      setError('외박 사유를 선택해주세요.');
+      reasonSelectRef.current?.focus();
+      return;
+    }
+
+    if (isEtcReason && !etcReason.trim()) {
+      setError('기타 사유를 입력해주세요.');
+      etcReasonInputRef.current?.focus();
       return;
     }
 
     setError('');
     try {
       const selectedIds = selectedStudents.map((student) => student.id);
-      const failedIds = await onSubmit(selectedIds, reason.trim());
+      const failedIds = await onSubmit(
+        selectedIds,
+        isEtcReason ? etcReason.trim() : reason,
+      );
 
       if (failedIds.length > 0) {
         const failedIdSet = new Set(failedIds);
@@ -140,7 +162,9 @@ export default function SleepoverCreateModal({
         }}
       >
         <div
-          className="room-modal sleepover-modal sleepover-create-modal"
+          className={`room-modal sleepover-modal sleepover-create-modal ${
+            isEtcReason ? 'has-custom-reason' : ''
+          }`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="sleepover-create-title"
@@ -162,7 +186,11 @@ export default function SleepoverCreateModal({
             </button>
           </div>
 
-          <form className="room-modal-form" onSubmit={handleSubmit}>
+          <form
+            className="room-modal-form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
             <div className="room-form-group">
               <div className="sleepover-student-heading">
                 <label
@@ -269,27 +297,68 @@ export default function SleepoverCreateModal({
               <label className="room-form-label" htmlFor="sleepover-reason">
                 외박 사유 <span className="required">*</span>
               </label>
-              <textarea
+              <select
                 id="sleepover-reason"
-                className="room-form-input sleepover-reason-input"
-                placeholder="예: 가정학습, 병원 진료"
+                ref={reasonSelectRef}
+                className="room-form-input sleepover-reason-select"
                 value={reason}
                 onChange={(e) => {
                   setReason(e.target.value);
                   if (error) setError('');
                 }}
-                maxLength={100}
                 disabled={isPending}
                 required
-              />
-              <div className="input-footer">
-                {error ? (
-                  <span className="error-text">{error}</span>
-                ) : (
-                  <span className="input-example">선택 날짜에 외박자로 추가</span>
-                )}
-                <span className="char-count">{reason.length}/100</span>
+                aria-invalid={error === '외박 사유를 선택해주세요.'}
+                aria-describedby={error ? 'sleepover-reason-error' : undefined}
+              >
+                <option value="" disabled>
+                  사유를 선택해주세요
+                </option>
+                {SLEEPOVER_PIN_REASON_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+                <option value={SLEEPOVER_PIN_REASON_ETC}>
+                  {SLEEPOVER_PIN_REASON_ETC} (직접 입력)
+                </option>
+              </select>
+              {isEtcReason && (
+                <input
+                  ref={etcReasonInputRef}
+                  type="text"
+                  className="room-form-input"
+                  aria-label="기타 외박 사유"
+                  aria-invalid={error === '기타 사유를 입력해주세요.'}
+                  aria-describedby={error ? 'sleepover-reason-error' : undefined}
+                  placeholder="기타 사유를 입력해주세요"
+                  value={etcReason}
+                  onChange={(e) => {
+                    setEtcReason(e.target.value);
+                    if (error) setError('');
+                  }}
+                  maxLength={100}
+                  disabled={isPending}
+                  required
+                />
+              )}
+              <div
+                className={`sleepover-validation-message ${error ? 'visible' : ''}`}
+                aria-live="polite"
+                aria-atomic="true"
+                aria-hidden={!error}
+              >
+                <div className="sleepover-validation-message-content">
+                  <span className="error-text" id="sleepover-reason-error">
+                    {error}
+                  </span>
+                </div>
               </div>
+              {isEtcReason && (
+                <div className="input-footer">
+                  <span className="char-count">{etcReason.length}/100</span>
+                </div>
+              )}
             </div>
 
             <div className="room-modal-actions">

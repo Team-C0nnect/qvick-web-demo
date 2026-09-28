@@ -61,6 +61,49 @@
   font-weight: 650;
 }
 
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-validation-message {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: -7px;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition:
+    grid-template-rows 220ms cubic-bezier(0.2, 0.75, 0.25, 1),
+    margin-top 220ms cubic-bezier(0.2, 0.75, 0.25, 1),
+    opacity 160ms ease,
+    transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-validation-message.visible {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-validation-message-content {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-validation-message-content
+  .error-text {
+  display: block;
+  line-height: 18px;
+}
+
+.room-modal-backdrop .sleepover-create-modal .input-footer {
+  justify-content: flex-end;
+}
+
 .room-modal-backdrop .sleepover-create-modal .room-form-input {
   min-height: 42px;
   padding-right: 12px;
@@ -103,6 +146,13 @@
   border-radius: 12px;
   background: #ffffff;
   overscroll-behavior: contain;
+  transition: max-height 220ms cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal.has-custom-reason
+  .sleepover-student-list {
+  max-height: min(180px, 24vh);
 }
 
 .room-modal-backdrop
@@ -406,6 +456,12 @@
   }
 
   .room-modal-backdrop
+    .sleepover-create-modal.has-custom-reason
+    .sleepover-student-list {
+    max-height: min(160px, 22vh);
+  }
+
+  .room-modal-backdrop
     .sleepover-create-modal
     .sleepover-selected-transition.expanded
     .sleepover-selected-panel {
@@ -441,6 +497,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .room-modal-backdrop
+    .sleepover-create-modal
+    .sleepover-student-list,
+  .room-modal-backdrop
+    .sleepover-create-modal
+    .sleepover-validation-message,
   .room-modal-backdrop
     .sleepover-create-modal
     .sleepover-selected-transition,

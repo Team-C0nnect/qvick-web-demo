@@ -120,7 +120,7 @@
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-picker {
+  .sleepover-reason-picker {
   position: relative;
   z-index: 1;
   width: 100%;
@@ -128,7 +128,7 @@
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-trigger {
+  .sleepover-reason-trigger {
   display: flex;
   width: 100%;
   min-height: 42px;
@@ -152,14 +152,14 @@
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-trigger:hover:not(:disabled) {
+  .sleepover-reason-trigger:hover:not(:disabled) {
   border-color: #d4d4d8;
   background: #fafafa;
 }
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-trigger:focus-visible {
+  .sleepover-reason-trigger:focus-visible {
   border-color: #8b5cf6;
   outline: none;
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
@@ -167,7 +167,19 @@
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-trigger:disabled {
+  .sleepover-reason-trigger[aria-invalid='true'] {
+  border-color: #ef4444;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-reason-trigger[aria-invalid='true']:focus-visible {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-reason-trigger:disabled {
   background: #f4f4f5;
   color: #a1a1aa;
   cursor: not-allowed;
@@ -175,7 +187,7 @@
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-chevron {
+  .sleepover-reason-chevron {
   width: 8px;
   height: 8px;
   flex: 0 0 auto;
@@ -188,19 +200,16 @@
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-chevron.open {
+  .sleepover-reason-chevron.open {
   margin-top: 4px;
   transform: rotate(225deg);
 }
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-menu {
-  position: absolute;
-  z-index: 20;
-  right: 0;
-  bottom: calc(100% + 7px);
-  left: 0;
+  .sleepover-reason-menu {
+  position: fixed;
+  z-index: 1201;
   display: flex;
   max-height: min(264px, 36vh);
   flex-direction: column;
@@ -214,14 +223,13 @@
   box-shadow:
     0 12px 28px rgba(15, 15, 16, 0.12),
     0 2px 6px rgba(15, 15, 16, 0.06);
-  transform-origin: bottom center;
   animation: sleepover-reason-menu-enter 140ms cubic-bezier(0.2, 0.75, 0.25, 1)
     both;
 }
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-option {
+  .sleepover-reason-picker-option {
   display: flex;
   width: 100%;
   min-height: 36px;
@@ -246,33 +254,33 @@
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-option:hover,
+  .sleepover-reason-picker-option:hover,
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-option:focus-visible {
+  .sleepover-reason-picker-option:focus-visible {
   outline: none;
   background: #eeeeef;
 }
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-option[aria-selected='true'] {
+  .sleepover-reason-picker-option[aria-selected='true'] {
   background: #f4f4f5;
   font-weight: 600;
 }
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-option[aria-selected='true']:hover,
+  .sleepover-reason-picker-option[aria-selected='true']:hover,
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-option[aria-selected='true']:focus-visible {
+  .sleepover-reason-picker-option[aria-selected='true']:focus-visible {
   background: #e9e9eb;
 }
 
 .room-modal-backdrop
   .sleepover-create-modal
-  .sleepover-pin-reason-check {
+  .sleepover-reason-check {
   flex: 0 0 auto;
   color: #52525b;
   font-size: 14px;
@@ -717,19 +725,19 @@
 
   .room-modal-backdrop
     .sleepover-create-modal
-    .sleepover-pin-reason-menu {
+    .sleepover-reason-menu {
     animation: none;
   }
 
   .room-modal-backdrop
     .sleepover-create-modal
-    .sleepover-pin-reason-trigger,
+    .sleepover-reason-trigger,
   .room-modal-backdrop
     .sleepover-create-modal
-    .sleepover-pin-reason-chevron,
+    .sleepover-reason-chevron,
   .room-modal-backdrop
     .sleepover-create-modal
-    .sleepover-pin-reason-option {
+    .sleepover-reason-picker-option {
     transition: none;
   }
 }

@@ -95,7 +95,7 @@
 .room-modal-backdrop
   .sleepover-create-modal
   .sleepover-student-list {
-  max-height: min(190px, 26vh);
+  max-height: min(250px, 32vh);
   gap: 0;
   padding: 4px;
   overflow: auto;
@@ -108,11 +108,11 @@
 .room-modal-backdrop
   .sleepover-create-modal
   .sleepover-student-option {
-  min-height: 44px;
+  min-height: 38px;
   align-items: center;
   flex-direction: row;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 8px;
+  padding: 6px 9px;
   border-color: transparent;
   border-radius: 8px;
   background: transparent;
@@ -402,7 +402,7 @@
   .room-modal-backdrop
     .sleepover-create-modal
     .sleepover-student-list {
-    max-height: min(190px, 26vh);
+    max-height: min(220px, 32vh);
   }
 
   .room-modal-backdrop

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { getStudentNumber, sortStudents } from '../utils/phone-box';
 import { formatLocalDate } from '../utils/date';
@@ -24,6 +24,18 @@ interface SleepoverPinCreateModalProps {
   ) => Promise<number[]>;
 }
 
+const SLEEPOVER_REASON_OPTIONS = [
+  { value: '', label: '사유 없음' },
+  ...SLEEPOVER_PIN_REASON_OPTIONS.map((option) => ({
+    value: option,
+    label: option,
+  })),
+  {
+    value: SLEEPOVER_PIN_REASON_ETC,
+    label: `${SLEEPOVER_PIN_REASON_ETC} (직접 입력)`,
+  },
+];
+
 export default function SleepoverPinCreateModal({
   students,
   defaultStartDate,
@@ -32,6 +44,9 @@ export default function SleepoverPinCreateModal({
   onSubmit,
 }: SleepoverPinCreateModalProps) {
   const backdropMouseDownRef = useRef(false);
+  const reasonDropdownRef = useRef<HTMLDivElement>(null);
+  const reasonTriggerRef = useRef<HTMLButtonElement>(null);
+  const reasonOptionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudents, setSelectedStudents] = useState<StudentResponse[]>(
     [],
@@ -44,10 +59,38 @@ export default function SleepoverPinCreateModal({
   const [endDate, setEndDate] = useState('');
   // reason: 선택지 값 또는 '기타', etcReason: '기타'일 때 직접 입력한 사유
   const [reason, setReason] = useState('');
+  const [isReasonMenuOpen, setIsReasonMenuOpen] = useState(false);
+  const [activeReasonIndex, setActiveReasonIndex] = useState(0);
   const [etcReason, setEtcReason] = useState('');
   const [error, setError] = useState('');
 
   const isEtcReason = reason === SLEEPOVER_PIN_REASON_ETC;
+  const selectedReasonIndex = Math.max(
+    SLEEPOVER_REASON_OPTIONS.findIndex((option) => option.value === reason),
+    0,
+  );
+  const selectedReasonLabel = SLEEPOVER_REASON_OPTIONS[selectedReasonIndex].label;
+
+  useEffect(() => {
+    if (!isReasonMenuOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!reasonDropdownRef.current?.contains(event.target as Node)) {
+        setIsReasonMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [isReasonMenuOpen]);
+
+  useEffect(() => {
+    if (isReasonMenuOpen) {
+      reasonOptionRefs.current[activeReasonIndex]?.focus({
+        preventScroll: true,
+      });
+    }
+  }, [activeReasonIndex, isReasonMenuOpen]);
 
   const filteredStudents = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -68,6 +111,46 @@ export default function SleepoverPinCreateModal({
 
   const clearError = () => {
     if (error) setError('');
+  };
+
+  const openReasonMenu = (initialIndex = selectedReasonIndex) => {
+    setActiveReasonIndex(initialIndex);
+    setIsReasonMenuOpen(true);
+  };
+
+  const handleReasonOptionKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) => {
+    let nextIndex: number | null = null;
+
+    if (event.key === 'ArrowDown') nextIndex = (index + 1) % SLEEPOVER_REASON_OPTIONS.length;
+    if (event.key === 'ArrowUp') {
+      nextIndex =
+        (index - 1 + SLEEPOVER_REASON_OPTIONS.length) %
+        SLEEPOVER_REASON_OPTIONS.length;
+    }
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = SLEEPOVER_REASON_OPTIONS.length - 1;
+
+    if (nextIndex !== null) {
+      event.preventDefault();
+      setActiveReasonIndex(nextIndex);
+      reasonOptionRefs.current[nextIndex]?.focus({ preventScroll: true });
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      setIsReasonMenuOpen(false);
+      reasonTriggerRef.current?.focus({ preventScroll: true });
+    } else if (event.key === 'Tab') {
+      setIsReasonMenuOpen(false);
+    }
+  };
+
+  const selectReason = (nextReason: string) => {
+    setReason(nextReason);
+    setIsReasonMenuOpen(false);
+    clearError();
+    reasonTriggerRef.current?.focus({ preventScroll: true });
   };
 
   const requestClose = () => {
@@ -167,7 +250,9 @@ export default function SleepoverPinCreateModal({
         }}
       >
         <div
-          className="room-modal sleepover-modal sleepover-create-modal"
+          className={`room-modal sleepover-modal sleepover-create-modal ${
+            selectedStudents.length > 0 ? 'has-selected-students' : ''
+          } ${isEtcReason ? 'has-custom-reason' : ''}`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="sleepover-pin-create-title"
@@ -344,26 +429,82 @@ export default function SleepoverPinCreateModal({
               <label className="room-form-label" htmlFor="sleepover-pin-reason">
                 외박 사유
               </label>
-              <select
-                id="sleepover-pin-reason"
-                className="room-form-input sleepover-reason-select"
-                value={reason}
-                onChange={(e) => {
-                  setReason(e.target.value);
-                  clearError();
-                }}
-                disabled={isPending}
+              <div
+                className="sleepover-pin-reason-picker"
+                ref={reasonDropdownRef}
               >
-                <option value="">사유 없음</option>
-                {SLEEPOVER_PIN_REASON_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-                <option value={SLEEPOVER_PIN_REASON_ETC}>
-                  {SLEEPOVER_PIN_REASON_ETC} (직접 입력)
-                </option>
-              </select>
+                <button
+                  id="sleepover-pin-reason"
+                  ref={reasonTriggerRef}
+                  type="button"
+                  className="sleepover-pin-reason-trigger"
+                  aria-haspopup="listbox"
+                  aria-expanded={isReasonMenuOpen}
+                  aria-controls="sleepover-pin-reason-options"
+                  disabled={isPending}
+                  onClick={() => {
+                    if (isReasonMenuOpen) {
+                      setIsReasonMenuOpen(false);
+                    } else {
+                      openReasonMenu();
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+                      return;
+                    }
+                    event.preventDefault();
+                    openReasonMenu(
+                      event.key === 'ArrowUp'
+                        ? Math.max(selectedReasonIndex - 1, 0)
+                        : selectedReasonIndex,
+                    );
+                  }}
+                >
+                  <span>{selectedReasonLabel}</span>
+                  <span
+                    className={`sleepover-pin-reason-chevron ${isReasonMenuOpen ? 'open' : ''}`}
+                    aria-hidden="true"
+                  />
+                </button>
+                {isReasonMenuOpen && (
+                  <div
+                    className="sleepover-pin-reason-menu"
+                    id="sleepover-pin-reason-options"
+                    role="listbox"
+                    aria-label="외박 사유 선택"
+                  >
+                    {SLEEPOVER_REASON_OPTIONS.map((option, index) => (
+                      <button
+                        key={option.value || 'none'}
+                        ref={(element) => {
+                          reasonOptionRefs.current[index] = element;
+                        }}
+                        type="button"
+                        role="option"
+                        aria-selected={reason === option.value}
+                        tabIndex={activeReasonIndex === index ? 0 : -1}
+                        className="sleepover-pin-reason-option"
+                        onFocus={() => setActiveReasonIndex(index)}
+                        onKeyDown={(event) =>
+                          handleReasonOptionKeyDown(event, index)
+                        }
+                        onClick={() => selectReason(option.value)}
+                      >
+                        <span>{option.label}</span>
+                        {reason === option.value && (
+                          <span
+                            className="sleepover-pin-reason-check"
+                            aria-hidden="true"
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               {isEtcReason && (
                 <input
                   type="text"

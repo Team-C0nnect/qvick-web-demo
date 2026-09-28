@@ -53,7 +53,7 @@ export default function SleepoverPinCreateModal({
     const query = searchTerm.trim().toLowerCase();
     const sortedStudents = sortStudents(students);
 
-    if (!query) return sortedStudents.slice(0, 8);
+    if (!query) return sortedStudents;
 
     return sortedStudents
       .filter((student) => {
@@ -63,8 +63,7 @@ export default function SleepoverPinCreateModal({
           student.room.toLowerCase().includes(query) ||
           studentNumber.includes(query)
         );
-      })
-      .slice(0, 8);
+      });
   }, [searchTerm, students]);
 
   const clearError = () => {

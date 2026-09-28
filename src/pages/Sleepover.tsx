@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { isAxiosError } from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SleepoverCreateModal from '../components/SleepoverCreateModal';
@@ -21,7 +22,12 @@ type SleepoverView = 'daily' | 'pinned';
 type DeleteTarget = {
   studentId: number;
   studentName: string;
+  date: string;
 } | null;
+
+const isAttendanceNotFoundError = (error: unknown) =>
+  isAxiosError<{ code?: string }>(error) &&
+  error.response?.data?.code === 'ATTENDANCE_NOT_FOUND';
 
 const getStudentNumber = (student: SleepoverResponse['student']) =>
   `${student.grade}${student.classroom}${String(student.number).padStart(2, '0')}`;
@@ -41,6 +47,7 @@ export default function Sleepover() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [syncMessage, setSyncMessage] = useState('');
+  const [requestErrorMessage, setRequestErrorMessage] = useState('');
   const [view, setView] = useState<SleepoverView>('daily');
 
   useEffect(() => {
@@ -123,12 +130,30 @@ export default function Sleepover() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (studentId: number) =>
-      sleepoverService.deleteSleepover(studentId, currentDate),
+    mutationFn: ({ studentId, date }: NonNullable<DeleteTarget>) =>
+      sleepoverService.deleteSleepover(studentId, date),
     onSuccess: () => {
       setDeleteTarget(null);
+      setRequestErrorMessage('');
       queryClient.invalidateQueries({ queryKey: ['sleepovers'] });
       queryClient.invalidateQueries({ queryKey: ['attendances'] });
+    },
+    onError: async (error, target) => {
+      setDeleteTarget(null);
+      if (isAttendanceNotFoundError(error)) {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ['sleepovers', target.date],
+          }),
+          queryClient.invalidateQueries({ queryKey: ['attendances'] }),
+        ]);
+        setRequestErrorMessage(
+          '해당 날짜의 출석 기록을 찾지 못해 삭제되지 않았습니다. 목록을 새로고침했어요.',
+        );
+        return;
+      }
+
+      setRequestErrorMessage('외박 삭제에 실패했습니다. 다시 시도해주세요.');
     },
   });
 
@@ -196,7 +221,7 @@ export default function Sleepover() {
     syncMutation.isError ||
     createMutation.isError ||
     (createMutation.data?.length ?? 0) > 0 ||
-    deleteMutation.isError;
+    Boolean(requestErrorMessage);
 
   return (
     <div className="check-page sleepover-page">
@@ -323,7 +348,8 @@ export default function Sleepover() {
               className={`sleepover-message ${hasRequestError ? 'error' : ''}`}
             >
               {hasRequestError
-                ? '요청 처리에 실패했습니다. 다시 시도해주세요.'
+                ? requestErrorMessage ||
+                  '요청 처리에 실패했습니다. 다시 시도해주세요.'
                 : syncMessage}
             </div>
           )}
@@ -389,6 +415,7 @@ export default function Sleepover() {
                   className="sleepover-primary-button"
                   onClick={() => {
                     setSyncMessage('');
+                    setRequestErrorMessage('');
                     setIsCreateModalOpen(true);
                   }}
                   disabled={isActionPending}
@@ -454,6 +481,7 @@ export default function Sleepover() {
                                 setDeleteTarget({
                                   studentId: student.id,
                                   studentName: student.name,
+                                  date: sleepover.date,
                                 })
                               }
                               disabled={isActionPending}
@@ -493,13 +521,17 @@ export default function Sleepover() {
         isOpen={Boolean(deleteTarget)}
         eyebrow="Delete sleepover"
         title="외박자를 삭제할까요?"
-        message={`${deleteTarget?.studentName ?? ''} 학생의 ${currentDate} 외박 정보를 삭제합니다.`}
+        message={`${deleteTarget?.studentName ?? ''} 학생의 ${deleteTarget?.date ?? ''} 외박 정보를 삭제합니다.`}
         confirmText="삭제"
         cancelText="취소"
         confirmVariant="danger"
         isConfirming={deleteMutation.isPending}
         onConfirm={() => {
-          if (deleteTarget) deleteMutation.mutate(deleteTarget.studentId);
+          if (deleteTarget) {
+            setSyncMessage('');
+            setRequestErrorMessage('');
+            deleteMutation.mutate(deleteTarget);
+          }
         }}
         onCancel={() => setDeleteTarget(null)}
       />

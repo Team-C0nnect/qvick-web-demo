@@ -50,7 +50,7 @@ export default function SleepoverCreateModal({
       });
     });
 
-    if (!query) return sortedStudents.slice(0, 8);
+    if (!query) return sortedStudents;
 
     return sortedStudents
       .filter((student) => {
@@ -60,8 +60,7 @@ export default function SleepoverCreateModal({
           student.room.toLowerCase().includes(query) ||
           studentNumber.includes(query)
         );
-      })
-      .slice(0, 8);
+      });
   }, [searchTerm, students]);
 
   const requestClose = () => {

@@ -27,11 +27,13 @@ type Page<T> = {
   empty: boolean;
 };
 
+const SLEEPOVER_PAGE_SIZE = 100;
+
 /** 첫 페이지를 받은 뒤 남은 페이지를 모두 받아 하나의 페이지로 합칩니다. */
 const fetchAllPages = async <T, P extends Page<T>>(
   fetchPage: (params: SleepoverQueryParams) => Promise<P>,
 ): Promise<P> => {
-  const firstPage = await fetchPage({ page: 0, size: 1000 });
+  const firstPage = await fetchPage({ page: 0, size: SLEEPOVER_PAGE_SIZE });
 
   if (firstPage.last || firstPage.totalPages <= 1) return firstPage;
 

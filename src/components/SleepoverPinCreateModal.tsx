@@ -2,9 +2,9 @@ import { useMemo, useRef, useState } from 'react';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { getStudentNumber, sortStudents } from '../utils/phone-box';
 import { formatLocalDate } from '../utils/date';
+import SleepoverReasonPicker from './SleepoverReasonPicker';
 import {
   SLEEPOVER_PIN_REASON_ETC,
-  SLEEPOVER_PIN_REASON_OPTIONS,
   isPastSleepoverPinDate,
   isValidSleepoverPinRange,
 } from '../utils/sleepover-pin';
@@ -53,7 +53,7 @@ export default function SleepoverPinCreateModal({
     const query = searchTerm.trim().toLowerCase();
     const sortedStudents = sortStudents(students);
 
-    if (!query) return sortedStudents.slice(0, 8);
+    if (!query) return sortedStudents;
 
     return sortedStudents
       .filter((student) => {
@@ -63,8 +63,7 @@ export default function SleepoverPinCreateModal({
           student.room.toLowerCase().includes(query) ||
           studentNumber.includes(query)
         );
-      })
-      .slice(0, 8);
+      });
   }, [searchTerm, students]);
 
   const clearError = () => {
@@ -168,7 +167,9 @@ export default function SleepoverPinCreateModal({
         }}
       >
         <div
-          className="room-modal sleepover-modal sleepover-create-modal"
+          className={`room-modal sleepover-modal sleepover-create-modal ${
+            selectedStudents.length > 0 ? 'has-selected-students' : ''
+          } ${isEtcReason ? 'has-custom-reason' : ''}`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="sleepover-pin-create-title"
@@ -345,26 +346,17 @@ export default function SleepoverPinCreateModal({
               <label className="room-form-label" htmlFor="sleepover-pin-reason">
                 외박 사유
               </label>
-              <select
+              <SleepoverReasonPicker
                 id="sleepover-pin-reason"
-                className="room-form-input sleepover-reason-select"
                 value={reason}
-                onChange={(e) => {
-                  setReason(e.target.value);
+                placeholder="사유 없음"
+                allowNoReason
+                disabled={isPending}
+                onChange={(nextReason) => {
+                  setReason(nextReason);
                   clearError();
                 }}
-                disabled={isPending}
-              >
-                <option value="">사유 없음</option>
-                {SLEEPOVER_PIN_REASON_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-                <option value={SLEEPOVER_PIN_REASON_ETC}>
-                  {SLEEPOVER_PIN_REASON_ETC} (직접 입력)
-                </option>
-              </select>
+              />
               {isEtcReason && (
                 <input
                   type="text"

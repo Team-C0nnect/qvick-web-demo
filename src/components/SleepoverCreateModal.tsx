@@ -1,9 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
-import {
-  SLEEPOVER_PIN_REASON_ETC,
-  SLEEPOVER_PIN_REASON_OPTIONS,
-} from '../utils/sleepover-pin';
+import { SLEEPOVER_PIN_REASON_ETC } from '../utils/sleepover-pin';
+import SleepoverReasonPicker from './SleepoverReasonPicker';
 import '../styles/RoomModal.css';
 import '../styles/Sleepover.css';
 import '../styles/SleepoverCreateModal.css';
@@ -26,7 +24,7 @@ export default function SleepoverCreateModal({
   onSubmit,
 }: SleepoverCreateModalProps) {
   const backdropMouseDownRef = useRef(false);
-  const reasonSelectRef = useRef<HTMLSelectElement>(null);
+  const reasonPickerRef = useRef<HTMLButtonElement>(null);
   const etcReasonInputRef = useRef<HTMLInputElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudents, setSelectedStudents] = useState<StudentResponse[]>(
@@ -50,7 +48,7 @@ export default function SleepoverCreateModal({
       });
     });
 
-    if (!query) return sortedStudents.slice(0, 8);
+    if (!query) return sortedStudents;
 
     return sortedStudents
       .filter((student) => {
@@ -60,8 +58,7 @@ export default function SleepoverCreateModal({
           student.room.toLowerCase().includes(query) ||
           studentNumber.includes(query)
         );
-      })
-      .slice(0, 8);
+      });
   }, [searchTerm, students]);
 
   const requestClose = () => {
@@ -79,7 +76,7 @@ export default function SleepoverCreateModal({
 
     if (!reason) {
       setError('외박 사유를 선택해주세요.');
-      reasonSelectRef.current?.focus();
+      reasonPickerRef.current?.focus();
       return;
     }
 
@@ -284,32 +281,19 @@ export default function SleepoverCreateModal({
               <label className="room-form-label" htmlFor="sleepover-reason">
                 외박 사유 <span className="required">*</span>
               </label>
-              <select
+              <SleepoverReasonPicker
                 id="sleepover-reason"
-                ref={reasonSelectRef}
-                className="room-form-input sleepover-reason-select"
                 value={reason}
-                onChange={(e) => {
-                  setReason(e.target.value);
+                placeholder="사유를 선택해주세요"
+                triggerRef={reasonPickerRef}
+                disabled={isPending}
+                invalid={error === '외박 사유를 선택해주세요.'}
+                describedBy={error ? 'sleepover-reason-error' : undefined}
+                onChange={(nextReason) => {
+                  setReason(nextReason);
                   if (error) setError('');
                 }}
-                disabled={isPending}
-                required
-                aria-invalid={error === '외박 사유를 선택해주세요.'}
-                aria-describedby={error ? 'sleepover-reason-error' : undefined}
-              >
-                <option value="" disabled>
-                  사유를 선택해주세요
-                </option>
-                {SLEEPOVER_PIN_REASON_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-                <option value={SLEEPOVER_PIN_REASON_ETC}>
-                  {SLEEPOVER_PIN_REASON_ETC} (직접 입력)
-                </option>
-              </select>
+              />
               {isEtcReason && (
                 <input
                   ref={etcReasonInputRef}

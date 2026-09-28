@@ -144,7 +144,9 @@ export default function SleepoverReasonPicker({
 
   useEffect(() => {
     if (isOpen) {
-      optionRefs.current[activeIndex]?.focus({ preventScroll: true });
+      const activeOption = optionRefs.current[activeIndex];
+      activeOption?.focus({ preventScroll: true });
+      activeOption?.scrollIntoView({ block: 'nearest' });
     }
   }, [activeIndex, isOpen]);
 
@@ -171,7 +173,9 @@ export default function SleepoverReasonPicker({
     if (nextIndex !== null) {
       event.preventDefault();
       setActiveIndex(nextIndex);
-      optionRefs.current[nextIndex]?.focus({ preventScroll: true });
+      const nextOption = optionRefs.current[nextIndex];
+      nextOption?.focus({ preventScroll: true });
+      nextOption?.scrollIntoView({ block: 'nearest' });
     } else if (event.key === 'Escape') {
       event.preventDefault();
       setIsOpen(false);

@@ -5,7 +5,7 @@
 }
 
 .room-modal-backdrop .sleepover-create-modal {
-  width: min(620px, calc(100vw - 32px));
+  width: min(540px, calc(100vw - 32px));
   max-height: min(84vh, 720px);
   border-color: #e8e8eb;
   border-radius: 20px;

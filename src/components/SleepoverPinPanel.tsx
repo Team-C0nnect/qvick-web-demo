@@ -144,7 +144,7 @@ export default function SleepoverPinPanel({
       studentIds: number[];
       data: Omit<CreateSleepoverPinRequest, 'studentId'>;
     }) => {
-      const failedStudentIds: number[] = [];
+      const failedRequests: Array<{ studentId: number; error: unknown }> = [];
 
       for (let offset = 0; offset < studentIds.length; offset += 5) {
         const batchStudentIds = studentIds.slice(offset, offset + 5);
@@ -156,16 +156,30 @@ export default function SleepoverPinPanel({
 
         results.forEach((result, index) => {
           if (result.status === 'rejected') {
-            failedStudentIds.push(batchStudentIds[index]);
+            failedRequests.push({
+              studentId: batchStudentIds[index],
+              error: result.reason,
+            });
           }
         });
       }
 
-      return failedStudentIds;
+      return failedRequests;
     },
-    onSuccess: (failedStudentIds, { studentIds }) => {
+    onSuccess: (failedRequests, { studentIds }) => {
+      const failedStudentIds = failedRequests.map(({ studentId }) => studentId);
       const succeededCount = studentIds.length - failedStudentIds.length;
       if (succeededCount > 0) invalidateSleepoverQueries();
+
+      const fallback = '고정 외박 등록에 실패했습니다.';
+      const handledErrorMessages = new Set<string>();
+      failedRequests.forEach(({ error }) => {
+        const errorMessage = getSleepoverPinErrorMessage(error, fallback);
+        if (handledErrorMessages.has(errorMessage)) return;
+
+        handledErrorMessages.add(errorMessage);
+        handleMutationError(error, fallback);
+      });
 
       if (failedStudentIds.length === 0) {
         setIsCreateModalOpen(false);
@@ -675,9 +689,13 @@ export default function SleepoverPinPanel({
           defaultStartDate={defaultStartDate}
           isPending={createMutation.isPending}
           onClose={() => setIsCreateModalOpen(false)}
-          onSubmit={(studentIds, data) =>
-            createMutation.mutateAsync({ studentIds, data })
-          }
+          onSubmit={async (studentIds, data) => {
+            const failedRequests = await createMutation.mutateAsync({
+              studentIds,
+              data,
+            });
+            return failedRequests.map(({ studentId }) => studentId);
+          }}
         />
       )}
 

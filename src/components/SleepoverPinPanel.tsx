@@ -137,12 +137,40 @@ export default function SleepoverPinPanel({
   };
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateSleepoverPinRequest) =>
-      sleepoverService.createSleepoverPin(data),
-    onSuccess: () => {
-      setIsCreateModalOpen(false);
-      showSuccess('고정 외박을 등록했어요.');
-      invalidateSleepoverQueries();
+    mutationFn: async ({
+      studentIds,
+      data,
+    }: {
+      studentIds: number[];
+      data: Omit<CreateSleepoverPinRequest, 'studentId'>;
+    }) => {
+      const failedStudentIds: number[] = [];
+
+      for (let offset = 0; offset < studentIds.length; offset += 5) {
+        const batchStudentIds = studentIds.slice(offset, offset + 5);
+        const results = await Promise.allSettled(
+          batchStudentIds.map((studentId) =>
+            sleepoverService.createSleepoverPin({ studentId, ...data }),
+          ),
+        );
+
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            failedStudentIds.push(batchStudentIds[index]);
+          }
+        });
+      }
+
+      return failedStudentIds;
+    },
+    onSuccess: (failedStudentIds, { studentIds }) => {
+      const succeededCount = studentIds.length - failedStudentIds.length;
+      if (succeededCount > 0) invalidateSleepoverQueries();
+
+      if (failedStudentIds.length === 0) {
+        setIsCreateModalOpen(false);
+        showSuccess(`고정 외박 ${succeededCount}명을 등록했어요.`);
+      }
     },
     onError: (error) =>
       handleMutationError(error, '고정 외박 등록에 실패했습니다.'),
@@ -647,7 +675,9 @@ export default function SleepoverPinPanel({
           defaultStartDate={defaultStartDate}
           isPending={createMutation.isPending}
           onClose={() => setIsCreateModalOpen(false)}
-          onSubmit={(data) => createMutation.mutate(data)}
+          onSubmit={(studentIds, data) =>
+            createMutation.mutateAsync({ studentIds, data })
+          }
         />
       )}
 

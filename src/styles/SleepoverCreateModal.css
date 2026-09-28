@@ -1,0 +1,289 @@
+/* Shared presentation for the daily and pinned sleepover creation dialogs. */
+.room-modal-backdrop.sleepover-create-backdrop {
+  background: rgba(15, 15, 16, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.room-modal-backdrop .sleepover-create-modal {
+  width: min(760px, 100%);
+  max-height: min(90vh, 820px);
+  border-color: #e8e8eb;
+  border-radius: 20px;
+  box-shadow: 0 24px 72px rgba(15, 15, 16, 0.2);
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-modal-header {
+  padding: 22px 28px;
+  border-color: #eeeeef;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-modal-eyebrow {
+  margin-bottom: 6px;
+  color: #77777d;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.45px;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-modal-close-button {
+  width: 38px;
+  height: 38px;
+  border-color: transparent;
+  border-radius: 10px;
+  color: #606066;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .room-modal-close-button:hover:not(:disabled) {
+  border-color: #eeeeef;
+  background: #f0f0f0;
+  color: #202123;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-modal-form {
+  gap: 22px;
+  padding: 24px 28px 0;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-form-group {
+  gap: 9px;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-form-label {
+  color: #343438;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-form-input {
+  min-height: 46px;
+  padding-right: 14px;
+  padding-left: 14px;
+  border-color: #e3e3e7;
+  border-radius: 11px;
+  font-size: 14px;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-form-input:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+.room-modal-backdrop .sleepover-create-modal .sleepover-student-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.room-modal-backdrop .sleepover-create-modal .sleepover-selection-count {
+  color: #77777d;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-list {
+  max-height: min(280px, 32vh);
+  gap: 4px;
+  padding: 4px 2px;
+  overscroll-behavior: contain;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-option {
+  min-height: 48px;
+  align-items: center;
+  flex-direction: row;
+  gap: 12px;
+  padding: 10px 14px;
+  border-color: transparent;
+  border-radius: 11px;
+  background: #ffffff;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-option:hover:not(:disabled) {
+  border-color: transparent;
+  background: #f0f0f0;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-option.selected {
+  border-color: transparent;
+  background: #f7f7f8;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-option.selected:hover:not(:disabled) {
+  background: #eeeeef;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-option:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 1px;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-main {
+  min-width: 0;
+  overflow: hidden;
+  color: #202123;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-trailing {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-meta {
+  color: #77777d;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-student-check {
+  width: 20px;
+  flex-shrink: 0;
+  color: #202123;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-selected-students {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 68px;
+  margin: 1px 0 0;
+  padding: 0 2px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-selected-students button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid #e7e7e9;
+  border-radius: 999px;
+  background: #f7f7f8;
+  color: #4b4b50;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-selected-students button:hover:not(:disabled) {
+  border-color: #d5d5d8;
+  background: #eeeeef;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-selected-students button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.room-modal-backdrop
+  .sleepover-create-modal
+  .sleepover-selected-students button span {
+  color: #77777d;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.room-modal-backdrop .sleepover-create-modal .sleepover-pin-date-fields {
+  gap: 14px;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-modal-actions {
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid #eeeeef;
+}
+
+.room-modal-backdrop .sleepover-create-modal .room-cancel-button,
+.room-modal-backdrop .sleepover-create-modal .room-submit-button {
+  min-width: 104px;
+  min-height: 42px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+@media (max-width: 640px) {
+  .room-modal-backdrop .sleepover-create-modal {
+    max-height: 90vh;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .room-modal-backdrop .sleepover-create-modal .room-modal-header {
+    padding: 18px 20px;
+  }
+
+  .room-modal-backdrop .sleepover-create-modal .room-modal-form {
+    gap: 18px;
+    padding: 18px 20px 0;
+  }
+
+  .room-modal-backdrop
+    .sleepover-create-modal
+    .sleepover-student-list {
+    max-height: min(250px, 30vh);
+  }
+
+  .room-modal-backdrop .sleepover-create-modal .sleepover-pin-date-fields {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .room-modal-backdrop .sleepover-create-modal .room-modal-actions {
+    flex-direction: column-reverse;
+    padding-bottom: 18px;
+  }
+
+  .room-modal-backdrop .sleepover-create-modal .room-cancel-button,
+  .room-modal-backdrop .sleepover-create-modal .room-submit-button {
+    width: 100%;
+  }
+}

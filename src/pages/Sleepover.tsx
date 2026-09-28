@@ -59,23 +59,51 @@ export default function Sleepover() {
   });
 
   const createMutation = useMutation({
-    mutationFn: ({
-      studentId,
+    mutationFn: async ({
+      studentIds,
       sleepoverReason,
     }: {
-      studentId: number;
+      studentIds: number[];
       sleepoverReason: string;
-    }) =>
-      sleepoverService.createSleepover({
-        studentId,
-        date: currentDate,
-        sleepoverReason,
-      }),
-    onSuccess: () => {
-      setIsCreateModalOpen(false);
-      setSyncMessage('');
-      queryClient.invalidateQueries({ queryKey: ['sleepovers'] });
-      queryClient.invalidateQueries({ queryKey: ['attendances'] });
+    }) => {
+      const failedStudentIds: number[] = [];
+
+      for (let offset = 0; offset < studentIds.length; offset += 5) {
+        const batchStudentIds = studentIds.slice(offset, offset + 5);
+        const results = await Promise.allSettled(
+          batchStudentIds.map((studentId) =>
+            sleepoverService.createSleepover({
+              studentId,
+              date: currentDate,
+              sleepoverReason,
+            }),
+          ),
+        );
+
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            failedStudentIds.push(batchStudentIds[index]);
+          }
+        });
+      }
+
+      return failedStudentIds;
+    },
+    onSuccess: (failedStudentIds, { studentIds }) => {
+      const succeededCount = studentIds.length - failedStudentIds.length;
+      if (succeededCount > 0) {
+        queryClient.invalidateQueries({ queryKey: ['sleepovers'] });
+        queryClient.invalidateQueries({ queryKey: ['attendances'] });
+      }
+
+      if (failedStudentIds.length === 0) {
+        setIsCreateModalOpen(false);
+        setSyncMessage(`외박자 ${succeededCount}명을 추가했어요.`);
+      } else {
+        setSyncMessage(
+          `${succeededCount}명 추가 완료, ${failedStudentIds.length}명 실패. 실패한 학생만 다시 시도할 수 있습니다.`,
+        );
+      }
     },
   });
 
@@ -165,7 +193,10 @@ export default function Sleepover() {
   const isActionPending =
     createMutation.isPending || syncMutation.isPending || deleteMutation.isPending;
   const hasRequestError =
-    syncMutation.isError || createMutation.isError || deleteMutation.isError;
+    syncMutation.isError ||
+    createMutation.isError ||
+    (createMutation.data?.length ?? 0) > 0 ||
+    deleteMutation.isError;
 
   return (
     <div className="check-page sleepover-page">
@@ -452,8 +483,8 @@ export default function Sleepover() {
           students={studentsData?.content ?? []}
           isPending={createMutation.isPending}
           onClose={() => setIsCreateModalOpen(false)}
-          onSubmit={(studentId, sleepoverReason) =>
-            createMutation.mutate({ studentId, sleepoverReason })
+          onSubmit={(studentIds, sleepoverReason) =>
+            createMutation.mutateAsync({ studentIds, sleepoverReason })
           }
         />
       )}

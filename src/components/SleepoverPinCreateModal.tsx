@@ -189,7 +189,6 @@ export default function SleepoverPinCreateModal({
         >
           <div className="room-modal-header">
             <div>
-              <p className="room-modal-eyebrow">Pin sleepover</p>
               <h2
                 className="room-modal-title"
                 id="sleepover-pin-create-title"

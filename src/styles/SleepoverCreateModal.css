@@ -132,25 +132,29 @@
 .room-modal-backdrop
   .sleepover-create-modal
   .sleepover-student-option:hover:not(:disabled) {
+  border-color: transparent;
+  border-top-color: #f0f0f1;
   background: #eeeeef;
 }
 
 .room-modal-backdrop
   .sleepover-create-modal
   .sleepover-student-option.selected {
+  border-color: transparent;
   background: #f4f4f5;
 }
 
 .room-modal-backdrop
   .sleepover-create-modal
   .sleepover-student-option.selected:hover:not(:disabled) {
+  border-color: transparent;
   background: #e9e9eb;
 }
 
 .room-modal-backdrop
   .sleepover-create-modal
   .sleepover-student-option:focus-visible {
-  outline: 2px solid #8b5cf6;
+  outline: 2px solid #71717a;
   outline-offset: -1px;
 }
 

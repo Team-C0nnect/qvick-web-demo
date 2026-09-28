@@ -147,7 +147,6 @@ export default function SleepoverCreateModal({
         >
           <div className="room-modal-header">
             <div>
-              <p className="room-modal-eyebrow">Create sleepover</p>
               <h2 className="room-modal-title" id="sleepover-create-title">
                 외박자 추가
               </h2>

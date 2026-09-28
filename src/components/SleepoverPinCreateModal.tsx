@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from 'react';
-import ConfirmationModal from './ConfirmationModal';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
 import { getStudentNumber, sortStudents } from '../utils/phone-box';
 import { formatLocalDate } from '../utils/date';
@@ -11,6 +10,7 @@ import {
 } from '../utils/sleepover-pin';
 import '../styles/RoomModal.css';
 import '../styles/Sleepover.css';
+import '../styles/SleepoverCreateModal.css';
 import type { CreateSleepoverPinRequest, StudentResponse } from '../types/api';
 
 interface SleepoverPinCreateModalProps {
@@ -18,7 +18,10 @@ interface SleepoverPinCreateModalProps {
   defaultStartDate: string;
   isPending: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateSleepoverPinRequest) => void;
+  onSubmit: (
+    studentIds: number[],
+    data: Omit<CreateSleepoverPinRequest, 'studentId'>,
+  ) => Promise<number[]>;
 }
 
 export default function SleepoverPinCreateModal({
@@ -30,8 +33,9 @@ export default function SleepoverPinCreateModal({
 }: SleepoverPinCreateModalProps) {
   const backdropMouseDownRef = useRef(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStudent, setSelectedStudent] =
-    useState<StudentResponse | null>(null);
+  const [selectedStudents, setSelectedStudents] = useState<StudentResponse[]>(
+    [],
+  );
   // 서버가 과거 날짜를 거부하므로 기본값은 오늘 이후로 맞춥니다.
   const today = formatLocalDate();
   const [startDate, setStartDate] = useState(
@@ -42,13 +46,8 @@ export default function SleepoverPinCreateModal({
   const [reason, setReason] = useState('');
   const [etcReason, setEtcReason] = useState('');
   const [error, setError] = useState('');
-  const [isDiscardConfirmOpen, setIsDiscardConfirmOpen] = useState(false);
 
   const isEtcReason = reason === SLEEPOVER_PIN_REASON_ETC;
-
-  const hasDraft = Boolean(
-    selectedStudent || searchTerm.trim() || endDate || reason || etcReason.trim(),
-  );
 
   const filteredStudents = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -68,28 +67,20 @@ export default function SleepoverPinCreateModal({
       .slice(0, 8);
   }, [searchTerm, students]);
 
-  const displayedStudents = selectedStudent
-    ? [selectedStudent]
-    : filteredStudents;
-
   const clearError = () => {
     if (error) setError('');
   };
 
   const requestClose = () => {
     if (isPending) return;
-    if (hasDraft) {
-      setIsDiscardConfirmOpen(true);
-      return;
-    }
     onClose();
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!selectedStudent) {
-      setError('외박을 고정할 학생을 선택해주세요.');
+    if (selectedStudents.length === 0) {
+      setError('외박을 고정할 학생을 한 명 이상 선택해주세요.');
       return;
     }
 
@@ -117,24 +108,53 @@ export default function SleepoverPinCreateModal({
     }
 
     setError('');
-    onSubmit({
-      studentId: selectedStudent.id,
-      startDate,
-      endDate,
-      reason: (isEtcReason ? etcReason.trim() : reason) || null,
-    });
+    try {
+      const selectedIds = selectedStudents.map((student) => student.id);
+      const failedIds = await onSubmit(selectedIds, {
+        startDate,
+        endDate,
+        reason: (isEtcReason ? etcReason.trim() : reason) || null,
+      });
+
+      if (failedIds.length > 0) {
+        const failedIdSet = new Set(failedIds);
+        const failedStudents = selectedStudents.filter((student) =>
+          failedIdSet.has(student.id),
+        );
+        const succeededCount = selectedIds.length - failedStudents.length;
+
+        setSelectedStudents(failedStudents);
+        setError(
+          succeededCount > 0
+            ? `${succeededCount}명은 등록했고 ${failedStudents.length}명은 실패했습니다. 실패 학생만 선택 상태로 남겼습니다.`
+            : '선택한 학생을 등록하지 못했습니다. 학생과 기간을 확인한 뒤 다시 시도해주세요.',
+        );
+      }
+    } catch {
+      setError('등록 요청에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
-  const handleSelectStudent = (student: StudentResponse) => {
-    setSelectedStudent(student);
-    setSearchTerm(student.name);
+  const toggleStudent = (student: StudentResponse) => {
+    setSelectedStudents((current) =>
+      current.some((selected) => selected.id === student.id)
+        ? current.filter((selected) => selected.id !== student.id)
+        : [...current, student],
+    );
+    clearError();
+  };
+
+  const removeSelectedStudent = (studentId: number) => {
+    setSelectedStudents((current) =>
+      current.filter((student) => student.id !== studentId),
+    );
     clearError();
   };
 
   return (
     <>
       <div
-        className="room-modal-backdrop"
+        className="room-modal-backdrop sleepover-create-backdrop"
         onMouseDown={(e) => {
           if (isPending) return;
           backdropMouseDownRef.current = e.target === e.currentTarget;
@@ -147,11 +167,20 @@ export default function SleepoverPinCreateModal({
           backdropMouseDownRef.current = false;
         }}
       >
-        <div className="room-modal sleepover-modal">
+        <div
+          className="room-modal sleepover-modal sleepover-create-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="sleepover-pin-create-title"
+        >
           <div className="room-modal-header">
             <div>
-              <p className="room-modal-eyebrow">Pin sleepover</p>
-              <h2 className="room-modal-title">고정 외박 등록</h2>
+              <h2
+                className="room-modal-title"
+                id="sleepover-pin-create-title"
+              >
+                고정 외박 등록
+              </h2>
             </div>
             <button
               className="room-modal-close-button"
@@ -166,9 +195,17 @@ export default function SleepoverPinCreateModal({
 
           <form className="room-modal-form" onSubmit={handleSubmit}>
             <div className="room-form-group">
-              <label className="room-form-label" htmlFor="sleepover-pin-student">
-                학생 검색 <span className="required">*</span>
-              </label>
+              <div className="sleepover-student-heading">
+                <label
+                  className="room-form-label"
+                  htmlFor="sleepover-pin-student"
+                >
+                  학생 검색 <span className="required">*</span>
+                </label>
+                <span className="sleepover-selection-count">
+                  {selectedStudents.length}명 선택
+                </span>
+              </div>
               <input
                 id="sleepover-pin-student"
                 type="text"
@@ -177,16 +214,17 @@ export default function SleepoverPinCreateModal({
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setSelectedStudent(null);
                   clearError();
                 }}
                 disabled={isPending}
                 autoFocus
               />
               <div className="sleepover-student-list">
-                {displayedStudents.length > 0 ? (
-                  displayedStudents.map((student) => {
-                    const isSelected = selectedStudent?.id === student.id;
+                {filteredStudents.length > 0 ? (
+                  filteredStudents.map((student) => {
+                    const isSelected = selectedStudents.some(
+                      (selected) => selected.id === student.id,
+                    );
 
                     return (
                       <button
@@ -195,18 +233,28 @@ export default function SleepoverPinCreateModal({
                         className={`sleepover-student-option ${
                           isSelected ? 'selected' : ''
                         }`}
-                        onClick={() => handleSelectStudent(student)}
+                        onClick={() => toggleStudent(student)}
                         disabled={isPending}
+                        aria-pressed={isSelected}
                       >
+                        <span
+                          className="sleepover-student-check"
+                          aria-hidden="true"
+                        >
+                          {isSelected && (
+                            <svg viewBox="0 0 16 16" focusable="false">
+                              <path d="m3.5 8 3 3 6-6" />
+                            </svg>
+                          )}
+                        </span>
                         <span className="sleepover-student-main">
                           {student.room}호 {student.name}
                         </span>
-                        <span className="sleepover-student-meta">
-                          {isSelected
-                            ? '선택됨'
-                            : `${getStudentNumber(student)} · ${
-                                student.gender === 'MALE' ? '남' : '여'
-                              }`}
+                        <span className="sleepover-student-trailing">
+                          <span className="sleepover-student-meta">
+                            {getStudentNumber(student)} ·{' '}
+                            {student.gender === 'MALE' ? '남' : '여'}
+                          </span>
                         </span>
                       </button>
                     );
@@ -216,6 +264,34 @@ export default function SleepoverPinCreateModal({
                     검색 결과가 없습니다.
                   </div>
                 )}
+              </div>
+              <div
+                className={`sleepover-selected-transition ${
+                  selectedStudents.length > 0 ? 'expanded' : ''
+                }`}
+                aria-hidden={selectedStudents.length === 0}
+              >
+                <section
+                  className="sleepover-selected-panel"
+                  aria-label="선택한 학생"
+                >
+                  <p className="sleepover-selected-heading">선택한 학생</p>
+                  <ul className="sleepover-selected-students">
+                    {selectedStudents.map((student) => (
+                      <li key={student.id}>
+                        <button
+                          type="button"
+                          onClick={() => removeSelectedStudent(student.id)}
+                          disabled={isPending}
+                          aria-label={`${student.room}호 ${student.name} 선택 해제`}
+                        >
+                          {student.room}호 {student.name}
+                          <span aria-hidden="true">×</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               </div>
             </div>
 
@@ -336,20 +412,6 @@ export default function SleepoverPinCreateModal({
         </div>
       </div>
 
-      <ConfirmationModal
-        isOpen={isDiscardConfirmOpen}
-        eyebrow="Discard changes"
-        title="작성 내용을 버릴까요?"
-        message="입력 중인 고정 외박 정보가 사라집니다."
-        confirmText="버리기"
-        cancelText="계속 작성"
-        confirmVariant="danger"
-        onConfirm={() => {
-          setIsDiscardConfirmOpen(false);
-          onClose();
-        }}
-        onCancel={() => setIsDiscardConfirmOpen(false)}
-      />
     </>
   );
 }

@@ -233,24 +233,27 @@ export default function SleepoverCreateModal({
                 )}
               </div>
               {selectedStudents.length > 0 && (
-                <ul
-                  className="sleepover-selected-students"
+                <section
+                  className="sleepover-selected-panel"
                   aria-label="선택한 학생"
                 >
-                  {selectedStudents.map((student) => (
-                    <li key={student.id}>
-                      <button
-                        type="button"
-                        onClick={() => removeSelectedStudent(student.id)}
-                        disabled={isPending}
-                        aria-label={`${student.room}호 ${student.name} 선택 해제`}
-                      >
-                        {student.room}호 {student.name}
-                        <span aria-hidden="true">×</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                  <p className="sleepover-selected-heading">선택한 학생</p>
+                  <ul className="sleepover-selected-students">
+                    {selectedStudents.map((student) => (
+                      <li key={student.id}>
+                        <button
+                          type="button"
+                          onClick={() => removeSelectedStudent(student.id)}
+                          disabled={isPending}
+                          aria-label={`${student.room}호 ${student.name} 선택 해제`}
+                        >
+                          {student.room}호 {student.name}
+                          <span aria-hidden="true">×</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               )}
             </div>
 

@@ -1177,7 +1177,7 @@ export default function Check() {
     if (nightAttendance === '미출석') {
       return <span className="status-absent">{nightAttendance}</span>;
     }
-    return nightAttendance;
+    return '미신청';
   };
 
   const renderPhoneSubmission = (

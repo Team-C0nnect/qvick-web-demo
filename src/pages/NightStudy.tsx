@@ -517,6 +517,7 @@ export default function NightStudy() {
         gender: genderFilter,
         grade: gradeFilter,
         hasSearch: Boolean(searchQuery.trim()),
+        totalStudents: filteredStudents.length + nonApplicantCount,
       });
     } catch (error) {
       setExportError(error instanceof Error ? error.message : '엑셀 내보내기에 실패했습니다.');

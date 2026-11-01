@@ -15,6 +15,7 @@ export interface NightStudyExportOptions {
   gender: '전체' | '남' | '여';
   grade: '전체' | 1 | 2 | 3;
   hasSearch: boolean;
+  totalStudents: number;
 }
 
 interface AttendanceCounts {
@@ -90,7 +91,7 @@ const createPeriodWorksheet = (
     else group.absent += 1;
   });
 
-  let xml = setCell(templateXml, 'E2', `심자 참석 인원 현황 (${period === 'period1' ? '1' : '2'}차)`);
+  let xml = setCell(templateXml, 'E2', `심야자습${period === 'period1' ? '1' : '2'} 참석 인원 현황`);
   xml = setCell(xml, 'S3', options.date);
   xml = setCell(xml, 'T3', '');
   const scope = [
@@ -135,6 +136,36 @@ const createPeriodWorksheet = (
     xml = setCell(xml, `${name}10`, total, `SUM(${name}7:${name}9)`);
   }
 
+  // 인쇄 영역을 유지하도록 교실 안내를 오른쪽으로 옮겨 왼쪽에 요약을 배치한다.
+  for (let row = 12; row <= 14; row += 1) {
+    xml = xml.replace(
+      new RegExp(`(<row\\b[^>]*\\br="${row}"[^>]*>)[\\s\\S]*?</row>`),
+      (originalRow: string, opening: string) => {
+        const cells = [...originalRow.matchAll(/<c\b[^>]*\br="([B-I])\d+"[^>]*(?:\/>|>[\s\S]*?<\/c>)/g)];
+        const legend = cells
+          .map(([cell, column]) => cell.replace(
+            /\br="[B-I]\d+"/,
+            `r="${XLSX.utils.encode_col(XLSX.utils.decode_col(column) + 9)}${row}"`,
+          )).join('');
+        const summary = cells
+          .map(([cell]) => cell.replace(/\s+t="[^"]*"/, '').replace(/(?:\/>|>[\s\S]*?<\/c>)$/, '/>'))
+          .join('');
+        return `${opening}${summary}${legend}</row>`;
+      },
+    );
+  }
+  const summaryMerges = [12, 13, 14].flatMap((row) => [`B${row}:F${row}`, `G${row}:I${row}`]);
+  xml = xml.replace(/<mergeCells count="(\d+)">/, (_, count: string) =>
+    `<mergeCells count="${Number(count) + summaryMerges.length}">${summaryMerges.map((reference) => `<mergeCell ref="${reference}"/>`).join('')}`,
+  );
+  xml = setCell(xml, 'B12', '기숙사 잔류 인원');
+  xml = setCell(xml, 'B13', '심야자습 참여 인원');
+  xml = setCell(xml, 'B14', '총 인원');
+  const participants = values.reduce((sum, row) => sum + row[19] + row[22], 0);
+  xml = setCell(xml, 'G12', options.totalStudents - participants, 'G14-G13');
+  xml = setCell(xml, 'G13', participants, 'SUM(V10,Y10)');
+  xml = setCell(xml, 'G14', options.totalStudents);
+
   return xml.replace(/\s+xr:uid="[^"]*"/, '');
 };
 
@@ -144,6 +175,9 @@ export const createNightStudyStatisticsWorkbook = (
   students: NightStudyExportStudent[],
   options: NightStudyExportOptions,
 ): Uint8Array => {
+  if (!Number.isInteger(options.totalStudents) || options.totalStudents < students.length) {
+    throw new Error('전체 인원 정보를 확인할 수 없습니다. 새로고침 후 다시 시도해주세요.');
+  }
   if (new Set(students.map((student) => student.studentId)).size !== students.length) {
     throw new Error('중복된 신청자 정보가 있습니다. 새로고침 후 다시 시도해주세요.');
   }
@@ -166,7 +200,7 @@ export const createNightStudyStatisticsWorkbook = (
   writeXml('xl/worksheets/_rels/sheet2.xml.rels', readXml('xl/worksheets/_rels/sheet1.xml.rels'));
   writeXml('xl/workbook.xml', readXml('xl/workbook.xml')
     .replace(/<sheets>[\s\S]*?<\/sheets>/,
-      '<sheets><sheet name="심야자습 1" sheetId="1" r:id="rId1"/><sheet name="심야자습 2" sheetId="2" r:id="rId5"/></sheets>')
+      '<sheets><sheet name="심야자습1" sheetId="1" r:id="rId1"/><sheet name="심야자습2" sheetId="2" r:id="rId5"/></sheets>')
     .replace(/<calcPr\b[^>]*\/>/, '<calcPr fullCalcOnLoad="1"/>'));
   writeXml('xl/_rels/workbook.xml.rels', readXml('xl/_rels/workbook.xml.rels')
     .replace('</Relationships>', '<Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/></Relationships>'));
@@ -175,7 +209,7 @@ export const createNightStudyStatisticsWorkbook = (
   writeXml('docProps/app.xml', readXml('docProps/app.xml')
     .replace(/<vt:i4>1<\/vt:i4>/, '<vt:i4>2</vt:i4>')
     .replace(/<TitlesOfParts>[\s\S]*?<\/TitlesOfParts>/,
-      '<TitlesOfParts><vt:vector size="2" baseType="lpstr"><vt:lpstr>심야자습 1</vt:lpstr><vt:lpstr>심야자습 2</vt:lpstr></vt:vector></TitlesOfParts>'));
+      '<TitlesOfParts><vt:vector size="2" baseType="lpstr"><vt:lpstr>심야자습1</vt:lpstr><vt:lpstr>심야자습2</vt:lpstr></vt:vector></TitlesOfParts>'));
 
   return new Uint8Array(XLSX.CFB.write(archive, { fileType: 'zip', compression: true }));
 };

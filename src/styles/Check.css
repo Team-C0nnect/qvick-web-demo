@@ -520,6 +520,10 @@
   background: #8b5cf6;
 }
 
+.check-page .legend-dot.not-applied {
+  background: #a1a1aa;
+}
+
 .check-page .legend-value {
   color: #0f0f10;
   font-size: 13px;

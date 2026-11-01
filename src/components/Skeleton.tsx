@@ -37,12 +37,8 @@ export function TableRowSkeleton({ columns = 10 }: { columns?: number }) {
 // 인원 확인 테이블 스켈레톤
 const CHECK_DONUT_LEGEND_TONES = ['present', 'absent', 'late', 'sleepover'] as const;
 
-export function CheckTableSkeleton({
-  nightCard = false,
-}: {
-  nightCard?: boolean;
-}) {
-  const donutLegendCounts = nightCard ? [4, 2, 2] : [4, 2];
+export function CheckTableSkeleton() {
+  const donutLegendCounts = [4, 4, 2];
 
   return (
     <div className="check-skeleton">

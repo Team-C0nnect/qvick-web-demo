@@ -13,6 +13,7 @@
 /* 콘텐츠 최대폭 1180px 중앙정렬 */
 .check-page .controls-section,
 .check-page .filter-section,
+.check-page:not(.sleepover-page) .table-panel,
 .check-page .table-container,
 .check-page .check-skeleton {
   width: min(1180px, 100%);

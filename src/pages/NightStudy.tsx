@@ -481,13 +481,13 @@ export default function NightStudy() {
           <NightStudyStatsCard title="심야자습 2 현황" stats={period2Stats} />
 
           <div className="donut-card night-study-donut-card night-study-floor-card">
-            <h3 className="donut-card-title">층별 인원 구성</h3>
+            <h3 className="donut-card-title">신청자 층별 구성</h3>
             <div className="donut-card-body night-study-floor-card-body">
               <DonutChart
                 key={`${genderTotal}-${genderStats.male}-${genderStats.female}`}
                 className="donut-card-chart"
                 total={genderTotal}
-                label="성별 인원 비율"
+                label="신청자 성별 인원 비율"
                 segments={[
                   { key: 'male', color: '#3b82f6', value: genderStats.male },
                   {
@@ -497,25 +497,27 @@ export default function NightStudy() {
                   },
                 ]}
               >
-                <span>전체 인원</span>
+                <span>신청 인원</span>
                 <strong>
                   <RollingNumber value={genderTotal} />명
                 </strong>
               </DonutChart>
               <div className="night-study-floor-list">
                 {floorGenderItems.length > 0 ? (
-                  floorGenderItems.map((item) => (
-                    <div
-                      className={`night-study-floor-count ${item.tone}`}
-                      key={item.key}
-                    >
-                      <span className="night-study-floor-count-label">
-                        <i className={`legend-dot ${item.tone}`} />
-                        {item.label}
-                      </span>
-                      <b><RollingNumber value={item.value} />명</b>
-                    </div>
-                  ))
+                  <ul className="donut-legend">
+                    {floorGenderItems.map((item) => (
+                      <li key={item.key}>
+                        <span className="legend-label">
+                          <i className={`legend-dot ${item.tone}`} />
+                          {item.label}
+                        </span>
+                        <span className="legend-value">
+                          <RollingNumber value={item.value} />명{' '}
+                          <em>({toPercent(item.value, genderTotal)})</em>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 ) : (
                   <p className="night-study-floor-empty">층별 인원 정보가 없습니다.</p>
                 )}

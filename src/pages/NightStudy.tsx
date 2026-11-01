@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { nightStudyService } from '../services/night-study.service';
 import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
-import { SearchIcon } from '../components/Icons';
+import { ExcelIcon, SearchIcon } from '../components/Icons';
 import DonutChart from '../components/DonutChart';
 import { RollingNumber } from '../components/RollingNumber';
 import { TableRowSkeleton } from '../components/Skeleton';
@@ -36,6 +36,8 @@ interface NightStudyStudent {
   period1Room: string;
   period2Status: NightStudyDisplayStatus;
   period2Room: string;
+  period1: NightStudyPeriodResponse;
+  period2: NightStudyPeriodResponse;
 }
 
 interface NightStudyStats {
@@ -273,6 +275,32 @@ export default function NightStudy() {
     genderView,
   );
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [showExcelMenu, setShowExcelMenu] = useState(false);
+  const excelMenuRef = useRef<HTMLDivElement>(null);
+  const excelButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showExcelMenu) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (excelMenuRef.current && !excelMenuRef.current.contains(event.target as Node)) {
+        setShowExcelMenu(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowExcelMenu(false);
+        excelButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showExcelMenu]);
 
   useEffect(() => {
     setGenderFilter(genderView);
@@ -361,6 +389,8 @@ export default function NightStudy() {
         period1Room: getNightStudyRoomName(applicant.period1),
         period2Status: getNightStudyDisplayStatus(applicant.period2.status),
         period2Room: getNightStudyRoomName(applicant.period2),
+        period1: applicant.period1,
+        period2: applicant.period2,
       };
     });
   }, [
@@ -473,6 +503,28 @@ export default function NightStudy() {
   const genderTotal = genderStats.male + genderStats.female;
   const floorGenderItems = buildFloorGenderItems(floorStats);
 
+  const handleExportExcel = async () => {
+    if (isExporting) return;
+    setShowExcelMenu(false);
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      const { exportNightStudyStatisticsToExcel } = await import(
+        '../services/night-study-excel.service'
+      );
+      await exportNightStudyStatisticsToExcel(filteredStudents, {
+        date: currentDate,
+        gender: genderFilter,
+        grade: gradeFilter,
+        hasSearch: Boolean(searchQuery.trim()),
+      });
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : '엑셀 내보내기에 실패했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="check-page night-study-page">
       <div className="controls-section">
@@ -533,6 +585,12 @@ export default function NightStudy() {
         </div>
       )}
 
+      {exportError && (
+        <div className="night-study-message error" role="alert">
+          {exportError}
+        </div>
+      )}
+
       <div className="table-panel">
         <div className="table-toolbar">
           <div className="search-box">
@@ -589,6 +647,41 @@ export default function NightStudy() {
               <span className="night-study-sync-icon" aria-hidden="true">↻</span>
               <span>{isFetching ? '조회 중...' : '새로고침'}</span>
             </button>
+            <div className="excel-dropdown" ref={excelMenuRef}>
+              <button
+                ref={excelButtonRef}
+                type="button"
+                className="excel-button"
+                onClick={() => setShowExcelMenu((open) => !open)}
+                disabled={
+                  isFetching || isError ||
+                  (!isStudentsLoaded && !isAttendancesLoaded)
+                }
+                aria-expanded={showExcelMenu}
+                aria-haspopup="menu"
+                aria-controls="night-study-excel-menu"
+              >
+                <ExcelIcon className="excel-icon" />
+                Excel
+                <span className="excel-caret">▾</span>
+              </button>
+              {showExcelMenu && (
+                <div className="excel-menu" id="night-study-excel-menu" role="menu">
+                  <button
+                    type="button"
+                    className="excel-menu-item"
+                    role="menuitem"
+                    disabled={isExporting}
+                    onClick={() => void handleExportExcel()}
+                  >
+                    <span className="excel-menu-item-title">심야자습 통계</span>
+                    <span className="excel-menu-item-desc">
+                      현재 조건의 1·2차 통계 양식 다운로드
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

@@ -42,6 +42,8 @@
 
 .check-page.night-study-page .night-study-filter-action {
   display: flex;
+  align-items: center;
+  gap: 8px;
   margin-left: auto;
 }
 
@@ -174,9 +176,12 @@
 
   .check-page.night-study-page .night-study-filter-action {
     margin-left: 0;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .check-page.night-study-page .night-study-sync-button {
+  .check-page.night-study-page .night-study-sync-button,
+  .check-page.night-study-page .night-study-filter-action .excel-button {
     width: 100%;
   }
 

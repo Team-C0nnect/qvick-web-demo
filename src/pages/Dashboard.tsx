@@ -20,6 +20,7 @@ import DonutChart from '../components/DonutChart';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useAttendanceView } from '../context/AttendanceViewContext';
 import { useGenderView } from '../context/GenderViewContext';
+import { ATTENDANCE_DAY_START_HOUR, getAttendanceDate } from '../utils/date';
 import CheckIcon from '../components/sidebar/svg/check.svg?react';
 import NightStudyIcon from '../components/sidebar/svg/night-study.svg?react';
 import PhoneSubmissionIcon from '../components/sidebar/svg/phone-submission.svg?react';
@@ -64,6 +65,8 @@ const getTimeBasedAttendanceType = (
   } | undefined>,
   now = new Date(),
 ): AttendanceType => {
+  if (now.getHours() < ATTENDANCE_DAY_START_HOUR) return 'NIGHT';
+
   const nightStartMinutes = schedules
     .map((schedule) => getMinutesFromTime(schedule?.nightStartTime))
     .filter((minutes): minutes is number => minutes !== null);
@@ -268,7 +271,7 @@ const QUICK_LINKS: {
 const ATTENDANCE_TYPES: AttendanceType[] = ['MORNING', 'NIGHT'];
 
 export default function Dashboard() {
-  const { selectedDate: today } = useSelectedDate();
+  const { selectedDate: today, setSelectedDate } = useSelectedDate();
   const navigate = useNavigate();
   const { isManual, syncAttendanceView } = useAttendanceView();
   const { genderView } = useGenderView();
@@ -301,14 +304,18 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    if (isManual) return;
+    if (isManual || maleScheduleLoading || femaleScheduleLoading) return;
 
     const updateAttendanceType = () => {
+      const now = new Date();
+      const attendanceDate = getAttendanceDate(now);
+      if (today !== attendanceDate) {
+        setSelectedDate(attendanceDate);
+        return;
+      }
+
       syncAttendanceView(
-        getTimeBasedAttendanceType([
-          maleSchedule,
-          femaleSchedule,
-        ]),
+        getTimeBasedAttendanceType([maleSchedule, femaleSchedule], now),
       );
     };
 
@@ -321,9 +328,13 @@ export default function Dashboard() {
     return () => window.clearInterval(interval);
   }, [
     femaleSchedule,
+    femaleScheduleLoading,
     isManual,
     maleSchedule,
+    maleScheduleLoading,
+    setSelectedDate,
     syncAttendanceView,
+    today,
   ]);
 
   const isLoading =

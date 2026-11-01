@@ -11,3 +11,12 @@ export const getAdjacentDate = (date: string, days: number): string => {
   result.setDate(result.getDate() + days);
   return formatLocalDate(result);
 };
+
+export const ATTENDANCE_DAY_START_HOUR = 4;
+
+export const getAttendanceDate = (now = new Date()): string => {
+  const today = formatLocalDate(now);
+  return now.getHours() < ATTENDANCE_DAY_START_HOUR
+    ? getAdjacentDate(today, -1)
+    : today;
+};

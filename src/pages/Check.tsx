@@ -40,7 +40,12 @@ import type {
   DeviceSubmissionStatus,
   UpdateAttendancesRequest,
 } from '../types/api';
-import { formatLocalDate, getAdjacentDate } from '../utils/date';
+import {
+  ATTENDANCE_DAY_START_HOUR,
+  formatLocalDate,
+  getAdjacentDate,
+  getAttendanceDate,
+} from '../utils/date';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useAttendanceView } from '../context/AttendanceViewContext';
 import { useGenderView } from '../context/GenderViewContext';
@@ -142,6 +147,8 @@ const getTimeBasedAttendanceType = (
   schedules: Array<AttendanceScheduleTime | undefined>,
   now = new Date(),
 ): AttendanceType => {
+  if (now.getHours() < ATTENDANCE_DAY_START_HOUR) return 'NIGHT';
+
   const nightStartMinutes = schedules
     .map((schedule) => getMinutesFromTime(schedule?.nightStartTime))
     .filter((minutes): minutes is number => minutes !== null);
@@ -414,8 +421,16 @@ export default function Check() {
     if (isPeriodManuallySelected || isAutoAttendanceTypeResolving) return;
 
     const updateAttendanceType = () => {
+      const now = new Date();
+      const attendanceDate = getAttendanceDate(now);
+      if (currentDate !== attendanceDate) {
+        // 날짜가 바뀌면 해당 날짜의 스케줄을 조회한 뒤 점호를 판단한다.
+        setCurrentDate(attendanceDate);
+        return;
+      }
+
       syncAttendanceView(
-        getTimeBasedAttendanceType([maleSchedule, femaleSchedule]),
+        getTimeBasedAttendanceType([maleSchedule, femaleSchedule], now),
       );
     };
 
@@ -427,10 +442,12 @@ export default function Check() {
 
     return () => window.clearInterval(interval);
   }, [
+    currentDate,
     femaleSchedule,
     isAutoAttendanceTypeResolving,
     isPeriodManuallySelected,
     maleSchedule,
+    setCurrentDate,
     syncAttendanceView,
   ]);
 
@@ -456,7 +473,7 @@ export default function Check() {
 
   const isViewingCurrentAttendancePeriod =
     !isAutoAttendanceTypeResolving &&
-    currentDate === formatLocalDate() &&
+    currentDate === getAttendanceDate() &&
     attendanceType === getTimeBasedAttendanceType([maleSchedule, femaleSchedule]);
 
   useEffect(() => {

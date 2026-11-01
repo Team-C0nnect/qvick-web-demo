@@ -13,6 +13,7 @@ import '../styles/NightStudy.css';
 import type {
   NightStudyPeriodResponse,
   NightStudyStatus,
+  Student,
   StudentResponse,
 } from '../types/api';
 import { useSelectedDate } from '../context/SelectedDateContext';
@@ -178,6 +179,7 @@ const renderNightStudyStatus = (
 const buildNightStudyStats = (
   students: NightStudyStudent[],
   periodKey: NightStudyPeriodKey,
+  nonApplicantCount: number,
 ): NightStudyStats =>
   students.reduce(
     (stats, student) => {
@@ -189,7 +191,12 @@ const buildNightStudyStats = (
 
       return stats;
     },
-    { total: 0, present: 0, absent: 0, notApplied: 0 },
+    {
+      total: nonApplicantCount,
+      present: 0,
+      absent: 0,
+      notApplied: nonApplicantCount,
+    },
   );
 
 const toPercent = (value: number, total: number): string =>
@@ -232,6 +239,7 @@ function NightStudyStatsCard({
         </DonutChart>
         <ul className="donut-legend">
           {[
+            { label: '신청', value: targetCount, tone: 'sleepover' },
             { label: '출석', value: stats.present, tone: 'positive' },
             { label: '미출석', value: stats.absent, tone: 'negative' },
             {
@@ -403,8 +411,57 @@ export default function NightStudy() {
     [genderFilter, matchingStudents],
   );
 
-  const period1Stats = buildNightStudyStats(matchingStudents, 'period1Status');
-  const period2Stats = buildNightStudyStats(matchingStudents, 'period2Status');
+  const nonApplicantCount = useMemo(() => {
+    const studentsByNumber = new Map<string, Student>();
+    studentsData?.content.forEach((student) => {
+      studentsByNumber.set(getStudentNumber(student), student);
+    });
+    attendancesData?.forEach(({ student }) => {
+      const studentId = getStudentNumber(student);
+      if (!studentsByNumber.has(studentId)) {
+        studentsByNumber.set(studentId, student);
+      }
+    });
+
+    // 신청자 응답에 없는 학생도 전체 명단에서 찾아 미신청 인원에 포함한다.
+    const applicantNumbers = new Set(
+      nightStudyStudents.map((student) => student.studentId),
+    );
+    const query = searchQuery.trim().toLowerCase();
+
+    return [...studentsByNumber.entries()].filter(([studentId, student]) => {
+      if (applicantNumbers.has(studentId)) return false;
+      if (gradeFilter !== '전체' && student.grade !== gradeFilter) return false;
+
+      const gender = student.gender === 'MALE' ? '남' : '여';
+      if (genderFilter !== '전체' && gender !== genderFilter) return false;
+
+      return (
+        !query ||
+        matchesKoreanNameSearch(student.name, searchQuery) ||
+        student.room.toLowerCase().includes(query) ||
+        studentId.includes(query)
+      );
+    }).length;
+  }, [
+    studentsData,
+    attendancesData,
+    nightStudyStudents,
+    searchQuery,
+    gradeFilter,
+    genderFilter,
+  ]);
+
+  const period1Stats = buildNightStudyStats(
+    filteredStudents,
+    'period1Status',
+    nonApplicantCount,
+  );
+  const period2Stats = buildNightStudyStats(
+    filteredStudents,
+    'period2Status',
+    nonApplicantCount,
+  );
   const floorStats = buildFloorStats(matchingStudents);
   const genderStats = floorStats.reduce(
     (stats, floor) => ({

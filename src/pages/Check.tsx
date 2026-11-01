@@ -1220,7 +1220,9 @@ export default function Check() {
   if (attendancesLoading || isAutoAttendanceTypeResolving) {
     return (
       <div className="check-page">
-        <CheckTableSkeleton />
+        <CheckTableSkeleton
+          nightCard={!isAutoAttendanceTypeResolving && attendanceType === 'NIGHT'}
+        />
       </div>
     );
   }
@@ -1290,89 +1292,91 @@ export default function Check() {
             </div>
           </div>
 
-          <div className="donut-card">
-            <h3 className="donut-card-title">심야자습 출석 현황</h3>
-            <div className="donut-card-body">
-              <DonutChart
-                key={`${stats.nightPresent}-${stats.nightAbsent}-${stats.nightPending}`}
-                className="donut-card-chart"
-                total={stats.total}
-                label="심야자습 출석 비율"
-                segments={[
-                  {
-                    key: 'present',
-                    color: '#22c55e',
-                    value: stats.nightPresent,
-                  },
-                  {
-                    key: 'absent',
-                    color: '#ef4444',
-                    value: stats.nightAbsent,
-                  },
-                  {
-                    key: 'not-applied',
-                    color: '#a1a1aa',
-                    value: stats.nightPending,
-                  },
-                ]}
-              >
-                <span>출석률</span>
-                <strong>
-                  <RollingNumber value={nightAttendanceRate} />%
-                </strong>
-              </DonutChart>
-              <ul className="donut-legend">
-                <li>
-                  <span className="legend-label">
-                    <i className="legend-dot sleepover" />
-                    신청
-                  </span>
-                  <span className="legend-value">
-                    <RollingNumber value={nightAttendanceTotal} />명{' '}
-                    <em>({toPercent(nightAttendanceTotal, stats.total)})</em>
-                  </span>
-                </li>
-                <li>
-                  <span className="legend-label">
-                    <i className="legend-dot positive" />
-                    출석
-                  </span>
-                  <span className="legend-value">
-                    <RollingNumber value={stats.nightPresent} />명{' '}
-                    <em>
-                      (
-                      {toPercent(stats.nightPresent, stats.total)}
-                      )
-                    </em>
-                  </span>
-                </li>
-                <li>
-                  <span className="legend-label">
-                    <i className="legend-dot negative" />
-                    미출석
-                  </span>
-                  <span className="legend-value">
-                    <RollingNumber value={stats.nightAbsent} />명{' '}
-                    <em>
-                      (
-                      {toPercent(stats.nightAbsent, stats.total)}
-                      )
-                    </em>
-                  </span>
-                </li>
-                <li>
-                  <span className="legend-label">
-                    <i className="legend-dot not-applied" />
-                    미신청
-                  </span>
-                  <span className="legend-value">
-                    <RollingNumber value={stats.nightPending} />명{' '}
-                    <em>({toPercent(stats.nightPending, stats.total)})</em>
-                  </span>
-                </li>
-              </ul>
+          {attendanceType === 'NIGHT' && (
+            <div className="donut-card">
+              <h3 className="donut-card-title">심야자습 출석 현황</h3>
+              <div className="donut-card-body">
+                <DonutChart
+                  key={`${stats.nightPresent}-${stats.nightAbsent}-${stats.nightPending}`}
+                  className="donut-card-chart"
+                  total={stats.total}
+                  label="심야자습 출석 비율"
+                  segments={[
+                    {
+                      key: 'present',
+                      color: '#22c55e',
+                      value: stats.nightPresent,
+                    },
+                    {
+                      key: 'absent',
+                      color: '#ef4444',
+                      value: stats.nightAbsent,
+                    },
+                    {
+                      key: 'not-applied',
+                      color: '#a1a1aa',
+                      value: stats.nightPending,
+                    },
+                  ]}
+                >
+                  <span>출석률</span>
+                  <strong>
+                    <RollingNumber value={nightAttendanceRate} />%
+                  </strong>
+                </DonutChart>
+                <ul className="donut-legend">
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot sleepover" />
+                      신청
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={nightAttendanceTotal} />명{' '}
+                      <em>({toPercent(nightAttendanceTotal, stats.total)})</em>
+                    </span>
+                  </li>
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot positive" />
+                      출석
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={stats.nightPresent} />명{' '}
+                      <em>
+                        (
+                        {toPercent(stats.nightPresent, stats.total)}
+                        )
+                      </em>
+                    </span>
+                  </li>
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot negative" />
+                      미출석
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={stats.nightAbsent} />명{' '}
+                      <em>
+                        (
+                        {toPercent(stats.nightAbsent, stats.total)}
+                        )
+                      </em>
+                    </span>
+                  </li>
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot not-applied" />
+                      미신청
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={stats.nightPending} />명{' '}
+                      <em>({toPercent(stats.nightPending, stats.total)})</em>
+                    </span>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="donut-card">
             <h3 className="donut-card-title">휴대폰 제출 현황</h3>

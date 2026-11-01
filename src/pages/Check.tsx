@@ -40,7 +40,12 @@ import type {
   DeviceSubmissionStatus,
   UpdateAttendancesRequest,
 } from '../types/api';
-import { formatLocalDate, getAdjacentDate } from '../utils/date';
+import {
+  ATTENDANCE_DAY_START_HOUR,
+  formatLocalDate,
+  getAdjacentDate,
+  getAttendanceDate,
+} from '../utils/date';
 import { useSelectedDate } from '../context/SelectedDateContext';
 import { useAttendanceView } from '../context/AttendanceViewContext';
 import { useGenderView } from '../context/GenderViewContext';
@@ -142,6 +147,8 @@ const getTimeBasedAttendanceType = (
   schedules: Array<AttendanceScheduleTime | undefined>,
   now = new Date(),
 ): AttendanceType => {
+  if (now.getHours() < ATTENDANCE_DAY_START_HOUR) return 'NIGHT';
+
   const nightStartMinutes = schedules
     .map((schedule) => getMinutesFromTime(schedule?.nightStartTime))
     .filter((minutes): minutes is number => minutes !== null);
@@ -414,8 +421,16 @@ export default function Check() {
     if (isPeriodManuallySelected || isAutoAttendanceTypeResolving) return;
 
     const updateAttendanceType = () => {
+      const now = new Date();
+      const attendanceDate = getAttendanceDate(now);
+      if (currentDate !== attendanceDate) {
+        // 날짜가 바뀌면 해당 날짜의 스케줄을 조회한 뒤 점호를 판단한다.
+        setCurrentDate(attendanceDate);
+        return;
+      }
+
       syncAttendanceView(
-        getTimeBasedAttendanceType([maleSchedule, femaleSchedule]),
+        getTimeBasedAttendanceType([maleSchedule, femaleSchedule], now),
       );
     };
 
@@ -427,10 +442,12 @@ export default function Check() {
 
     return () => window.clearInterval(interval);
   }, [
+    currentDate,
     femaleSchedule,
     isAutoAttendanceTypeResolving,
     isPeriodManuallySelected,
     maleSchedule,
+    setCurrentDate,
     syncAttendanceView,
   ]);
 
@@ -456,7 +473,7 @@ export default function Check() {
 
   const isViewingCurrentAttendancePeriod =
     !isAutoAttendanceTypeResolving &&
-    currentDate === formatLocalDate() &&
+    currentDate === getAttendanceDate() &&
     attendanceType === getTimeBasedAttendanceType([maleSchedule, femaleSchedule]);
 
   useEffect(() => {
@@ -1177,7 +1194,7 @@ export default function Check() {
     if (nightAttendance === '미출석') {
       return <span className="status-absent">{nightAttendance}</span>;
     }
-    return nightAttendance;
+    return '미신청';
   };
 
   const renderPhoneSubmission = (
@@ -1221,9 +1238,7 @@ export default function Check() {
     return (
       <div className="check-page">
         <CheckTableSkeleton
-          nightCard={
-            !isAutoAttendanceTypeResolving && attendanceType === 'NIGHT'
-          }
+          nightCard={!isAutoAttendanceTypeResolving && attendanceType === 'NIGHT'}
         />
       </div>
     );
@@ -1299,9 +1314,9 @@ export default function Check() {
               <h3 className="donut-card-title">심야자습 출석 현황</h3>
               <div className="donut-card-body">
                 <DonutChart
-                  key={`${stats.nightPresent}-${stats.nightAbsent}`}
+                  key={`${stats.nightPresent}-${stats.nightAbsent}-${stats.nightPending}`}
                   className="donut-card-chart"
-                  total={stats.nightPresent + stats.nightAbsent}
+                  total={stats.total}
                   label="심야자습 출석 비율"
                   segments={[
                     {
@@ -1314,13 +1329,29 @@ export default function Check() {
                       color: '#ef4444',
                       value: stats.nightAbsent,
                     },
+                    {
+                      key: 'not-applied',
+                      color: '#a1a1aa',
+                      value: stats.nightPending,
+                    },
                   ]}
                 >
+                  <span>출석률</span>
                   <strong>
                     <RollingNumber value={nightAttendanceRate} />%
                   </strong>
                 </DonutChart>
                 <ul className="donut-legend">
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot sleepover" />
+                      신청
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={nightAttendanceTotal} />명{' '}
+                      <em>({toPercent(nightAttendanceTotal, stats.total)})</em>
+                    </span>
+                  </li>
                   <li>
                     <span className="legend-label">
                       <i className="legend-dot positive" />
@@ -1330,10 +1361,7 @@ export default function Check() {
                       <RollingNumber value={stats.nightPresent} />명{' '}
                       <em>
                         (
-                        {toPercent(
-                          stats.nightPresent,
-                          stats.nightPresent + stats.nightAbsent,
-                        )}
+                        {toPercent(stats.nightPresent, stats.total)}
                         )
                       </em>
                     </span>
@@ -1347,12 +1375,19 @@ export default function Check() {
                       <RollingNumber value={stats.nightAbsent} />명{' '}
                       <em>
                         (
-                        {toPercent(
-                          stats.nightAbsent,
-                          stats.nightPresent + stats.nightAbsent,
-                        )}
+                        {toPercent(stats.nightAbsent, stats.total)}
                         )
                       </em>
+                    </span>
+                  </li>
+                  <li>
+                    <span className="legend-label">
+                      <i className="legend-dot not-applied" />
+                      미신청
+                    </span>
+                    <span className="legend-value">
+                      <RollingNumber value={stats.nightPending} />명{' '}
+                      <em>({toPercent(stats.nightPending, stats.total)})</em>
                     </span>
                   </li>
                 </ul>

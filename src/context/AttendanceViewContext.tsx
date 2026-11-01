@@ -7,6 +7,7 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import type { AttendanceType } from '../types/api';
+import { ATTENDANCE_DAY_START_HOUR } from '../utils/date';
 
 interface AttendanceViewContextValue {
   attendanceView: AttendanceType;
@@ -23,7 +24,10 @@ const AttendanceViewContext = createContext<AttendanceViewContextValue | null>(
 
 export function AttendanceViewProvider({ children }: { children: ReactNode }) {
   const [attendanceView, setAttendanceViewState] = useState<AttendanceType>(
-    () => (new Date().getHours() < 12 ? 'MORNING' : 'NIGHT'),
+    () => {
+      const hour = new Date().getHours();
+      return hour >= ATTENDANCE_DAY_START_HOUR && hour < 12 ? 'MORNING' : 'NIGHT';
+    },
   );
   const [isManual, setIsManual] = useState(false);
 

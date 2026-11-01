@@ -85,14 +85,6 @@
   cursor: not-allowed;
 }
 
-/* ===== 콘텐츠 폭 정렬 =====
-   테이블 패널은 폭 제한이 없으므로 상단 도넛 카드·배너·표도 같은 폭으로 맞춥니다. */
-.check-page.sleepover-page .controls-section,
-.check-page.sleepover-page .table-container,
-.check-page.sleepover-page .sleepover-message {
-  width: 100%;
-}
-
 /* ===== 동기화 결과 / 에러 배너 ===== */
 .check-page .sleepover-message {
   width: min(1180px, 100%);
@@ -198,6 +190,7 @@
   display: flex;
   gap: 4px;
   width: fit-content;
+  margin-left: max(0px, calc((100% - 1180px) / 2));
   margin-bottom: 12px;
   padding: 4px;
   border: 1px solid #e4e4e7;

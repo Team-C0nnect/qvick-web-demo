@@ -13,6 +13,7 @@
 /* 콘텐츠 최대폭 1180px 중앙정렬 */
 .check-page .controls-section,
 .check-page .filter-section,
+.check-page .table-panel,
 .check-page .table-container,
 .check-page .check-skeleton {
   width: min(1180px, 100%);
@@ -518,6 +519,10 @@
 
 .check-page .legend-dot.sleepover {
   background: #8b5cf6;
+}
+
+.check-page .legend-dot.not-applied {
+  background: #a1a1aa;
 }
 
 .check-page .legend-value {

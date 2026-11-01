@@ -42,6 +42,8 @@
 
 .check-page.night-study-page .night-study-filter-action {
   display: flex;
+  align-items: center;
+  gap: 8px;
   margin-left: auto;
 }
 
@@ -99,39 +101,6 @@
 
 .check-page.night-study-page .night-study-floor-card-body {
   align-items: center;
-}
-
-.check-page.night-study-page .night-study-floor-count {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 5px;
-  min-width: 0;
-  padding: 2px 0;
-  border-bottom: 1px solid #f4f4f5;
-  color: #52525b;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.check-page.night-study-page .night-study-floor-count:last-child {
-  border-bottom: none;
-}
-
-.check-page.night-study-page .night-study-floor-count-label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  white-space: nowrap;
-}
-
-.check-page.night-study-page .night-study-floor-count b {
-  flex-shrink: 0;
-  color: #17181a;
-  font-size: 12px;
-  font-weight: 800;
 }
 
 .check-page.night-study-page .night-study-floor-empty {
@@ -207,9 +176,12 @@
 
   .check-page.night-study-page .night-study-filter-action {
     margin-left: 0;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .check-page.night-study-page .night-study-sync-button {
+  .check-page.night-study-page .night-study-sync-button,
+  .check-page.night-study-page .night-study-filter-action .excel-button {
     width: 100%;
   }
 

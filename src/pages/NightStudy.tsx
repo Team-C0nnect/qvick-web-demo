@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAttendances } from '../hooks/useApi';
 import { nightStudyService } from '../services/night-study.service';
 import { studentService } from '../services/student.service';
 import { matchesKoreanNameSearch } from '../utils/korean-search';
-import { SearchIcon } from '../components/Icons';
+import { ExcelIcon, SearchIcon } from '../components/Icons';
 import DonutChart from '../components/DonutChart';
 import { RollingNumber } from '../components/RollingNumber';
 import { TableRowSkeleton } from '../components/Skeleton';
@@ -13,6 +13,7 @@ import '../styles/NightStudy.css';
 import type {
   NightStudyPeriodResponse,
   NightStudyStatus,
+  Student,
   StudentResponse,
 } from '../types/api';
 import { useSelectedDate } from '../context/SelectedDateContext';
@@ -35,6 +36,8 @@ interface NightStudyStudent {
   period1Room: string;
   period2Status: NightStudyDisplayStatus;
   period2Room: string;
+  period1: NightStudyPeriodResponse;
+  period2: NightStudyPeriodResponse;
 }
 
 interface NightStudyStats {
@@ -178,6 +181,7 @@ const renderNightStudyStatus = (
 const buildNightStudyStats = (
   students: NightStudyStudent[],
   periodKey: NightStudyPeriodKey,
+  nonApplicantCount: number,
 ): NightStudyStats =>
   students.reduce(
     (stats, student) => {
@@ -189,7 +193,12 @@ const buildNightStudyStats = (
 
       return stats;
     },
-    { total: 0, present: 0, absent: 0, notApplied: 0 },
+    {
+      total: nonApplicantCount,
+      present: 0,
+      absent: 0,
+      notApplied: nonApplicantCount,
+    },
   );
 
 const toPercent = (value: number, total: number): string =>
@@ -232,6 +241,7 @@ function NightStudyStatsCard({
         </DonutChart>
         <ul className="donut-legend">
           {[
+            { label: '신청', value: targetCount, tone: 'sleepover' },
             { label: '출석', value: stats.present, tone: 'positive' },
             { label: '미출석', value: stats.absent, tone: 'negative' },
             {
@@ -265,6 +275,32 @@ export default function NightStudy() {
     genderView,
   );
   const [gradeFilter, setGradeFilter] = useState<'전체' | 1 | 2 | 3>('전체');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [showExcelMenu, setShowExcelMenu] = useState(false);
+  const excelMenuRef = useRef<HTMLDivElement>(null);
+  const excelButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showExcelMenu) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (excelMenuRef.current && !excelMenuRef.current.contains(event.target as Node)) {
+        setShowExcelMenu(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowExcelMenu(false);
+        excelButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showExcelMenu]);
 
   useEffect(() => {
     setGenderFilter(genderView);
@@ -353,6 +389,8 @@ export default function NightStudy() {
         period1Room: getNightStudyRoomName(applicant.period1),
         period2Status: getNightStudyDisplayStatus(applicant.period2.status),
         period2Room: getNightStudyRoomName(applicant.period2),
+        period1: applicant.period1,
+        period2: applicant.period2,
       };
     });
   }, [
@@ -403,8 +441,57 @@ export default function NightStudy() {
     [genderFilter, matchingStudents],
   );
 
-  const period1Stats = buildNightStudyStats(matchingStudents, 'period1Status');
-  const period2Stats = buildNightStudyStats(matchingStudents, 'period2Status');
+  const nonApplicantCount = useMemo(() => {
+    const studentsByNumber = new Map<string, Student>();
+    studentsData?.content.forEach((student) => {
+      studentsByNumber.set(getStudentNumber(student), student);
+    });
+    attendancesData?.forEach(({ student }) => {
+      const studentId = getStudentNumber(student);
+      if (!studentsByNumber.has(studentId)) {
+        studentsByNumber.set(studentId, student);
+      }
+    });
+
+    // 신청자 응답에 없는 학생도 전체 명단에서 찾아 미신청 인원에 포함한다.
+    const applicantNumbers = new Set(
+      nightStudyStudents.map((student) => student.studentId),
+    );
+    const query = searchQuery.trim().toLowerCase();
+
+    return [...studentsByNumber.entries()].filter(([studentId, student]) => {
+      if (applicantNumbers.has(studentId)) return false;
+      if (gradeFilter !== '전체' && student.grade !== gradeFilter) return false;
+
+      const gender = student.gender === 'MALE' ? '남' : '여';
+      if (genderFilter !== '전체' && gender !== genderFilter) return false;
+
+      return (
+        !query ||
+        matchesKoreanNameSearch(student.name, searchQuery) ||
+        student.room.toLowerCase().includes(query) ||
+        studentId.includes(query)
+      );
+    }).length;
+  }, [
+    studentsData,
+    attendancesData,
+    nightStudyStudents,
+    searchQuery,
+    gradeFilter,
+    genderFilter,
+  ]);
+
+  const period1Stats = buildNightStudyStats(
+    filteredStudents,
+    'period1Status',
+    nonApplicantCount,
+  );
+  const period2Stats = buildNightStudyStats(
+    filteredStudents,
+    'period2Status',
+    nonApplicantCount,
+  );
   const floorStats = buildFloorStats(matchingStudents);
   const genderStats = floorStats.reduce(
     (stats, floor) => ({
@@ -416,6 +503,29 @@ export default function NightStudy() {
   const genderTotal = genderStats.male + genderStats.female;
   const floorGenderItems = buildFloorGenderItems(floorStats);
 
+  const handleExportExcel = async () => {
+    if (isExporting) return;
+    setShowExcelMenu(false);
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      const { exportNightStudyStatisticsToExcel } = await import(
+        '../services/night-study-excel.service'
+      );
+      await exportNightStudyStatisticsToExcel(filteredStudents, {
+        date: currentDate,
+        gender: genderFilter,
+        grade: gradeFilter,
+        hasSearch: Boolean(searchQuery.trim()),
+        totalStudents: filteredStudents.length + nonApplicantCount,
+      });
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : '엑셀 내보내기에 실패했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="check-page night-study-page">
       <div className="controls-section">
@@ -424,13 +534,13 @@ export default function NightStudy() {
           <NightStudyStatsCard title="심야자습 2 현황" stats={period2Stats} />
 
           <div className="donut-card night-study-donut-card night-study-floor-card">
-            <h3 className="donut-card-title">층별 인원 구성</h3>
+            <h3 className="donut-card-title">신청자 층별 구성</h3>
             <div className="donut-card-body night-study-floor-card-body">
               <DonutChart
                 key={`${genderTotal}-${genderStats.male}-${genderStats.female}`}
                 className="donut-card-chart"
                 total={genderTotal}
-                label="성별 인원 비율"
+                label="신청자 성별 인원 비율"
                 segments={[
                   { key: 'male', color: '#3b82f6', value: genderStats.male },
                   {
@@ -440,25 +550,27 @@ export default function NightStudy() {
                   },
                 ]}
               >
-                <span>전체 인원</span>
+                <span>신청 인원</span>
                 <strong>
                   <RollingNumber value={genderTotal} />명
                 </strong>
               </DonutChart>
               <div className="night-study-floor-list">
                 {floorGenderItems.length > 0 ? (
-                  floorGenderItems.map((item) => (
-                    <div
-                      className={`night-study-floor-count ${item.tone}`}
-                      key={item.key}
-                    >
-                      <span className="night-study-floor-count-label">
-                        <i className={`legend-dot ${item.tone}`} />
-                        {item.label}
-                      </span>
-                      <b><RollingNumber value={item.value} />명</b>
-                    </div>
-                  ))
+                  <ul className="donut-legend">
+                    {floorGenderItems.map((item) => (
+                      <li key={item.key}>
+                        <span className="legend-label">
+                          <i className={`legend-dot ${item.tone}`} />
+                          {item.label}
+                        </span>
+                        <span className="legend-value">
+                          <RollingNumber value={item.value} />명{' '}
+                          <em>({toPercent(item.value, genderTotal)})</em>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 ) : (
                   <p className="night-study-floor-empty">층별 인원 정보가 없습니다.</p>
                 )}
@@ -471,6 +583,12 @@ export default function NightStudy() {
       {isError && (
         <div className="night-study-message error" role="alert">
           날짜별 심야자습 현황을 불러오지 못했습니다. 다시 시도해주세요.
+        </div>
+      )}
+
+      {exportError && (
+        <div className="night-study-message error" role="alert">
+          {exportError}
         </div>
       )}
 
@@ -530,6 +648,41 @@ export default function NightStudy() {
               <span className="night-study-sync-icon" aria-hidden="true">↻</span>
               <span>{isFetching ? '조회 중...' : '새로고침'}</span>
             </button>
+            <div className="excel-dropdown" ref={excelMenuRef}>
+              <button
+                ref={excelButtonRef}
+                type="button"
+                className="excel-button"
+                onClick={() => setShowExcelMenu((open) => !open)}
+                disabled={
+                  isFetching || isError ||
+                  (!isStudentsLoaded && !isAttendancesLoaded)
+                }
+                aria-expanded={showExcelMenu}
+                aria-haspopup="menu"
+                aria-controls="night-study-excel-menu"
+              >
+                <ExcelIcon className="excel-icon" />
+                Excel
+                <span className="excel-caret">▾</span>
+              </button>
+              {showExcelMenu && (
+                <div className="excel-menu" id="night-study-excel-menu" role="menu">
+                  <button
+                    type="button"
+                    className="excel-menu-item"
+                    role="menuitem"
+                    disabled={isExporting}
+                    onClick={() => void handleExportExcel()}
+                  >
+                    <span className="excel-menu-item-title">심야자습 통계</span>
+                    <span className="excel-menu-item-desc">
+                      현재 조건의 1·2차 통계 양식 다운로드
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

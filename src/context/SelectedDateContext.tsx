@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { formatLocalDate } from '../utils/date';
+import { getAttendanceDate } from '../utils/date';
 
 interface SelectedDateContextValue {
   selectedDate: string;
@@ -12,7 +12,7 @@ const SelectedDateContext = createContext<SelectedDateContextValue | null>(
 );
 
 export function SelectedDateProvider({ children }: { children: ReactNode }) {
-  const [selectedDate, setSelectedDate] = useState(() => formatLocalDate());
+  const [selectedDate, setSelectedDate] = useState(() => getAttendanceDate());
 
   const value = useMemo(
     () => ({ selectedDate, setSelectedDate }),

@@ -20,6 +20,7 @@ import StudentIcon from './svg/student.svg?react';
 import { apiClient } from '../../lib/api-client';
 import type { MyUserResponse } from '../../types/api';
 import { useSelectedDate } from '../../context/SelectedDateContext';
+import { useAttendanceView } from '../../context/AttendanceViewContext';
 import { getAdjacentDate } from '../../utils/date';
 import { RollingDigits } from '../RollingNumber';
 
@@ -44,7 +45,13 @@ const MENU_ICONS: Record<string, SidebarIcon> = {
 
 export default function Sidebar() {
   const { selectedDate, setSelectedDate } = useSelectedDate();
+  const { markManual } = useAttendanceView();
   const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDateChange = (date: string) => {
+    markManual();
+    setSelectedDate(date);
+  };
 
   const openDatePicker = () => {
     const input = dateInputRef.current;
@@ -110,7 +117,7 @@ export default function Sidebar() {
           type="button"
           className="sidebar-date-arrow"
           aria-label="이전 날짜"
-          onClick={() => setSelectedDate(getAdjacentDate(selectedDate, -1))}
+          onClick={() => handleDateChange(getAdjacentDate(selectedDate, -1))}
         >
           ‹
         </button>
@@ -131,14 +138,14 @@ export default function Sidebar() {
           tabIndex={-1}
           aria-hidden="true"
           onChange={(e) => {
-            if (e.target.value) setSelectedDate(e.target.value);
+            if (e.target.value) handleDateChange(e.target.value);
           }}
         />
         <button
           type="button"
           className="sidebar-date-arrow"
           aria-label="다음 날짜"
-          onClick={() => setSelectedDate(getAdjacentDate(selectedDate, 1))}
+          onClick={() => handleDateChange(getAdjacentDate(selectedDate, 1))}
         >
           ›
         </button>

@@ -5,10 +5,10 @@ import '../styles/Landing.css';
 
 const STORE_LINKS = [
   {
-    name: 'Google Play',
-    url: 'https://play.google.com/store/apps/details?id=com.hs.dgsw.v3.qvick&pcampaignid=web_share'.trim(),
-    badgeSrc: '/store-badges/google-play.svg',
-    badgeAlt: 'Google Play에서 다운로드',
+    name: '원스토어',
+    url: 'https://m.onestore.co.kr/v2/ko-kr/app/0001012452',
+    badgeSrc: '/store-badges/one-store.svg',
+    badgeAlt: '원스토어에서 다운로드',
   },
   {
     name: 'App Store',

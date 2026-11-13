@@ -7,6 +7,8 @@ interface ColorRGB {
   b: number;
 }
 
+const DEFAULT_BACK_COLOR: ColorRGB = { r: 0.5, g: 0, b: 0 };
+
 interface SplashCursorProps {
   className?: string;
   SIM_RESOLUTION?: number;
@@ -74,7 +76,7 @@ export default function SplashCursor({
   SPLAT_FORCE = 6000,
   SHADING = true,
   COLOR_UPDATE_SPEED = 10,
-  BACK_COLOR = { r: 0.5, g: 0, b: 0 },
+  BACK_COLOR = DEFAULT_BACK_COLOR,
   TRANSPARENT = true,
   RAINBOW_MODE = true,
   COLOR = '#ff0000'

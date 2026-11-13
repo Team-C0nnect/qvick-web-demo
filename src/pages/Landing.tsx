@@ -49,9 +49,11 @@ const FAQS = [
 function Reveal({
   children,
   delayed = false,
+  repeat = false,
 }: {
   children: ReactNode;
   delayed?: boolean;
+  repeat?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -64,16 +66,24 @@ function Reveal({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-visible');
-        observer.unobserve(entry.target);
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          if (!repeat) observer.unobserve(entry.target);
+        } else if (
+          repeat &&
+          entry.boundingClientRect.top >=
+            (entry.rootBounds?.bottom ?? window.innerHeight)
+        ) {
+          // Reset below the viewport so scrolling back up replays the exit.
+          entry.target.classList.remove('is-visible');
+        }
       },
-      { threshold: 0.16 },
+      { threshold: 0.16, rootMargin: repeat ? '0px 0px -64px 0px' : '0px' },
     );
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [repeat]);
 
   return (
     <div ref={ref} className={`landing-reveal${delayed ? ' is-delayed' : ''}`}>
@@ -206,7 +216,7 @@ export default function Landing() {
         </section>
 
         <section className="landing-faq" aria-labelledby="faq-title">
-          <Reveal>
+          <Reveal repeat>
             <div className="landing-faq-heading">
               <p className="landing-eyebrow">FAQ</p>
               <h2 id="faq-title">자주 묻는 질문</h2>
@@ -219,7 +229,7 @@ export default function Landing() {
               const answerId = `faq-answer-${index}`;
 
               return (
-                <Reveal delayed={index > 0} key={faq.question}>
+                <Reveal repeat delayed={index > 0} key={faq.question}>
                   <div className="landing-faq-item">
                     <button
                       className={`landing-faq-button${isOpen ? ' is-open' : ''}`}
